@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-16 22:47+0200\n"
+"POT-Creation-Date: 2026-10-16 23:07+0200\n"
 "PO-Revision-Date: 2026-10-16 10:36+0200\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -21,11 +21,11 @@ msgstr ""
 msgid "CPU profile written to"
 msgstr "CPU-Profil geschrieben nach"
 
-#: src/agent/assistant.ts:136
+#: src/agent/assistant.ts:139
 msgid "transfer failed"
 msgstr "Weiterleitung fehlgeschlagen"
 
-#: src/agent/assistant.ts:168
+#: src/agent/assistant.ts:171
 msgid "CPU profile failed"
 msgstr "CPU-Profil fehlgeschlagen"
 
