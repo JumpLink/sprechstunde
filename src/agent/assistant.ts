@@ -166,6 +166,12 @@ export async function runAssistant(ctx: JobContext, profile: Profile): Promise<v
   // The session closes when the caller hangs up, but the job would sit in the room until the
   // room times out; whoever joins that room meanwhile gets a silent agent and no new dispatch.
   session.on(voice.AgentSessionEventTypes.Close, () => {
+    // Upstream (livekit/agents-js 1.9.3, issue #17): RoomIO.close() waits for the first
+    // subscription to the agent's track and ignores the cancel. A caller gone before subscribing
+    // never subscribes, so close hung 60 s. This event fires before RoomIO.close().
+    for (const publication of ctx.room.localParticipant?.trackPublications.values() ?? []) {
+      publication.resolveFirstSubscription();
+    }
     void (async () => {
       // The profile has to be on disk before the shutdown tears the process down.
       await stopCpuProfile?.().catch((error) => console.error(_('CPU profile failed'), error));
