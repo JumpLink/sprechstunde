@@ -56,6 +56,47 @@ test('rejects a file with a bad magic number', () => {
   assert.throws(() => parseMo(Buffer.alloc(32)), /magic/);
 });
 
+/** A .mo with nothing but the header entry: the cheapest way to reach the plural compiler. */
+function moWithHeader(header: string): Buffer {
+  const translation = Buffer.from(header);
+  const head = Buffer.alloc(44);
+  head.writeUInt32LE(0x950412de, 0);
+  head.writeUInt32LE(1, 8);
+  head.writeUInt32LE(28, 12);
+  head.writeUInt32LE(36, 16);
+  head.writeUInt32LE(0, 28);
+  head.writeUInt32LE(44, 32);
+  head.writeUInt32LE(translation.length, 36);
+  head.writeUInt32LE(45, 40);
+  return Buffer.concat([head, Buffer.from([0]), translation, Buffer.from([0])]);
+}
+
+function pluralOf(expression: string): (n: number) => number {
+  return parseMo(moWithHeader(`Plural-Forms: nplurals=3; plural=${expression};\n`)).plural;
+}
+
+test('the plural expression of a header decides the form', () => {
+  const french = pluralOf('(n > 1)');
+  assert.deepEqual([0, 1, 2].map(french), [0, 0, 1]);
+  const negated = pluralOf('!(n == 1)');
+  assert.deepEqual([1, 3].map(negated), [0, 1]);
+});
+
+test('a plural expression with %, && and || keeps C precedence', () => {
+  const russian = pluralOf('n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2');
+  assert.deepEqual([1, 2, 5, 11, 21, 22, 25].map(russian), [0, 1, 2, 2, 0, 1, 2]);
+});
+
+test('a header without a plural rule falls back to the germanic one', () => {
+  const plural = parseMo(moWithHeader('Content-Type: text/plain; charset=UTF-8\n')).plural;
+  assert.deepEqual([1, 2].map(plural), [0, 1]);
+});
+
+test('rejects a plural expression it cannot parse', () => {
+  // The expression is parsed on first use, not when the catalogue loads.
+  assert.throws(() => pluralOf('§')(1), /bad plural expression/);
+});
+
 test('languagesFromEnv prefers LANGUAGE and adds the short form', () => {
   assert.deepEqual(languagesFromEnv({ LANGUAGE: 'de_DE.UTF-8:en', LANG: 'C' }), ['de_DE', 'de', 'en']);
   assert.deepEqual(languagesFromEnv({ LANG: 'C' }), []);
