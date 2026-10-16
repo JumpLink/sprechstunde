@@ -65,6 +65,10 @@ class StallGuardStream extends stt.SpeechStream {
   /** Audio since the last final transcript, i.e. what a stalled utterance consists of. */
   private pending: AudioFrame[] = [];
   private pendingSeconds = 0;
+  /** The inner stream of the current attempt; a retry replaces it under the forwarder. */
+  private child?: stt.SpeechStream;
+  private inputEnded = false;
+  private forwarding?: Promise<void>;
 
   private forget(): void {
     this.pending = [];
@@ -80,23 +84,45 @@ class StallGuardStream extends stt.SpeechStream {
     }
   }
 
+  /**
+   * One forwarder for the whole stream, not one per `run`: on a retry a second reader would
+   * compete for `this.input`, and the frame the old one is already holding would be dropped
+   * instead of reaching the new inner stream.
+   */
+  private async forwardInput(): Promise<void> {
+    for await (const item of this.input) {
+      try {
+        if (item === StallGuardStream.FLUSH_SENTINEL) {
+          this.child?.flush();
+        } else {
+          this.remember(item);
+          this.child?.pushFrame(item);
+        }
+      } catch {
+        // The inner stream is closing and a retry is on its way with a new one.
+      }
+    }
+    this.inputEnded = true;
+    try {
+      this.child?.endInput();
+    } catch {
+      // already ended or closed
+    }
+  }
+
   protected async run(): Promise<void> {
     // Retries belong to this stream (see `mainTask`), so the inner one fails fast.
     const child = this.inner.stream({ connOptions: { maxRetry: 0, retryIntervalMs: 0, timeoutMs: 10_000 } });
-    let finished = false;
-    void (async () => {
-      for await (const item of this.input) {
-        // A retry starts a new run that reads the same input; the old forwarder gives way.
-        if (finished) break;
-        if (item === StallGuardStream.FLUSH_SENTINEL) {
-          child.flush();
-        } else {
-          this.remember(item);
-          child.pushFrame(item);
-        }
+    this.child = child;
+    // A retry that comes after the caller stopped sending audio has to end the new input itself.
+    if (this.inputEnded) {
+      try {
+        child.endInput();
+      } catch {
+        // a stream that refuses input is handled by the loop below like any other failure
       }
-      if (!finished) child.endInput();
-    })().catch(() => {});
+    }
+    this.forwarding ??= this.forwardInput().catch(() => {});
 
     let timer: NodeJS.Timeout | undefined;
     let stalled = false;
@@ -127,7 +153,6 @@ class StallGuardStream extends stt.SpeechStream {
       }
     } finally {
       disarm();
-      finished = true;
       // Neither a failed rescue nor a throwing `close` may replace the `stalled` error below:
       // that error is what moves the fallback on, so losing it leaves the caller with silence.
       await rescuing?.catch(() => {});

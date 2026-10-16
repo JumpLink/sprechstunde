@@ -172,6 +172,23 @@ test('a throwing close does not hide the stall error', async () => {
   assert.match(stream.terminalError?.message ?? '', /no transcript/);
 });
 
+test('a retry does not swallow the next frame', async () => {
+  // The first attempt stalls, LiveKit retries, and the audio that arrives now belongs to the
+  // new inner stream — one forwarder per `run` would have eaten it.
+  const inner = new FakeSTT(null);
+  const guard = new StallGuardSTT(inner, 100, new FakeBatchSTT(''));
+  guard.on('error', () => {});
+  const stream = guard.stream({ connOptions: { maxRetry: 1, retryIntervalMs: 0, timeoutMs: 5000 } });
+  stream.pushFrame(frame());
+  for (let waited = 0; inner.streams.length < 2 && waited < 2000; waited += 20) await sleep(20);
+  assert.equal(inner.streams.length, 2, 'the stalled attempt was never retried');
+  const retried = inner.streams[1]!;
+  stream.pushFrame(frame());
+  for (let waited = 0; retried.frames === 0 && waited < 500; waited += 20) await sleep(20);
+  assert.equal(retried.frames, 1);
+  stream.close();
+});
+
 test('a hang-up mid-utterance ends the stream without an error', async () => {
   // The caller is gone before the transcript arrives: writing it would hit a closed queue.
   const guard = new StallGuardSTT(new FakeSTT('Hallo', { finalAfterMs: 100 }), 5000, new FakeBatchSTT(''));
