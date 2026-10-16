@@ -195,8 +195,13 @@ de-duplicated. Malformed lines are skipped and counted.
 
 ## Not tested yet
 
-- Registration, TLS and SRTP with a real provider (`SIP_PROVIDER_MEDIA_ENCRYPTION=sdes` is a
-  guess).
+- Only one provider so far: 1&1 works with TLS registration, SDES-SRTP (`AES_CM_128_HMAC_SHA1_80`)
+  and inbound calls, over IPv6 from behind a FRITZ!Box (`SIP_PROVIDER_IPV6=yes`). Over IPv4 the
+  router rewrote the RTP source port even for forwarded ports and 1&1 sent no audio; IPv4 behind
+  NAT (`SIP_PUBLIC_ADDRESS`) is therefore unproven, and a host with a public address is untested.
+- 1&1 keeps a registration about two hours, not the requested ten minutes, and allows only a few
+  contacts per number; restarting Asterisk repeatedly ends in `403 too many contacts`.
+- Caller ID on transfer and the called-number format for `SPRECHSTUNDE_TRUNK_NUMBERS`.
 - Transfer: whether LiveKit's REFER reaches Asterisk and Asterisk follows it into `from-livekit`.
   The `from-livekit` pattern now accepts a leading `+` and compares numbers without it; untested.
 - The optional `agent` container (`podman compose --profile agent up`): the image builds and, in
