@@ -80,6 +80,7 @@ could not reach PipeWire); that is an observation on one machine, not a general 
 | `SPRECHSTUNDE_TTS_VOICE` | override the profile's TTS voice |
 | `SPRECHSTUNDE_TTS_REF_AUDIO` | path to an audio file to clone; overrides every other voice setting |
 | `SPRECHSTUNDE_TRUNK_NUMBERS` | comma-separated numbers for the inbound trunk; empty accepts any |
+| `SPRECHSTUNDE_METRICS_DIR` | where latency metrics are written, default `var/metrics` |
 | `SIP_PROVIDER_*`, `TRANSFER_TARGET_NUMBER` | Asterisk's provider registration, see `.env.example` |
 
 ### Profiles
@@ -143,7 +144,9 @@ What the agent does beyond the defaults, and why:
   `QueueOverflow` errors and twice took more than 20 s to deliver a transcript.
 - **Stall rescue:** `StallGuardSTT` also saves the stalled utterance. It buffers the audio since
   the last final transcript (at most 15 s) and transcribes it with the batch model (5 s timeout)
-  before it fails over. A final transcript that arrives late still gets a reply.
+  before it fails over. A final transcript that arrives late still gets a reply. The rescue owns
+  the utterance from the moment it starts: a transcript the realtime stream delivers afterwards is
+  dropped, because it is the same words a second time.
 - **One contiguous frame for batch STT** (`ContiguousSTT`, `src/agent/stt-merge.ts`):
   `mergeFrames` in `@livekit/agents` 1.9.3 is quadratic. On 2026-10-16 it blocked the event loop
   for 12.3 s on about 12 s of audio (`npm run bench:merge-frames`). The wrapper hands the batch
@@ -169,8 +172,9 @@ What the agent does beyond the defaults, and why:
 
 ## Privacy
 
-The agent logs latency metrics to `var/metrics/<date>.jsonl` — numbers, ids and timestamps only.
-It does not store transcripts or caller numbers.
+The agent logs latency metrics to `var/metrics/<date>.jsonl` (`SPRECHSTUNDE_METRICS_DIR`) —
+numbers, ids and timestamps only. A directory it cannot write costs a warning, not the call. It
+does not store transcripts or caller numbers.
 
 ## Not tested yet
 
@@ -182,6 +186,8 @@ It does not store transcripts or caller numbers.
 - The stall guard and the batch fallback are covered by unit tests with fake STTs, not yet by a
   real Mistral outage. The rescue path and `HedgedTTS` are verified only with fakes.
 - The session now shuts the job down when the caller hangs up; untested in a real call.
+- Echo mode closes its audio stream, track and source on shutdown; checked against the rtc-node
+  API, not against a running call.
 - The "no service" prompt is English: Debian packages no German Asterisk core sounds.
 
 ## Development

@@ -79,16 +79,18 @@ export async function prewarm(proc: JobProcess): Promise<void> {
  * `QueueOverflowError`), so fall back to the batch model, segmented by the VAD.
  */
 function buildStt(vad: silero.VAD, language: string): stt.STT {
-  const batch = new ContiguousSTT(new mistral.STT({ model: FALLBACK_STT_MODEL, language }));
+  // Two instances of the same batch model, not one shared: the guard's rescue and the fallback
+  // slot have separate lifecycles (the adapter closes its own instances) and separate metrics.
+  const batch = () => new ContiguousSTT(new mistral.STT({ model: FALLBACK_STT_MODEL, language }));
   return new stt.FallbackAdapter({
     sttInstances: [
       new StallGuardSTT(
         // Without `vad` the plugin loads its own Silero per call, which blocks the event loop.
         new mistral.STT({ model: process.env.SPRECHSTUNDE_STT_MODEL ?? DEFAULT_STT_MODEL, language, vad }),
         STT_STALL_MS,
-        batch,
+        batch(),
       ),
-      batch,
+      batch(),
     ],
     vad,
     retryIntervalMs: 1000,

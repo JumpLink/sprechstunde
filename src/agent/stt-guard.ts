@@ -65,6 +65,15 @@ class StallGuardStream extends stt.SpeechStream {
   /** Audio since the last final transcript, i.e. what a stalled utterance consists of. */
   private pending: AudioFrame[] = [];
   private pendingSeconds = 0;
+  /** The inner stream of the current attempt; a retry replaces it under the forwarder. */
+  private child?: stt.SpeechStream;
+  private inputEnded = false;
+  private forwarding?: Promise<void>;
+
+  private forget(): void {
+    this.pending = [];
+    this.pendingSeconds = 0;
+  }
 
   private remember(frame: AudioFrame): void {
     this.pending.push(frame);
@@ -75,23 +84,45 @@ class StallGuardStream extends stt.SpeechStream {
     }
   }
 
+  /**
+   * One forwarder for the whole stream, not one per `run`: on a retry a second reader would
+   * compete for `this.input`, and the frame the old one is already holding would be dropped
+   * instead of reaching the new inner stream.
+   */
+  private async forwardInput(): Promise<void> {
+    for await (const item of this.input) {
+      try {
+        if (item === StallGuardStream.FLUSH_SENTINEL) {
+          this.child?.flush();
+        } else {
+          this.remember(item);
+          this.child?.pushFrame(item);
+        }
+      } catch {
+        // The inner stream is closing and a retry is on its way with a new one.
+      }
+    }
+    this.inputEnded = true;
+    try {
+      this.child?.endInput();
+    } catch {
+      // already ended or closed
+    }
+  }
+
   protected async run(): Promise<void> {
     // Retries belong to this stream (see `mainTask`), so the inner one fails fast.
     const child = this.inner.stream({ connOptions: { maxRetry: 0, retryIntervalMs: 0, timeoutMs: 10_000 } });
-    let finished = false;
-    void (async () => {
-      for await (const item of this.input) {
-        // A retry starts a new run that reads the same input; the old forwarder gives way.
-        if (finished) break;
-        if (item === StallGuardStream.FLUSH_SENTINEL) {
-          child.flush();
-        } else {
-          this.remember(item);
-          child.pushFrame(item);
-        }
+    this.child = child;
+    // A retry that comes after the caller stopped sending audio has to end the new input itself.
+    if (this.inputEnded) {
+      try {
+        child.endInput();
+      } catch {
+        // a stream that refuses input is handled by the loop below like any other failure
       }
-      if (!finished) child.endInput();
-    })().catch(() => {});
+    }
+    this.forwarding ??= this.forwardInput().catch(() => {});
 
     let timer: NodeJS.Timeout | undefined;
     let stalled = false;
@@ -111,16 +142,25 @@ class StallGuardStream extends stt.SpeechStream {
           }, this.stallMs);
         } else if (event.type === stt.SpeechEventType.FINAL_TRANSCRIPT) {
           disarm();
-          this.pending = [];
-          this.pendingSeconds = 0;
+          this.forget();
         }
-        this.queue.put(event);
+        // The rescue owns the utterance from the moment it starts: a transcript the inner stream
+        // still delivers afterwards would be the same words a second time.
+        if (stalled) continue;
+        // The caller hangs up mid-utterance and this stream is closed while the inner one still
+        // has events in flight; `put` on a closed queue throws.
+        if (!this.queue.closed) this.queue.put(event);
       }
     } finally {
       disarm();
-      finished = true;
-      await rescuing;
-      child.close();
+      // Neither a failed rescue nor a throwing `close` may replace the `stalled` error below:
+      // that error is what moves the fallback on, so losing it leaves the caller with silence.
+      await rescuing?.catch(() => {});
+      try {
+        child.close();
+      } catch {
+        // already closed by the rescue, or the provider stream fails its own cleanup
+      }
     }
     if (stalled) throw new APIConnectionError({ message: `no transcript ${this.stallMs} ms after end of speech` });
     if (child._failed) {
@@ -133,8 +173,9 @@ class StallGuardStream extends stt.SpeechStream {
     if (this.pending.length === 0) return;
     try {
       const event = await this.rescue.recognize(this.pending.slice(), AbortSignal.timeout(RESCUE_TIMEOUT_MS));
+      this.forget();
       const text = event.alternatives?.[0]?.text.trim();
-      if (text) this.queue.put({ ...event, type: stt.SpeechEventType.FINAL_TRANSCRIPT });
+      if (text && !this.queue.closed) this.queue.put({ ...event, type: stt.SpeechEventType.FINAL_TRANSCRIPT });
     } catch {
       // Same outcome as without a rescue: the stall error below moves the fallback on.
     }
