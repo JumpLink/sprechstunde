@@ -210,7 +210,10 @@ de-duplicated. Malformed lines are skipped and counted.
 - 1&1 keeps a registration about two hours, not the requested ten minutes, and allows only a few
   contacts per number. Unregistering on stop is verified with `sip:contacts`; a killed container
   still leaves its contact behind.
-- Caller ID on transfer and the called-number format for `SPRECHSTUNDE_TRUNK_NUMBERS`.
+- The called-number format for `SPRECHSTUNDE_TRUNK_NUMBERS`.
+- On a transfer over 1&1 the target sees the assistant's own number, not the caller's. Whether
+  Asterisk sends it or 1&1 replaces whatever Asterisk sends is not checked; passing the caller's
+  number through would need the provider to allow it.
 - Transfer reached a real mobile over 1&1 once, and only its voicemail: the REFER goes to
   `sip:<TRANSFER_TARGET_NUMBER>@TRANSFER_SIP_HOST`, because Asterisk answers a `tel:` target with
   400. A person answering, and what the caller hears meanwhile, are untested.
