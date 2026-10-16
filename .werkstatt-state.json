@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "name": "sprechstunde",
+  "description": "Local state files of sprechstunde that are not in the repo.",
+
+  "entries": [
+    {
+      "path": ".env",
+      "class": "secret",
+      "recreate": "Copy .env.example and fill in: LiveKit dev key/secret (any random pair, must match compose config), MISTRAL_API_KEY from console.mistral.ai, SIP credentials from the provider's control center."
+    },
+    {
+      "path": "node_modules",
+      "class": "derived",
+      "recreate": "`npm ci`"
+    },
+    {
+      "path": "dist",
+      "class": "derived",
+      "recreate": "`npm run build` and `bash dev/i18n.sh compile`"
+    },
+    {
+      "path": "var",
+      "class": "derived",
+      "recreate": "Test output only: latency metrics (JSONL, numbers only), TTS samples (`npm run tts:try`), voice reference clips (`dev/record-voice.sh` re-records one, `dev/fetch-thorsten-sample.sh` re-downloads the CC0 clip). Losing it loses old measurements and one's own recording, nothing else."
+    },
+    {
+      "path": "console-recordings",
+      "class": "derived",
+      "recreate": "Written only by `lk agent console --record`: audio and session reports of test conversations. Throwaway; delete after review, never back it up."
+    }
+  ]
+}

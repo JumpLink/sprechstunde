@@ -1,0 +1,71 @@
+# Local telephony stack: provider <-TLS-> Asterisk <-UDP-> LiveKit SIP <-> LiveKit server <-> agent.
+# Everything runs with host networking and binds to 127.0.0.1 (except Asterisk's provider leg).
+# Ports: livekit 7880/7881 + udp 50000-50100, sip 5060 + rtp 10000-10100,
+#        asterisk 5070 + rtp 12000-12100, redis 6379.
+services:
+  redis:
+    image: docker.io/valkey/valkey:8.1.10-trixie
+    network_mode: host
+    command: ["valkey-server", "--bind", "127.0.0.1", "--port", "6379", "--save", "", "--appendonly", "no"]
+    restart: unless-stopped
+
+  livekit:
+    image: docker.io/livekit/livekit-server:v1.13.10
+    network_mode: host
+    command: ["--config", "/etc/livekit.yaml"]
+    environment:
+      LIVEKIT_KEYS: "${LIVEKIT_API_KEY:?set LIVEKIT_API_KEY in .env}: ${LIVEKIT_API_SECRET:?set LIVEKIT_API_SECRET in .env}"
+    volumes:
+      - ./deploy/livekit.yaml:/etc/livekit.yaml:ro,z
+    depends_on: [redis]
+    restart: unless-stopped
+
+  sip:
+    image: docker.io/livekit/sip:v1.19.0
+    network_mode: host
+    environment:
+      LIVEKIT_WS_URL: ws://127.0.0.1:7880
+      LIVEKIT_API_KEY: "${LIVEKIT_API_KEY:?set LIVEKIT_API_KEY in .env}"
+      LIVEKIT_API_SECRET: "${LIVEKIT_API_SECRET:?set LIVEKIT_API_SECRET in .env}"
+    volumes:
+      - ./deploy/sip.yaml:/sip/config.yaml:ro,z  # the image's entrypoint hardcodes --config=/sip/config.yaml
+    depends_on: [redis, livekit]
+    restart: unless-stopped
+
+  asterisk:
+    build:
+      context: ./deploy/asterisk
+      dockerfile: Containerfile
+    image: localhost/sprechstunde-asterisk:22.10.1
+    network_mode: host
+    # Not `:?` — that would block `up redis livekit` without telephony credentials.
+    # entrypoint.sh refuses to start when one is missing.
+    environment:
+      SIP_PROVIDER_HOST: "${SIP_PROVIDER_HOST:-}"
+      SIP_PROVIDER_DOMAIN: "${SIP_PROVIDER_DOMAIN:-}"
+      SIP_PROVIDER_USER: "${SIP_PROVIDER_USER:-}"
+      SIP_PROVIDER_PASSWORD: "${SIP_PROVIDER_PASSWORD:-}"
+      SIP_PROVIDER_NUMBER: "${SIP_PROVIDER_NUMBER:-}"
+      SIP_PROVIDER_MEDIA_ENCRYPTION: "${SIP_PROVIDER_MEDIA_ENCRYPTION:-sdes}"
+      TRANSFER_TARGET_NUMBER: "${TRANSFER_TARGET_NUMBER:-}"
+    depends_on: [sip]
+    restart: unless-stopped
+
+  # Optional: run the agent in a container instead of `npm run agent:dev` on the host.
+  agent:
+    profiles: ["agent"]
+    build:
+      context: .
+      dockerfile: Containerfile
+    image: localhost/sprechstunde-agent:0.1.0
+    network_mode: host
+    environment:
+      LIVEKIT_URL: "${LIVEKIT_URL:-ws://127.0.0.1:7880}"
+      LIVEKIT_API_KEY: "${LIVEKIT_API_KEY:?set LIVEKIT_API_KEY in .env}"
+      LIVEKIT_API_SECRET: "${LIVEKIT_API_SECRET:?set LIVEKIT_API_SECRET in .env}"
+      MISTRAL_API_KEY: "${MISTRAL_API_KEY:-}"
+      SPRECHSTUNDE_PROFILE: "${SPRECHSTUNDE_PROFILE:-}"
+      SPRECHSTUNDE_MODE: "${SPRECHSTUNDE_MODE:-echo}"
+      TRANSFER_TARGET_NUMBER: "${TRANSFER_TARGET_NUMBER:-}"
+    depends_on: [livekit]
+    restart: unless-stopped

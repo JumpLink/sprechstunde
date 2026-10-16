@@ -1,0 +1,43 @@
+{
+  "name": "sprechstunde",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Voice assistant core for restaurant phone lines, built on LiveKit Agents",
+  "license": "Apache-2.0",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "test": "node --import tsx --test 'src/**/*.test.ts'",
+    "agent:dev": "tsx --env-file-if-exists=.env src/agent/main.ts dev",
+    "agent:dev:prof": "SPRECHSTUNDE_CPU_PROF=1 tsx --env-file-if-exists=.env src/agent/main.ts dev",
+    "bench:merge-frames": "node dev/merge-frames-bench.mjs",
+    "agent:start": "node --env-file-if-exists=.env dist/agent/main.js start",
+    "provision": "tsx --env-file-if-exists=.env src/cli/provision.ts",
+    "tts:try": "tsx --env-file-if-exists=.env src/cli/tts-try.ts",
+    "stt:try": "tsx --env-file-if-exists=.env src/cli/stt-try.ts",
+    "voice": "tsx --env-file-if-exists=.env src/cli/voice.ts",
+    "i18n:extract": "bash dev/i18n.sh extract",
+    "i18n:compile": "bash dev/i18n.sh compile",
+    "stack:up": "podman compose up -d",
+    "stack:down": "podman compose down",
+    "stack:logs": "podman compose logs -f"
+  },
+  "dependencies": {
+    "@livekit/agents": "^1.9.3",
+    "@livekit/agents-plugin-livekit": "^1.9.3",
+    "@livekit/agents-plugin-mistralai": "^1.9.3",
+    "@livekit/agents-plugin-silero": "^1.9.3",
+    "@livekit/rtc-node": "^1.1.0",
+    "@mistralai/mistralai": "^2.7.0",
+    "livekit-server-sdk": "^2.19.1"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
+  }
+}

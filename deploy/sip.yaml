@@ -1,0 +1,9 @@
+# LiveKit SIP bridge. api_key/api_secret/ws_url come from the env vars
+# LIVEKIT_API_KEY, LIVEKIT_API_SECRET and LIVEKIT_WS_URL (see compose.yaml).
+redis:
+  address: 127.0.0.1:6379
+sip_port: 5060
+listen_ip: 127.0.0.1
+rtp_port: 10000-10100
+use_external_ip: false
+log_level: info

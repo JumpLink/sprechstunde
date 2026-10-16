@@ -1,0 +1,131 @@
+# German translations for sprechstunde package.
+# Copyright (C) 2026 THE sprechstunde'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the sprechstunde package.
+# Automatically generated, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: sprechstunde\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-10-16 13:37+0200\n"
+"PO-Revision-Date: 2026-10-16 10:36+0200\n"
+"Last-Translator: Automatically generated\n"
+"Language-Team: none\n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: src/agent/assistant.ts:69
+msgid "CPU profile written to"
+msgstr "CPU-Profil geschrieben nach"
+
+#: src/agent/assistant.ts:131
+msgid "transfer failed"
+msgstr "Weiterleitung fehlgeschlagen"
+
+#: src/agent/assistant.ts:159
+msgid "CPU profile failed"
+msgstr "CPU-Profil fehlgeschlagen"
+
+#: src/agent/echo.ts:24
+msgid "echo mode: waiting for audio from the caller"
+msgstr "Echo-Modus: warte auf Audio vom Anrufer"
+
+#: src/agent/main.ts:19
+msgid "starting assistant with profile"
+msgstr "Assistent startet mit Profil"
+
+#: src/agent/transfer.ts:18
+msgid "LIVEKIT_URL, LIVEKIT_API_KEY and LIVEKIT_API_SECRET must be set"
+msgstr ""
+"LIVEKIT_URL, LIVEKIT_API_KEY und LIVEKIT_API_SECRET müssen gesetzt sein"
+
+#: src/cli/provision.ts:10 src/cli/stt-try.ts:95 src/cli/tts-try.ts:107
+#: src/cli/voice.ts:11
+#, javascript-format
+msgid "%s must be set"
+msgstr "%s muss gesetzt sein"
+
+#: src/cli/provision.ts:29
+msgid "Inbound trunk exists:"
+msgstr "Eingehender Trunk vorhanden:"
+
+#: src/cli/provision.ts:34
+msgid "Inbound trunk created:"
+msgstr "Eingehender Trunk angelegt:"
+
+#: src/cli/provision.ts:40
+msgid "Dispatch rule exists:"
+msgstr "Dispatch-Regel vorhanden:"
+
+#: src/cli/provision.ts:51
+msgid "Dispatch rule created:"
+msgstr "Dispatch-Regel angelegt:"
+
+#: src/cli/stt-try.ts:55
+msgid "connection closed before the transcript was done"
+msgstr "Verbindung geschlossen, bevor das Transkript fertig war"
+
+#: src/cli/stt-try.ts:93
+msgid "usage: stt-try <audio file> [--delay ms]... [--repeat n]"
+msgstr "Aufruf: stt-try <Audiodatei> [--delay ms]... [--repeat n]"
+
+#: src/cli/stt-try.ts:103
+msgid "target delay"
+msgstr "Zielverzögerung"
+
+#: src/cli/stt-try.ts:103
+msgid "final ms (median)"
+msgstr "final ms (Median)"
+
+#: src/cli/stt-try.ts:103 src/cli/tts-try.ts:129
+msgid "max ms"
+msgstr "max. ms"
+
+#: src/cli/stt-try.ts:103
+msgid "text"
+msgstr "Text"
+
+#: src/cli/stt-try.ts:110 src/cli/tts-try.ts:153
+msgid "failed:"
+msgstr "fehlgeschlagen:"
+
+#: src/cli/tts-try.ts:67
+msgid "no audio received"
+msgstr "kein Audio empfangen"
+
+#: src/cli/tts-try.ts:129
+msgid "voice"
+msgstr "Stimme"
+
+#: src/cli/tts-try.ts:129
+msgid "first audio ms"
+msgstr "erstes Audio ms"
+
+#: src/cli/tts-try.ts:129
+msgid "total ms"
+msgstr "gesamt ms"
+
+#: src/cli/tts-try.ts:129
+msgid "file"
+msgstr "Datei"
+
+#: src/cli/voice.ts:24
+#, javascript-format
+msgid "created voice %s"
+msgstr "Stimme %s angelegt"
+
+#: src/cli/voice.ts:25
+#, javascript-format
+msgid ""
+"use it with SPRECHSTUNDE_TTS_VOICE=%s or \"voice\": { \"ttsVoice\": \"%s\" }"
+msgstr ""
+"verwenden mit SPRECHSTUNDE_TTS_VOICE=%s oder \"voice\": { \"ttsVoice\": "
+"\"%s\" }"
+
+#: src/cli/voice.ts:39
+#, javascript-format
+msgid "deleted voice %s"
+msgstr "Stimme %s gelöscht"
