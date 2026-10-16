@@ -143,6 +143,17 @@ test('the stall guard rescues the stalled utterance with the batch STT', async (
   assert.ok(rescue.frames >= 1);
 });
 
+test('a throwing close does not hide the stall error', async () => {
+  // Only the stall error makes LiveKit reconnect and the fallback move on.
+  const guard = new StallGuardSTT(new FakeSTT(null, { closeThrows: true }), 150, new FakeBatchSTT(null));
+  guard.on('error', () => {});
+  const stream = guard.stream({ connOptions: { maxRetry: 0, retryIntervalMs: 0, timeoutMs: 5000 } });
+  stream.pushFrame(frame());
+  const seen: stt.SpeechEvent[] = [];
+  for await (const event of stream) seen.push(event);
+  assert.match(stream.terminalError?.message ?? '', /no transcript/);
+});
+
 test('a hang-up mid-utterance ends the stream without an error', async () => {
   // The caller is gone before the transcript arrives: writing it would hit a closed queue.
   const guard = new StallGuardSTT(new FakeSTT('Hallo', { finalAfterMs: 100 }), 5000, new FakeBatchSTT(''));

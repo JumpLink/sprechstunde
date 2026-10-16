@@ -121,8 +121,14 @@ class StallGuardStream extends stt.SpeechStream {
     } finally {
       disarm();
       finished = true;
-      await rescuing;
-      child.close();
+      // Neither a failed rescue nor a throwing `close` may replace the `stalled` error below:
+      // that error is what moves the fallback on, so losing it leaves the caller with silence.
+      await rescuing?.catch(() => {});
+      try {
+        child.close();
+      } catch {
+        // already closed by the rescue, or the provider stream fails its own cleanup
+      }
     }
     if (stalled) throw new APIConnectionError({ message: `no transcript ${this.stallMs} ms after end of speech` });
     if (child._failed) {
