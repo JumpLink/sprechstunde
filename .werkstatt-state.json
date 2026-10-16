@@ -7,6 +7,7 @@
     {
       "path": ".env",
       "class": "secret",
+      "why": "Holds the Mistral API key and the SIP trunk password. Neither can be read back from the provider; losing the file means issuing new keys and a new SIP password, and the agent cannot reach any model or line until then.",
       "recreate": "Copy .env.example and fill in: LiveKit dev key/secret (any random pair, must match compose config), MISTRAL_API_KEY from console.mistral.ai, SIP credentials from the provider's control center."
     },
     {
