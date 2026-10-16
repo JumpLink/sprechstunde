@@ -7,6 +7,7 @@ src/agent/stt-merge.ts
 src/agent/transfer.ts
 src/agent/tts-hedge.ts
 src/agent/tts-voice.ts
+src/cli/metrics.ts
 src/cli/provision.ts
 src/cli/stt-try.ts
 src/cli/tts-try.ts
@@ -14,5 +15,6 @@ src/cli/voice.ts
 src/core/audio.ts
 src/core/profile.ts
 src/core/prompt.ts
+src/core/stats.ts
 src/core/tools.ts
 src/i18n.ts
