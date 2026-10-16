@@ -50,9 +50,7 @@ async function synthesize(
     input: text,
     responseFormat: 'pcm',
     stream: true,
-    ...(target.refAudioPath
-      ? { refAudio: refAudioFromFile(target.refAudioPath) }
-      : { voiceId: target.voiceId }),
+    ...(target.refAudioPath ? { refAudio: refAudioFromFile(target.refAudioPath) } : { voiceId: target.voiceId }),
   });
 
   const chunks: Uint8Array[] = [];

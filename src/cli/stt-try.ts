@@ -10,9 +10,13 @@ const DEFAULT_MODEL = 'voxtral-mini-transcribe-realtime-2602';
 
 /** Decode any audio file to 16 kHz mono s16le, the format the agent streams to Mistral. */
 function decode(path: string): Buffer {
-  return execFileSync('ffmpeg', ['-v', 'error', '-i', path, '-ac', '1', '-ar', String(SAMPLE_RATE), '-f', 's16le', '-'], {
-    maxBuffer: 64 * 1024 * 1024,
-  });
+  return execFileSync(
+    'ffmpeg',
+    ['-v', 'error', '-i', path, '-ac', '1', '-ar', String(SAMPLE_RATE), '-f', 's16le', '-'],
+    {
+      maxBuffer: 64 * 1024 * 1024,
+    },
+  );
 }
 
 function median(values: number[]): number {
@@ -100,7 +104,9 @@ async function main(): Promise<void> {
   const repeat = Math.max(1, Number.parseInt(values.repeat ?? '3', 10) || 3);
   const delays: (number | undefined)[] = [undefined, ...(values.delay ?? []).map((d) => Number.parseInt(d, 10))];
 
-  console.log(`${_('target delay').padEnd(14)} ${_('final ms (median)').padStart(18)} ${_('max ms').padStart(8)}  ${_('text')}`);
+  console.log(
+    `${_('target delay').padEnd(14)} ${_('final ms (median)').padStart(18)} ${_('max ms').padStart(8)}  ${_('text')}`,
+  );
   for (const delay of delays) {
     const runs: Run[] = [];
     for (let i = 0; i < repeat; i++) {
@@ -114,7 +120,9 @@ async function main(): Promise<void> {
     const label = delay === undefined ? `default (${runs[0]!.defaultDelayMs ?? '?'})` : String(delay);
     const finals = runs.map((run) => run.finalMs);
     console.log(
-      `${label.padEnd(14)} ${median(finals).toFixed(0).padStart(18)} ${Math.max(...finals).toFixed(0).padStart(8)}  ${runs[0]!.text.trim().slice(0, 70)}`,
+      `${label.padEnd(14)} ${median(finals).toFixed(0).padStart(18)} ${Math.max(...finals)
+        .toFixed(0)
+        .padStart(8)}  ${runs[0]!.text.trim().slice(0, 70)}`,
     );
   }
 }

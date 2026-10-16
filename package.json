@@ -11,6 +11,9 @@
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",
+    "lint": "oxlint",
+    "format": "oxfmt",
+    "format:check": "oxfmt --check",
     "test": "node --import tsx --test 'src/**/*.test.ts'",
     "agent:dev": "tsx --env-file-if-exists=.env src/agent/main.ts dev",
     "agent:dev:prof": "SPRECHSTUNDE_CPU_PROF=1 tsx --env-file-if-exists=.env src/agent/main.ts dev",
@@ -37,6 +40,8 @@
   },
   "devDependencies": {
     "@types/node": "^26.6.5",
+    "oxfmt": "^0.64.0",
+    "oxlint": "^1.88.0",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2"
   }

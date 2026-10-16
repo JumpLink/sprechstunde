@@ -6,11 +6,7 @@ export function httpUrl(url: string): string {
   return url.replace(/^wss:/, 'https:').replace(/^ws:/, 'http:');
 }
 
-export async function transferSipParticipant(
-  room: string,
-  identity: string,
-  target: string,
-): Promise<void> {
+export async function transferSipParticipant(room: string, identity: string, target: string): Promise<void> {
   const url = process.env.LIVEKIT_URL;
   const key = process.env.LIVEKIT_API_KEY;
   const secret = process.env.LIVEKIT_API_SECRET;

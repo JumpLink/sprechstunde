@@ -22,13 +22,17 @@ async function main(): Promise<void> {
         sampleFilename: basename(file),
       });
       console.log(_('created voice %s').replace('%s', voice.id));
-      console.log(_('use it with SPRECHSTUNDE_TTS_VOICE=%s or "voice": { "ttsVoice": "%s" }').replaceAll('%s', voice.id));
+      console.log(
+        _('use it with SPRECHSTUNDE_TTS_VOICE=%s or "voice": { "ttsVoice": "%s" }').replaceAll('%s', voice.id),
+      );
       break;
     }
     case 'list': {
       const { items } = await client.audio.voices.list({ type: 'custom' });
       for (const voice of items) {
-        console.log(`${voice.id}  ${voice.name}  ${(voice.languages ?? []).join(',')}  ${voice.createdAt.toISOString()}`);
+        console.log(
+          `${voice.id}  ${voice.name}  ${(voice.languages ?? []).join(',')}  ${voice.createdAt.toISOString()}`,
+        );
       }
       break;
     }
