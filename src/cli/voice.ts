@@ -3,7 +3,8 @@ import { Mistral } from '@mistralai/mistralai';
 import { refAudioFromFile } from '../agent/tts-voice.js';
 import { _ } from '../i18n.js';
 
-const USAGE = 'voice create <name> <audio file> [language] | voice list | voice delete <id>';
+/** A function, not a constant: the catalogue is only loaded once the process has a locale. */
+const usage = () => _('usage: voice create <name> <audio file> [language] | voice list | voice delete <id>');
 
 async function main(): Promise<void> {
   const [command, ...args] = process.argv.slice(2);
@@ -14,7 +15,7 @@ async function main(): Promise<void> {
   switch (command) {
     case 'create': {
       const [name, file, language = 'de'] = args;
-      if (!name || !file) throw new Error(USAGE);
+      if (!name || !file) throw new Error(usage());
       const voice = await client.audio.voices.create({
         name,
         languages: [language],
@@ -38,13 +39,13 @@ async function main(): Promise<void> {
     }
     case 'delete': {
       const [voiceId] = args;
-      if (!voiceId) throw new Error(USAGE);
+      if (!voiceId) throw new Error(usage());
       await client.audio.voices.delete({ voiceId });
       console.log(_('deleted voice %s').replace('%s', voiceId));
       break;
     }
     default:
-      throw new Error(USAGE);
+      throw new Error(usage());
   }
 }
 
