@@ -183,7 +183,9 @@ does not store transcripts or caller numbers.
   guess).
 - Transfer: whether LiveKit's REFER reaches Asterisk and Asterisk follows it into `from-livekit`.
   The `from-livekit` pattern now accepts a leading `+` and compares numbers without it; untested.
-- The optional `agent` container (`podman compose --profile agent up`) builds but has not run.
+- The optional `agent` container (`podman compose --profile agent up`): the image builds and, in
+  assistant mode, starts and registers as a worker with LiveKit (turn-detector files found, metrics
+  directory writable, German catalogue present). No call has gone through it.
 - The stall guard and the batch fallback are covered by unit tests with fake STTs, not yet by a
   real Mistral outage. The rescue path and `HedgedTTS` are verified only with fakes.
 - The session now shuts the job down when the caller hangs up; untested in a real call.

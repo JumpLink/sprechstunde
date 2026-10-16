@@ -86,7 +86,7 @@ function buildStt(vad: silero.VAD, language: string): stt.STT {
     sttInstances: [
       new StallGuardSTT(
         // Without `vad` the plugin loads its own Silero per call, which blocks the event loop.
-        new mistral.STT({ model: process.env.SPRECHSTUNDE_STT_MODEL ?? DEFAULT_STT_MODEL, language, vad }),
+        new mistral.STT({ model: process.env.SPRECHSTUNDE_STT_MODEL || DEFAULT_STT_MODEL, language, vad }),
         STT_STALL_MS,
         batch(),
       ),
@@ -99,7 +99,7 @@ function buildStt(vad: silero.VAD, language: string): stt.STT {
 
 function buildTts(profile: Profile): tts.TTS {
   const base = new mistral.TTS({
-    model: process.env.SPRECHSTUNDE_TTS_MODEL ?? DEFAULT_TTS_MODEL,
+    model: process.env.SPRECHSTUNDE_TTS_MODEL || DEFAULT_TTS_MODEL,
     ...resolveTtsVoice(profile),
   });
   return new tts.StreamAdapter(
@@ -145,7 +145,7 @@ export async function runAssistant(ctx: JobContext, profile: Profile): Promise<v
   const session = new voice.AgentSession({
     vad,
     stt: buildStt(vad, profile.locale.split('-')[0]!),
-    llm: new mistral.LLM({ model: process.env.SPRECHSTUNDE_LLM_MODEL ?? DEFAULT_LLM_MODEL }),
+    llm: new mistral.LLM({ model: process.env.SPRECHSTUNDE_LLM_MODEL || DEFAULT_LLM_MODEL }),
     tts: buildTts(profile),
     turnHandling: {
       turnDetection: new livekit.turnDetector.MultilingualModel(),
