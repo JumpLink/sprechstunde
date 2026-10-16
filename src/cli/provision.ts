@@ -36,15 +36,23 @@ async function main(): Promise<void> {
 
   const rules = await client.listSipDispatchRule();
   const rule = rules.find((candidate) => candidate.name === RULE_NAME);
-  if (rule) {
+  if (rule?.hidePhoneNumber) {
     console.log(_('Dispatch rule exists:'), rule.sipDispatchRuleId);
     return;
+  }
+  // Rules from before hidePhoneNumber carry the caller's number into room names and logs; the
+  // field cannot be updated in place.
+  if (rule) {
+    await client.deleteSipDispatchRule(rule.sipDispatchRuleId);
+    console.log(_('Dispatch rule replaced:'), rule.sipDispatchRuleId);
   }
   const created = await client.createSipDispatchRule(
     { type: 'individual', roomPrefix: 'call-' },
     {
       name: RULE_NAME,
       trunkIds: [trunk.sipTrunkId],
+      // Room names, participant identity and logs get the last four digits and a hash instead.
+      hidePhoneNumber: true,
       roomConfig: new RoomConfiguration({ agents: [new RoomAgentDispatch({ agentName })] }),
     },
   );

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-16 19:18+0200\n"
+"POT-Creation-Date: 2026-10-16 22:47+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -119,8 +119,8 @@ msgstr ""
 msgid "skipped malformed lines: %s"
 msgstr ""
 
-#: src/cli/provision.ts:10 src/cli/stt-try.ts:99 src/cli/tts-try.ts:105
-#: src/cli/voice.ts:12
+#: src/cli/provision.ts:10 src/cli/sip-contacts.ts:18 src/cli/stt-try.ts:99
+#: src/cli/tts-try.ts:105 src/cli/voice.ts:12
 #, javascript-format
 msgid "%s must be set"
 msgstr ""
@@ -137,8 +137,42 @@ msgstr ""
 msgid "Dispatch rule exists:"
 msgstr ""
 
-#: src/cli/provision.ts:51
+#: src/cli/provision.ts:47
+msgid "Dispatch rule replaced:"
+msgstr ""
+
+#: src/cli/provision.ts:59
 msgid "Dispatch rule created:"
+msgstr ""
+
+#: src/cli/sip-contacts.ts:25
+msgid "usage: sip-contacts [list|clear] [--ipv4|--ipv6]"
+msgstr ""
+
+#: src/cli/sip-contacts.ts:26
+msgid ""
+"Asks the provider registrar how many contacts it holds for SIP_PROVIDER_USER."
+msgstr ""
+
+#: src/cli/sip-contacts.ts:27
+msgid ""
+"  clear   remove every contact (REGISTER with Contact: * and Expires: 0)"
+msgstr ""
+
+#: src/cli/sip-contacts.ts:28
+msgid "  --ipv4, --ipv6  address family; default follows SIP_PROVIDER_IPV6"
+msgstr ""
+
+#: src/cli/sip-contacts.ts:29
+msgid "Prints only status lines and counts, never contact addresses."
+msgstr ""
+
+#: src/cli/sip-contacts.ts:57
+msgid "no answer from the registrar"
+msgstr ""
+
+#: src/cli/sip-contacts.ts:116
+msgid "Contacts registered:"
 msgstr ""
 
 #: src/cli/stt-try.ts:59

@@ -9,6 +9,7 @@ src/agent/tts-hedge.ts
 src/agent/tts-voice.ts
 src/cli/metrics.ts
 src/cli/provision.ts
+src/cli/sip-contacts.ts
 src/cli/stt-try.ts
 src/cli/tts-try.ts
 src/cli/voice.ts
@@ -18,3 +19,4 @@ src/core/prompt.ts
 src/core/stats.ts
 src/core/tools.ts
 src/i18n.ts
+src/sip/register.ts
