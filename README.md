@@ -87,7 +87,7 @@ could not reach PipeWire); that is an observation on one machine, not a general 
 | `SPRECHSTUNDE_TTS_REF_AUDIO` | path to an audio file to clone; overrides every other voice setting |
 | `SPRECHSTUNDE_TRUNK_NUMBERS` | comma-separated numbers for the inbound trunk; empty accepts any |
 | `SPRECHSTUNDE_METRICS_DIR` | where latency metrics are written, default `var/metrics` |
-| `SIP_PROVIDER_*`, `TRANSFER_TARGET_NUMBER` | Asterisk's provider registration, see `.env.example` |
+| `SIP_PROVIDER_*`, `TRANSFER_TARGET_NUMBER`, `TRANSFER_SIP_HOST` | Asterisk's provider registration and the one number a call may be transferred to; it replaces the profile's `transfer.target` — see `.env.example` |
 
 ### Profiles
 
@@ -211,8 +211,9 @@ de-duplicated. Malformed lines are skipped and counted.
   contacts per number. Unregistering on stop is verified with `sip:contacts`; a killed container
   still leaves its contact behind.
 - Caller ID on transfer and the called-number format for `SPRECHSTUNDE_TRUNK_NUMBERS`.
-- Transfer: whether LiveKit's REFER reaches Asterisk and Asterisk follows it into `from-livekit`.
-  The `from-livekit` pattern now accepts a leading `+` and compares numbers without it; untested.
+- Transfer reached a real mobile over 1&1 once, and only its voicemail: the REFER goes to
+  `sip:<TRANSFER_TARGET_NUMBER>@TRANSFER_SIP_HOST`, because Asterisk answers a `tel:` target with
+  400. A person answering, and what the caller hears meanwhile, are untested.
 - The optional `agent` container (`podman compose --profile agent up`): the image builds and, in
   assistant mode, starts and registers as a worker with LiveKit (turn-detector files found, metrics
   directory writable, German catalogue present). No call has gone through it.
