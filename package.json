@@ -15,6 +15,7 @@
     "format": "oxfmt",
     "format:check": "oxfmt --check",
     "test": "node --import tsx --test 'src/**/*.test.ts'",
+    "download-files": "tsx --env-file-if-exists=.env src/agent/main.ts download-files",
     "agent:dev": "tsx --env-file-if-exists=.env src/agent/main.ts dev",
     "agent:dev:prof": "SPRECHSTUNDE_CPU_PROF=1 tsx --env-file-if-exists=.env src/agent/main.ts dev",
     "bench:merge-frames": "node dev/merge-frames-bench.mjs",

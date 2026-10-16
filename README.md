@@ -35,8 +35,9 @@ SPRECHSTUNDE_MODE=echo npm run agent:dev
 `SPRECHSTUNDE_MODE=echo` needs no AI key: the agent plays back what it hears, which tests the
 audio path end to end. `assistant` (the default) needs `MISTRAL_API_KEY`.
 
-Before the first `assistant` run the turn-detector model must be downloaded once:
-`npx tsx src/agent/main.ts download-files`.
+Before the first `assistant` run, and again after every `npm ci`, download the turn-detector model:
+`npm run download-files`. Part of it (the tokenizer) lands inside `node_modules`, so a clean
+install deletes it and the agent then fails at start with "Required model files not found locally".
 
 ### Without a phone or a LiveKit server
 
