@@ -89,8 +89,13 @@ test('loadProfile resolves refAudio against the profile file', () => {
 test('transferRequest: a configured number replaces the profile target', () => {
   const profile = loadProfile();
   assert.equal(transferRequest(profile)?.target, profile.transfer?.target);
-  assert.equal(transferRequest(profile, '+4930123')?.target, 'tel:+4930123');
-  assert.equal(transferRequest(profile, '+4930123')?.announce, profile.transfer?.announce);
-  assert.throws(() => transferRequest(profile, 'sip:x@y'));
-  assert.equal(transferRequest({ ...profile, transfer: undefined }, '+4930123'), null);
+  assert.equal(transferRequest(profile, { number: '+4930123' })?.target, 'tel:+4930123');
+  assert.equal(
+    transferRequest(profile, { number: '+4930123', sipHost: '127.0.0.1:5070' })?.target,
+    'sip:+4930123@127.0.0.1:5070',
+  );
+  assert.equal(transferRequest(profile, { sipHost: 'x' })?.target, profile.transfer?.target);
+  assert.equal(transferRequest(profile, { number: '+4930123' })?.announce, profile.transfer?.announce);
+  assert.throws(() => transferRequest(profile, { number: 'sip:x@y' }));
+  assert.equal(transferRequest({ ...profile, transfer: undefined }, { number: '+4930123' }), null);
 });

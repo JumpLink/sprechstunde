@@ -124,7 +124,10 @@ export async function runAssistant(ctx: JobContext, profile: Profile): Promise<v
     transfer_to_human: llm.tool({
       description: 'Transfer the call to a person. Only call this after the caller agreed.',
       execute: async (_args, opts) => {
-        const request = transferRequest(profile, process.env.TRANSFER_TARGET_NUMBER || undefined);
+        const request = transferRequest(profile, {
+          number: process.env.TRANSFER_TARGET_NUMBER || undefined,
+          sipHost: process.env.TRANSFER_SIP_HOST || '127.0.0.1:5070',
+        });
         if (!request) return 'Transfer is not available.';
         if (participant?.kind !== ParticipantKind.SIP) {
           return 'Transfer is only available for phone calls. Say that you cannot connect the caller now and offer nothing else instead.';
