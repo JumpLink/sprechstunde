@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-16 14:33+0200\n"
+"POT-Creation-Date: 2026-10-16 17:51+0200\n"
 "PO-Revision-Date: 2026-10-16 10:36+0200\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -50,6 +50,86 @@ msgstr "Metriken können nicht nach %s geschrieben werden"
 msgid "LIVEKIT_URL, LIVEKIT_API_KEY and LIVEKIT_API_SECRET must be set"
 msgstr ""
 "LIVEKIT_URL, LIVEKIT_API_KEY und LIVEKIT_API_SECRET müssen gesetzt sein"
+
+#: src/cli/metrics.ts:29
+msgid ""
+"usage: metrics [--since <ISO|date>] [--until <ISO|date>] [--day <YYYY-MM-"
+"DD>] [--calls] [--json]"
+msgstr ""
+"Aufruf: metrics [--since <ISO|Datum>] [--until <ISO|Datum>] [--day <JJJJ-MM-"
+"TT>] [--calls] [--json]"
+
+#: src/cli/metrics.ts:30
+msgid ""
+"Reads <SPRECHSTUNDE_METRICS_DIR or var/metrics>/<date>.jsonl and prints n, "
+"p50, p95 and max per metric."
+msgstr ""
+"Liest <SPRECHSTUNDE_METRICS_DIR oder var/metrics>/<Datum>.jsonl und gibt n, "
+"p50, p95 und max je Metrik aus."
+
+#: src/cli/metrics.ts:31
+msgid ""
+"  --since, --until  time window on the line timestamp; --until is exclusive; "
+"bare dates are UTC"
+msgstr ""
+"  --since, --until  Zeitfenster auf dem Zeitstempel der Zeile; --until ist "
+"exklusiv; reine Daten gelten als UTC"
+
+#: src/cli/metrics.ts:32
+msgid "  --day             one UTC day, same as --since D --until D+1"
+msgstr "  --day             ein UTC-Tag, wie --since D --until D+1"
+
+#: src/cli/metrics.ts:33
+msgid ""
+"  --calls           one row per call: a gap above 60 s between lines starts "
+"a new call"
+msgstr ""
+"  --calls           eine Zeile je Anruf: eine Pause über 60 s zwischen "
+"Zeilen beginnt einen neuen Anruf"
+
+#: src/cli/metrics.ts:34
+msgid "  --json            machine-readable output"
+msgstr "  --json            maschinenlesbare Ausgabe"
+
+#: src/cli/metrics.ts:36
+msgid ""
+"Percentiles are nearest-rank (always a measured value). A TTS chunk hedged "
+"by HedgedTTS can appear twice; lines are not de-duplicated."
+msgstr ""
+"Perzentile nach Nearest-Rank (immer ein gemessener Wert). Ein von HedgedTTS "
+"abgesichertes TTS-Stück kann doppelt vorkommen; Zeilen werden nicht "
+"dedupliziert."
+
+#: src/cli/metrics.ts:43 src/cli/metrics.ts:122
+#, javascript-format
+msgid "invalid date: %s"
+msgstr "ungültiges Datum: %s"
+
+#: src/cli/metrics.ts:95
+msgid "metric (ms)"
+msgstr "Metrik (ms)"
+
+#: src/cli/metrics.ts:132
+#, javascript-format
+msgid "cannot read metrics from %s"
+msgstr "Metriken können nicht aus %s gelesen werden"
+
+#: src/cli/metrics.ts:153
+msgid "call start (UTC)"
+msgstr "Anrufbeginn (UTC)"
+
+#: src/cli/metrics.ts:153
+msgid "seconds"
+msgstr "Sekunden"
+
+#: src/cli/metrics.ts:153
+msgid "lines"
+msgstr "Zeilen"
+
+#: src/cli/metrics.ts:165
+#, javascript-format
+msgid "skipped malformed lines: %s"
+msgstr "übersprungene fehlerhafte Zeilen: %s"
 
 #: src/cli/provision.ts:10 src/cli/stt-try.ts:99 src/cli/tts-try.ts:105
 #: src/cli/voice.ts:12

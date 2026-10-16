@@ -177,6 +177,22 @@ The agent logs latency metrics to `var/metrics/<date>.jsonl` (`SPRECHSTUNDE_METR
 numbers, ids and timestamps only. A directory it cannot write costs a warning, not the call. It
 does not store transcripts or caller numbers.
 
+### Latency percentiles
+
+`npm run metrics` reads `var/metrics/*.jsonl` (`SPRECHSTUNDE_METRICS_DIR`) and prints n, p50, p95
+and max per metric (end-of-utterance delay, transcription delay, LLM TTFT, TTS TTFB, durations).
+Collect many calls first, then look at the tail: p95 over a single call says little.
+
+```sh
+npm run metrics                          # everything on disk
+npm run metrics -- --day 2026-10-16      # one UTC day (or --since / --until)
+npm run metrics -- --calls               # one row per call (gap > 60 s starts a new call) + total
+npm run metrics -- --json
+```
+
+Percentiles are nearest-rank. A TTS chunk hedged by `HedgedTTS` can appear twice; lines are not
+de-duplicated. Malformed lines are skipped and counted.
+
 ## Not tested yet
 
 - Registration, TLS and SRTP with a real provider (`SIP_PROVIDER_MEDIA_ENCRYPTION=sdes` is a
