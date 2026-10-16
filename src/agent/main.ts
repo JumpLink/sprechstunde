@@ -25,7 +25,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   cli.runApp(
     new ServerOptions({
       agent: fileURLToPath(import.meta.url),
-      agentName: process.env.SPRECHSTUNDE_AGENT_NAME ?? 'sprechstunde',
+      agentName: process.env.SPRECHSTUNDE_AGENT_NAME || 'sprechstunde',
     }),
   );
 }
