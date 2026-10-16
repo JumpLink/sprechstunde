@@ -124,6 +124,18 @@ async function firstTranscript(sttInstance: stt.STT, timeoutMs: number): Promise
   }
 }
 
+/** Every final transcript until the stream ends — a stalled stream fails once the rescue is in. */
+async function allTranscripts(sttInstance: stt.STT, timeoutMs: number): Promise<string[]> {
+  sttInstance.on('error', () => {});
+  const stream = sttInstance.stream({ connOptions: { maxRetry: 0, retryIntervalMs: 0, timeoutMs } });
+  stream.pushFrame(frame());
+  const found: string[] = [];
+  for await (const event of stream) {
+    if (event.type === stt.SpeechEventType.FINAL_TRANSCRIPT) found.push(event.alternatives![0]!.text);
+  }
+  return found;
+}
+
 test('a silent STT behind the stall guard hands over to the fallback', async () => {
   const adapter = new stt.FallbackAdapter({
     sttInstances: [new StallGuardSTT(new FakeSTT(null), 150, new FakeBatchSTT(null)), new FakeSTT('Hallo')],
@@ -141,6 +153,12 @@ test('the stall guard rescues the stalled utterance with the batch STT', async (
   const rescue = new FakeBatchSTT('Gerettet');
   assert.equal(await firstTranscript(new StallGuardSTT(new FakeSTT(null), 150, rescue), 3000), 'Gerettet');
   assert.ok(rescue.frames >= 1);
+});
+
+test('a late transcript after the rescue is not sent twice', async () => {
+  // The inner stream answers 200 ms after the guard gave up on it, while the rescue still runs.
+  const guard = new StallGuardSTT(new FakeSTT('Spät', { finalAfterMs: 200 }), 150, new FakeBatchSTT('Gerettet', 300));
+  assert.deepEqual(await allTranscripts(guard, 3000), ['Gerettet']);
 });
 
 test('a throwing close does not hide the stall error', async () => {

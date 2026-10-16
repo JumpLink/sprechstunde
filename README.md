@@ -143,7 +143,9 @@ What the agent does beyond the defaults, and why:
   `QueueOverflow` errors and twice took more than 20 s to deliver a transcript.
 - **Stall rescue:** `StallGuardSTT` also saves the stalled utterance. It buffers the audio since
   the last final transcript (at most 15 s) and transcribes it with the batch model (5 s timeout)
-  before it fails over. A final transcript that arrives late still gets a reply.
+  before it fails over. A final transcript that arrives late still gets a reply. The rescue owns
+  the utterance from the moment it starts: a transcript the realtime stream delivers afterwards is
+  dropped, because it is the same words a second time.
 - **One contiguous frame for batch STT** (`ContiguousSTT`, `src/agent/stt-merge.ts`):
   `mergeFrames` in `@livekit/agents` 1.9.3 is quadratic. On 2026-10-16 it blocked the event loop
   for 12.3 s on about 12 s of audio (`npm run bench:merge-frames`). The wrapper hands the batch

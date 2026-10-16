@@ -66,6 +66,11 @@ class StallGuardStream extends stt.SpeechStream {
   private pending: AudioFrame[] = [];
   private pendingSeconds = 0;
 
+  private forget(): void {
+    this.pending = [];
+    this.pendingSeconds = 0;
+  }
+
   private remember(frame: AudioFrame): void {
     this.pending.push(frame);
     this.pendingSeconds += frame.samplesPerChannel / frame.sampleRate;
@@ -111,9 +116,11 @@ class StallGuardStream extends stt.SpeechStream {
           }, this.stallMs);
         } else if (event.type === stt.SpeechEventType.FINAL_TRANSCRIPT) {
           disarm();
-          this.pending = [];
-          this.pendingSeconds = 0;
+          this.forget();
         }
+        // The rescue owns the utterance from the moment it starts: a transcript the inner stream
+        // still delivers afterwards would be the same words a second time.
+        if (stalled) continue;
         // The caller hangs up mid-utterance and this stream is closed while the inner one still
         // has events in flight; `put` on a closed queue throws.
         if (!this.queue.closed) this.queue.put(event);
@@ -141,6 +148,7 @@ class StallGuardStream extends stt.SpeechStream {
     if (this.pending.length === 0) return;
     try {
       const event = await this.rescue.recognize(this.pending.slice(), AbortSignal.timeout(RESCUE_TIMEOUT_MS));
+      this.forget();
       const text = event.alternatives?.[0]?.text.trim();
       if (text && !this.queue.closed) this.queue.put({ ...event, type: stt.SpeechEventType.FINAL_TRANSCRIPT });
     } catch {
