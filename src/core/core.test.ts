@@ -5,6 +5,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { loadProfile, parseProfile } from './profile.js';
 import { buildInstructions } from './prompt.js';
+import { transferRequest } from './tools.js';
 
 const example = loadProfile('profiles/example/profile.de.json');
 
@@ -83,4 +84,18 @@ test('loadProfile resolves refAudio against the profile file', () => {
   const file = join(dir, 'profile.json');
   writeFileSync(file, JSON.stringify({ ...example, voice: { refAudio: 'sub/voice.wav' } }));
   assert.equal(loadProfile(file).voice?.refAudio, join(dir, 'sub', 'voice.wav'));
+});
+
+test('transferRequest: a configured number replaces the profile target', () => {
+  const profile = loadProfile();
+  assert.equal(transferRequest(profile)?.target, profile.transfer?.target);
+  assert.equal(transferRequest(profile, { number: '+4930123' })?.target, 'tel:+4930123');
+  assert.equal(
+    transferRequest(profile, { number: '+4930123', sipHost: '127.0.0.1:5070' })?.target,
+    'sip:+4930123@127.0.0.1:5070',
+  );
+  assert.equal(transferRequest(profile, { sipHost: 'x' })?.target, profile.transfer?.target);
+  assert.equal(transferRequest(profile, { number: '+4930123' })?.announce, profile.transfer?.announce);
+  assert.throws(() => transferRequest(profile, { number: 'sip:x@y' }));
+  assert.equal(transferRequest({ ...profile, transfer: undefined }, { number: '+4930123' }), null);
 });
