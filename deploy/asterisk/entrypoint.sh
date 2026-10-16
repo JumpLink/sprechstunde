@@ -22,4 +22,16 @@ fi
 # extensions.conf reads these via ${ENV(...)}
 chown asterisk:asterisk /etc/asterisk/pjsip.conf
 chmod 600 /etc/asterisk/pjsip.conf
-exec "$@"
+# Asterisk does not unregister when it is killed, and 1&1 keeps a contact for about two hours
+# with only a few allowed per number: a few restarts end in "403 too many contacts".
+stop() {
+  asterisk -rx "pjsip send unregister *all" >/dev/null 2>&1 || true
+  sleep 2
+  asterisk -rx "core stop now" >/dev/null 2>&1 || kill "$pid" 2>/dev/null || true
+}
+trap stop TERM INT
+"$@" &
+pid=$!
+# The first wait returns when the trap fires; the second waits for Asterisk to exit.
+wait "$pid" || true
+wait "$pid" 2>/dev/null || true

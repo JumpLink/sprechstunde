@@ -39,6 +39,11 @@ Before the first `assistant` run, and again after every `npm ci`, download the t
 `npm run download-files`. Part of it (the tokenizer) lands inside `node_modules`, so a clean
 install deletes it and the agent then fails at start with "Required model files not found locally".
 
+Asterisk unregisters from the provider when its container stops. A registrar that holds contacts
+long and allows only a few (1&1: about two hours) still fills up after a crash or a `kill`;
+`npm run sip:contacts` shows how many contacts it holds for the number, `npm run sip:contacts --
+clear` removes them all. Both print status lines and counts only.
+
 ### Without a phone or a LiveKit server
 
 The [LiveKit CLI](https://github.com/livekit/livekit-cli) runs the agent in-process, no stack
@@ -175,7 +180,10 @@ What the agent does beyond the defaults, and why:
 
 The agent logs latency metrics to `var/metrics/<date>.jsonl` (`SPRECHSTUNDE_METRICS_DIR`) —
 numbers, ids and timestamps only. A directory it cannot write costs a warning, not the call. It
-does not store transcripts or caller numbers.
+does not store transcripts or caller numbers. The dispatch rule sets `hidePhoneNumber`, so
+LiveKit names the room and the caller after the last four digits and identifies them by an unsalted
+hash of the number: a pseudonym, not anonymity. The `livekit/sip` container still logs the full
+number; `npm run provision` replaces a rule created before this setting.
 
 ### Latency percentiles
 
@@ -200,7 +208,8 @@ de-duplicated. Malformed lines are skipped and counted.
   router rewrote the RTP source port even for forwarded ports and 1&1 sent no audio; IPv4 behind
   NAT (`SIP_PUBLIC_ADDRESS`) is therefore unproven, and a host with a public address is untested.
 - 1&1 keeps a registration about two hours, not the requested ten minutes, and allows only a few
-  contacts per number; restarting Asterisk repeatedly ends in `403 too many contacts`.
+  contacts per number. Unregistering on stop is verified with `sip:contacts`; a killed container
+  still leaves its contact behind.
 - Caller ID on transfer and the called-number format for `SPRECHSTUNDE_TRUNK_NUMBERS`.
 - Transfer: whether LiveKit's REFER reaches Asterisk and Asterisk follows it into `from-livekit`.
   The `from-livekit` pattern now accepts a leading `+` and compares numbers without it; untested.

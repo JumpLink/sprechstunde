@@ -25,6 +25,7 @@
     "stt:try": "tsx --env-file-if-exists=.env src/cli/stt-try.ts",
     "voice": "tsx --env-file-if-exists=.env src/cli/voice.ts",
     "metrics": "tsx --env-file-if-exists=.env src/cli/metrics.ts",
+    "sip:contacts": "tsx --env-file-if-exists=.env src/cli/sip-contacts.ts",
     "i18n:extract": "bash dev/i18n.sh extract",
     "i18n:compile": "bash dev/i18n.sh compile",
     "i18n:check": "bash dev/i18n.sh check",
