@@ -6,4 +6,8 @@ sip_port: 5060
 listen_ip: 127.0.0.1
 rtp_port: 10000-10100
 use_external_ip: false
+# Only Asterisk on this host talks to the bridge. Without this it announces the LAN address in
+# Contact/SDP while listening on loopback, so Asterisk's ACK never arrives and the call ends
+# with "no-ack" after a few seconds.
+nat_1_to_1_ip: 127.0.0.1
 log_level: info

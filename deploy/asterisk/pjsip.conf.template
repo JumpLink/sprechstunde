@@ -27,7 +27,16 @@ transport=transport-tls-provider
 outbound_auth=provider-auth
 server_uri=sip:${SIP_PROVIDER_HOST}
 client_uri=sip:${SIP_PROVIDER_USER}@${SIP_PROVIDER_DOMAIN}
+; 1&1 answers 403 "Contact User und Anrufernummer verschieden" when the Contact user is the
+; default "s"; it has to be the registered number.
+contact_user=${SIP_PROVIDER_USER}
+; Tag the Contact with a line id so inbound INVITEs map to the endpoint even when they come
+; from another provider host than the one we registered with.
+line=yes
+endpoint=provider
 retry_interval=60
+; Without this a 403 (e.g. a password 1&1 has not activated yet) stops registering for good.
+fatal_retry_interval=300
 expiration=600
 
 [provider-aor]
