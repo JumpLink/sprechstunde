@@ -152,6 +152,10 @@ export async function runAssistant(ctx: JobContext, profile: Profile): Promise<v
       // The LLM already starts on the interim transcript; also start the voice, which saves the
       // TTS first-byte time (~0.6 s) whenever the guessed turn holds.
       preemptiveGeneration: { preemptiveTts: true },
+      // Adaptive interruption runs on LiveKit Cloud inference. `dev` tries it (caller audio would go
+      // to a third party), fails at job start and falls back to VAD; `start` never tries. Pin VAD
+      // so dev tests behave like production and no audio leaves for LiveKit Cloud.
+      interruption: { mode: 'vad' },
     },
   });
 
