@@ -133,7 +133,10 @@ class HedgedChunkedStream extends tts.ChunkedStream {
       // Rethrow so the retry loop above us and a `tts.FallbackAdapter` see a real APIError.
       throw firstError instanceof APIError
         ? firstError
-        : new APIConnectionError({ message: `${this.#inner.label}: ${firstError.message}`, options: { retryable: true } });
+        : new APIConnectionError({
+            message: `${this.#inner.label}: ${firstError.message}`,
+            options: { retryable: true },
+          });
     }
   }
 

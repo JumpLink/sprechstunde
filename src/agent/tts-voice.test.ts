@@ -14,7 +14,16 @@ const empty = join(dir, 'empty.wav');
 writeFileSync(empty, '');
 
 function profile(voice?: Profile['voice']): Profile {
-  return { id: 'p', locale: 'de-DE', timeZone: 'Europe/Berlin', assistantName: 'A', greeting: 'g', instructions: 'i', facts: [], voice };
+  return {
+    id: 'p',
+    locale: 'de-DE',
+    timeZone: 'Europe/Berlin',
+    assistantName: 'A',
+    greeting: 'g',
+    instructions: 'i',
+    facts: [],
+    voice,
+  };
 }
 
 test('refAudioFromFile returns plain base64 of the file', () => {

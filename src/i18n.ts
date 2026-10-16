@@ -120,10 +120,7 @@ function localeRoots(): string[] {
   ];
 }
 
-export function loadCatalog(
-  languages: string[] = languagesFromEnv(),
-  roots: string[] = localeRoots(),
-): Catalog | null {
+export function loadCatalog(languages: string[] = languagesFromEnv(), roots: string[] = localeRoots()): Catalog | null {
   for (const language of languages) {
     for (const root of roots) {
       try {

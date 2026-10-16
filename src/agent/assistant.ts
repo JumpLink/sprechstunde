@@ -96,7 +96,10 @@ function buildStt(vad: silero.VAD, language: string): stt.STT {
 }
 
 function buildTts(profile: Profile): tts.TTS {
-  const base = new mistral.TTS({ model: process.env.SPRECHSTUNDE_TTS_MODEL ?? DEFAULT_TTS_MODEL, ...resolveTtsVoice(profile) });
+  const base = new mistral.TTS({
+    model: process.env.SPRECHSTUNDE_TTS_MODEL ?? DEFAULT_TTS_MODEL,
+    ...resolveTtsVoice(profile),
+  });
   return new tts.StreamAdapter(
     new HedgedTTS(base, TTS_HEDGE_MS),
     new tokenize.basic.SentenceTokenizer({
