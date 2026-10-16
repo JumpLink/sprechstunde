@@ -114,7 +114,9 @@ class StallGuardStream extends stt.SpeechStream {
           this.pending = [];
           this.pendingSeconds = 0;
         }
-        this.queue.put(event);
+        // The caller hangs up mid-utterance and this stream is closed while the inner one still
+        // has events in flight; `put` on a closed queue throws.
+        if (!this.queue.closed) this.queue.put(event);
       }
     } finally {
       disarm();
@@ -134,7 +136,7 @@ class StallGuardStream extends stt.SpeechStream {
     try {
       const event = await this.rescue.recognize(this.pending.slice(), AbortSignal.timeout(RESCUE_TIMEOUT_MS));
       const text = event.alternatives?.[0]?.text.trim();
-      if (text) this.queue.put({ ...event, type: stt.SpeechEventType.FINAL_TRANSCRIPT });
+      if (text && !this.queue.closed) this.queue.put({ ...event, type: stt.SpeechEventType.FINAL_TRANSCRIPT });
     } catch {
       // Same outcome as without a rescue: the stall error below moves the fallback on.
     }
