@@ -13,7 +13,7 @@
     {
       "path": "node_modules",
       "class": "derived",
-      "recreate": "`npm ci`"
+      "recreate": "`npm ci`, then `npm run download-files` (the turn-detector tokenizer is stored inside node_modules)"
     },
     {
       "path": "dist",

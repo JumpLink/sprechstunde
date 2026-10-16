@@ -29,7 +29,7 @@ provider, `livekit/sip` cannot)
 ## Commands
 
 ```sh
-npm ci
+npm ci && npm run download-files   # after EVERY npm ci: part of the turn-detector model lives in node_modules
 npm run typecheck && npm run lint && npm run format:check && npm test && npm run build
 npm run i18n:extract && npm run i18n:compile     # needs gettext; English msgids, German in po/de.po
 npm run agent:dev          # agent worker, needs .env and the compose stack (`npm run stack:up`)
