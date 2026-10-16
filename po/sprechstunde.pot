@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-16 14:23+0200\n"
+"POT-Creation-Date: 2026-10-16 14:27+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -29,8 +29,12 @@ msgstr ""
 msgid "CPU profile failed"
 msgstr ""
 
-#: src/agent/echo.ts:24
+#: src/agent/echo.ts:28
 msgid "echo mode: waiting for audio from the caller"
+msgstr ""
+
+#: src/agent/echo.ts:45
+msgid "echo mode: forwarding stopped"
 msgstr ""
 
 #: src/agent/main.ts:19
