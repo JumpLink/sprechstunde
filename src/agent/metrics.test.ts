@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import type { metrics } from '@livekit/agents';
-import { recordMetrics } from './metrics.js';
+import { metricsLine, recordMetrics } from './metrics.js';
 
 const eouMetrics = {
   type: 'eou_metrics',
@@ -50,4 +50,29 @@ test('an unwritable metrics directory does not end the call', () => {
     console.warn = warn;
   }
   assert.equal(warnings.length, 1, 'the warning repeats for every metric');
+});
+
+test('metricsLine keeps only numbers, ids and timestamps', () => {
+  // Real metric objects carry more fields; a text field must never reach the file.
+  const extra = { label: 'mistral', metadata: { modelName: 'x' }, text: 'never stored', requestId: 'r' };
+  const cases: [Record<string, unknown>, string[]][] = [
+    [{ ...eouMetrics, ...extra }, ['type', 'ts', 'speechId', 'endOfUtteranceDelayMs', 'transcriptionDelayMs']],
+    [
+      { ...extra, type: 'llm_metrics', timestamp: 1, speechId: 's', ttftMs: 1, durationMs: 2 },
+      ['type', 'ts', 'speechId', 'ttftMs', 'durationMs'],
+    ],
+    [
+      { ...extra, type: 'tts_metrics', timestamp: 1, speechId: 's', ttfbMs: 1, durationMs: 2 },
+      ['type', 'ts', 'speechId', 'ttfbMs', 'durationMs'],
+    ],
+  ];
+  for (const [input, keys] of cases) {
+    const line = metricsLine(input as unknown as metrics.AgentMetrics);
+    assert.deepEqual(Object.keys(line ?? {}), keys);
+    for (const [key, value] of Object.entries(line ?? {})) {
+      if (key === 'type' || key === 'speechId') continue;
+      assert.equal(typeof value, 'number', key);
+    }
+  }
+  assert.equal(metricsLine({ ...extra, type: 'stt_metrics' } as unknown as metrics.AgentMetrics), null);
 });
