@@ -133,3 +133,15 @@ test('both attempts failing fails the stream', async () => {
   assert.ok(stream.error instanceof APIError, `error was ${stream.error}`);
   assert.equal(inner.calls.length, 2);
 });
+
+test('aborting the outer stream cancels both attempts', async () => {
+  const inner = new FakeTTS([{ delayMs: 2000 }]);
+  const controller = new AbortController();
+  const stream = new HedgedTTS(inner, 50).synthesize('Guten Tag', undefined, controller.signal);
+  setTimeout(() => controller.abort(), 150);
+  const started = Date.now();
+  await collect(stream);
+  assert.ok(Date.now() - started < 1000, 'abort did not end the stream');
+  assert.equal(inner.calls.length, 2);
+  assert.ok(inner.calls.every((call) => call.interrupted));
+});
