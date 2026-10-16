@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-16 14:27+0200\n"
+"POT-Creation-Date: 2026-10-16 14:33+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -21,11 +21,11 @@ msgstr ""
 msgid "CPU profile written to"
 msgstr ""
 
-#: src/agent/assistant.ts:134
+#: src/agent/assistant.ts:136
 msgid "transfer failed"
 msgstr ""
 
-#: src/agent/assistant.ts:162
+#: src/agent/assistant.ts:164
 msgid "CPU profile failed"
 msgstr ""
 
@@ -51,7 +51,7 @@ msgid "LIVEKIT_URL, LIVEKIT_API_KEY and LIVEKIT_API_SECRET must be set"
 msgstr ""
 
 #: src/cli/provision.ts:10 src/cli/stt-try.ts:99 src/cli/tts-try.ts:105
-#: src/cli/voice.ts:11
+#: src/cli/voice.ts:12
 #, javascript-format
 msgid "%s must be set"
 msgstr ""
@@ -120,18 +120,24 @@ msgstr ""
 msgid "file"
 msgstr ""
 
-#: src/cli/voice.ts:24
+#: src/cli/voice.ts:7
+msgid ""
+"usage: voice create <name> <audio file> [language] | voice list | voice "
+"delete <id>"
+msgstr ""
+
+#: src/cli/voice.ts:25
 #, javascript-format
 msgid "created voice %s"
 msgstr ""
 
-#: src/cli/voice.ts:26
+#: src/cli/voice.ts:27
 #, javascript-format
 msgid ""
 "use it with SPRECHSTUNDE_TTS_VOICE=%s or \"voice\": { \"ttsVoice\": \"%s\" }"
 msgstr ""
 
-#: src/cli/voice.ts:43
+#: src/cli/voice.ts:44
 #, javascript-format
 msgid "deleted voice %s"
 msgstr ""

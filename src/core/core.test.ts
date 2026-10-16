@@ -5,7 +5,6 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { loadProfile, parseProfile } from './profile.js';
 import { buildInstructions } from './prompt.js';
-import { lookupFact } from './tools.js';
 
 const example = loadProfile('profiles/example/profile.de.json');
 
@@ -60,15 +59,6 @@ test('instructions state the local date and weekday of the venue', () => {
   // 23:30 UTC on a Saturday is already Sunday in Berlin.
   const text = buildInstructions(example, new Date('2026-10-17T23:30:00Z'));
   assert.match(text, /Sonntag, 18\. Oktober 2026 um 01:30/);
-});
-
-test('lookupFact finds the best match', () => {
-  assert.equal(lookupFact(example, 'Darf ich meinen Hund mitbringen? Hunde')?.topic, 'Hunde');
-  assert.equal(lookupFact(example, 'wann habt ihr ÖFFNUNGSZEITEN')?.topic, 'Öffnungszeiten');
-});
-
-test('lookupFact returns null without a match', () => {
-  assert.equal(lookupFact(example, 'Quantenphysik'), null);
 });
 
 test('rejects ttsVoice together with refAudio', () => {

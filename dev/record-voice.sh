@@ -12,6 +12,11 @@ export LC_NUMERIC=C
 cd "$(dirname "$0")/.."
 NAME="${1:-own}"
 SECONDS_TO_RECORD="${2:-12}"
+# A non-number silently becomes a zero-second countdown and a 1.5 s clip of the warm-up.
+if ! [[ $SECONDS_TO_RECORD =~ ^[0-9]+$ ]] || [ "$SECONDS_TO_RECORD" -lt 3 ]; then
+    echo "seconds must be a whole number of at least 3, got '$SECONDS_TO_RECORD'" >&2
+    exit 1
+fi
 # pw-record needs a moment before audio actually arrives; speaking during that window is what
 # cut off the start of the first take. We record it and drop it afterwards.
 WARMUP=1.5
