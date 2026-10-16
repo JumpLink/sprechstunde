@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-16 13:37+0200\n"
+"POT-Creation-Date: 2026-10-16 14:23+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -21,11 +21,11 @@ msgstr ""
 msgid "CPU profile written to"
 msgstr ""
 
-#: src/agent/assistant.ts:131
+#: src/agent/assistant.ts:134
 msgid "transfer failed"
 msgstr ""
 
-#: src/agent/assistant.ts:159
+#: src/agent/assistant.ts:162
 msgid "CPU profile failed"
 msgstr ""
 
@@ -37,11 +37,16 @@ msgstr ""
 msgid "starting assistant with profile"
 msgstr ""
 
-#: src/agent/transfer.ts:18
+#: src/agent/metrics.ts:49
+#, javascript-format
+msgid "cannot write metrics to %s"
+msgstr ""
+
+#: src/agent/transfer.ts:14
 msgid "LIVEKIT_URL, LIVEKIT_API_KEY and LIVEKIT_API_SECRET must be set"
 msgstr ""
 
-#: src/cli/provision.ts:10 src/cli/stt-try.ts:95 src/cli/tts-try.ts:107
+#: src/cli/provision.ts:10 src/cli/stt-try.ts:99 src/cli/tts-try.ts:105
 #: src/cli/voice.ts:11
 #, javascript-format
 msgid "%s must be set"
@@ -63,51 +68,51 @@ msgstr ""
 msgid "Dispatch rule created:"
 msgstr ""
 
-#: src/cli/stt-try.ts:55
+#: src/cli/stt-try.ts:59
 msgid "connection closed before the transcript was done"
 msgstr ""
 
-#: src/cli/stt-try.ts:93
+#: src/cli/stt-try.ts:97
 msgid "usage: stt-try <audio file> [--delay ms]... [--repeat n]"
 msgstr ""
 
-#: src/cli/stt-try.ts:103
+#: src/cli/stt-try.ts:108
 msgid "target delay"
 msgstr ""
 
-#: src/cli/stt-try.ts:103
+#: src/cli/stt-try.ts:108
 msgid "final ms (median)"
 msgstr ""
 
-#: src/cli/stt-try.ts:103 src/cli/tts-try.ts:129
+#: src/cli/stt-try.ts:108 src/cli/tts-try.ts:127
 msgid "max ms"
 msgstr ""
 
-#: src/cli/stt-try.ts:103
+#: src/cli/stt-try.ts:108
 msgid "text"
 msgstr ""
 
-#: src/cli/stt-try.ts:110 src/cli/tts-try.ts:153
+#: src/cli/stt-try.ts:116 src/cli/tts-try.ts:151
 msgid "failed:"
 msgstr ""
 
-#: src/cli/tts-try.ts:67
+#: src/cli/tts-try.ts:65
 msgid "no audio received"
 msgstr ""
 
-#: src/cli/tts-try.ts:129
+#: src/cli/tts-try.ts:127
 msgid "voice"
 msgstr ""
 
-#: src/cli/tts-try.ts:129
+#: src/cli/tts-try.ts:127
 msgid "first audio ms"
 msgstr ""
 
-#: src/cli/tts-try.ts:129
+#: src/cli/tts-try.ts:127
 msgid "total ms"
 msgstr ""
 
-#: src/cli/tts-try.ts:129
+#: src/cli/tts-try.ts:127
 msgid "file"
 msgstr ""
 
@@ -116,13 +121,13 @@ msgstr ""
 msgid "created voice %s"
 msgstr ""
 
-#: src/cli/voice.ts:25
+#: src/cli/voice.ts:26
 #, javascript-format
 msgid ""
 "use it with SPRECHSTUNDE_TTS_VOICE=%s or \"voice\": { \"ttsVoice\": \"%s\" }"
 msgstr ""
 
-#: src/cli/voice.ts:39
+#: src/cli/voice.ts:43
 #, javascript-format
 msgid "deleted voice %s"
 msgstr ""

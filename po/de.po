@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-16 13:37+0200\n"
+"POT-Creation-Date: 2026-10-16 14:23+0200\n"
 "PO-Revision-Date: 2026-10-16 10:36+0200\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -21,11 +21,11 @@ msgstr ""
 msgid "CPU profile written to"
 msgstr "CPU-Profil geschrieben nach"
 
-#: src/agent/assistant.ts:131
+#: src/agent/assistant.ts:134
 msgid "transfer failed"
 msgstr "Weiterleitung fehlgeschlagen"
 
-#: src/agent/assistant.ts:159
+#: src/agent/assistant.ts:162
 msgid "CPU profile failed"
 msgstr "CPU-Profil fehlgeschlagen"
 
@@ -37,12 +37,17 @@ msgstr "Echo-Modus: warte auf Audio vom Anrufer"
 msgid "starting assistant with profile"
 msgstr "Assistent startet mit Profil"
 
-#: src/agent/transfer.ts:18
+#: src/agent/metrics.ts:49
+#, javascript-format
+msgid "cannot write metrics to %s"
+msgstr "Metriken können nicht nach %s geschrieben werden"
+
+#: src/agent/transfer.ts:14
 msgid "LIVEKIT_URL, LIVEKIT_API_KEY and LIVEKIT_API_SECRET must be set"
 msgstr ""
 "LIVEKIT_URL, LIVEKIT_API_KEY und LIVEKIT_API_SECRET müssen gesetzt sein"
 
-#: src/cli/provision.ts:10 src/cli/stt-try.ts:95 src/cli/tts-try.ts:107
+#: src/cli/provision.ts:10 src/cli/stt-try.ts:99 src/cli/tts-try.ts:105
 #: src/cli/voice.ts:11
 #, javascript-format
 msgid "%s must be set"
@@ -64,51 +69,51 @@ msgstr "Dispatch-Regel vorhanden:"
 msgid "Dispatch rule created:"
 msgstr "Dispatch-Regel angelegt:"
 
-#: src/cli/stt-try.ts:55
+#: src/cli/stt-try.ts:59
 msgid "connection closed before the transcript was done"
 msgstr "Verbindung geschlossen, bevor das Transkript fertig war"
 
-#: src/cli/stt-try.ts:93
+#: src/cli/stt-try.ts:97
 msgid "usage: stt-try <audio file> [--delay ms]... [--repeat n]"
 msgstr "Aufruf: stt-try <Audiodatei> [--delay ms]... [--repeat n]"
 
-#: src/cli/stt-try.ts:103
+#: src/cli/stt-try.ts:108
 msgid "target delay"
 msgstr "Zielverzögerung"
 
-#: src/cli/stt-try.ts:103
+#: src/cli/stt-try.ts:108
 msgid "final ms (median)"
 msgstr "final ms (Median)"
 
-#: src/cli/stt-try.ts:103 src/cli/tts-try.ts:129
+#: src/cli/stt-try.ts:108 src/cli/tts-try.ts:127
 msgid "max ms"
 msgstr "max. ms"
 
-#: src/cli/stt-try.ts:103
+#: src/cli/stt-try.ts:108
 msgid "text"
 msgstr "Text"
 
-#: src/cli/stt-try.ts:110 src/cli/tts-try.ts:153
+#: src/cli/stt-try.ts:116 src/cli/tts-try.ts:151
 msgid "failed:"
 msgstr "fehlgeschlagen:"
 
-#: src/cli/tts-try.ts:67
+#: src/cli/tts-try.ts:65
 msgid "no audio received"
 msgstr "kein Audio empfangen"
 
-#: src/cli/tts-try.ts:129
+#: src/cli/tts-try.ts:127
 msgid "voice"
 msgstr "Stimme"
 
-#: src/cli/tts-try.ts:129
+#: src/cli/tts-try.ts:127
 msgid "first audio ms"
 msgstr "erstes Audio ms"
 
-#: src/cli/tts-try.ts:129
+#: src/cli/tts-try.ts:127
 msgid "total ms"
 msgstr "gesamt ms"
 
-#: src/cli/tts-try.ts:129
+#: src/cli/tts-try.ts:127
 msgid "file"
 msgstr "Datei"
 
@@ -117,7 +122,7 @@ msgstr "Datei"
 msgid "created voice %s"
 msgstr "Stimme %s angelegt"
 
-#: src/cli/voice.ts:25
+#: src/cli/voice.ts:26
 #, javascript-format
 msgid ""
 "use it with SPRECHSTUNDE_TTS_VOICE=%s or \"voice\": { \"ttsVoice\": \"%s\" }"
@@ -125,7 +130,7 @@ msgstr ""
 "verwenden mit SPRECHSTUNDE_TTS_VOICE=%s oder \"voice\": { \"ttsVoice\": "
 "\"%s\" }"
 
-#: src/cli/voice.ts:39
+#: src/cli/voice.ts:43
 #, javascript-format
 msgid "deleted voice %s"
 msgstr "Stimme %s gelöscht"
