@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-16 23:39+0200\n"
+"POT-Creation-Date: 2026-10-17 20:25+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -48,6 +48,20 @@ msgstr ""
 
 #: src/agent/transfer.ts:14
 msgid "LIVEKIT_URL, LIVEKIT_API_KEY and LIVEKIT_API_SECRET must be set"
+msgstr ""
+
+#: src/cli/fallback.ts:23 src/cli/provision.ts:10 src/cli/sip-contacts.ts:18
+#: src/cli/stt-try.ts:99 src/cli/tts-try.ts:82 src/cli/voice.ts:12
+#, javascript-format
+msgid "%s must be set"
+msgstr ""
+
+#: src/cli/fallback.ts:27
+msgid "the profile has no \"fallback\" text; add one or pass --text"
+msgstr ""
+
+#: src/cli/fallback.ts:38
+msgid "fallback announcement written to"
 msgstr ""
 
 #: src/cli/metrics.ts:29
@@ -119,12 +133,6 @@ msgstr ""
 msgid "skipped malformed lines: %s"
 msgstr ""
 
-#: src/cli/provision.ts:10 src/cli/sip-contacts.ts:18 src/cli/stt-try.ts:99
-#: src/cli/tts-try.ts:105 src/cli/voice.ts:12
-#, javascript-format
-msgid "%s must be set"
-msgstr ""
-
 #: src/cli/provision.ts:29
 msgid "Inbound trunk exists:"
 msgstr ""
@@ -175,6 +183,10 @@ msgstr ""
 msgid "Contacts registered:"
 msgstr ""
 
+#: src/cli/speech.ts:31
+msgid "no audio received"
+msgstr ""
+
 #: src/cli/stt-try.ts:59
 msgid "connection closed before the transcript was done"
 msgstr ""
@@ -191,7 +203,7 @@ msgstr ""
 msgid "final ms (median)"
 msgstr ""
 
-#: src/cli/stt-try.ts:108 src/cli/tts-try.ts:127
+#: src/cli/stt-try.ts:108 src/cli/tts-try.ts:104
 msgid "max ms"
 msgstr ""
 
@@ -199,27 +211,23 @@ msgstr ""
 msgid "text"
 msgstr ""
 
-#: src/cli/stt-try.ts:116 src/cli/tts-try.ts:151
+#: src/cli/stt-try.ts:116 src/cli/tts-try.ts:129
 msgid "failed:"
 msgstr ""
 
-#: src/cli/tts-try.ts:65
-msgid "no audio received"
-msgstr ""
-
-#: src/cli/tts-try.ts:127
+#: src/cli/tts-try.ts:104
 msgid "voice"
 msgstr ""
 
-#: src/cli/tts-try.ts:127
+#: src/cli/tts-try.ts:104
 msgid "first audio ms"
 msgstr ""
 
-#: src/cli/tts-try.ts:127
+#: src/cli/tts-try.ts:104
 msgid "total ms"
 msgstr ""
 
-#: src/cli/tts-try.ts:127
+#: src/cli/tts-try.ts:104
 msgid "file"
 msgstr ""
 

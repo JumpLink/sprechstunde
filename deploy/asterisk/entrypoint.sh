@@ -6,6 +6,12 @@ for v in SIP_PROVIDER_HOST SIP_PROVIDER_DOMAIN SIP_PROVIDER_USER SIP_PROVIDER_PA
 done
 export SIP_PROVIDER_MEDIA_ENCRYPTION="${SIP_PROVIDER_MEDIA_ENCRYPTION:-sdes}"
 export TRANSFER_TARGET_NUMBER="${TRANSFER_TARGET_NUMBER:-}"
+# How long LiveKit may ring before the fallback plays. livekit/sip rings until an agent subscribes
+# to the call's audio, about 2 s when one is running; with none it would ring on and on.
+export SPRECHSTUNDE_ANSWER_TIMEOUT="${SPRECHSTUNDE_ANSWER_TIMEOUT:-10}"
+case "$SPRECHSTUNDE_ANSWER_TIMEOUT" in
+  ''|*[!0-9]*) echo "SPRECHSTUNDE_ANSWER_TIMEOUT must be whole seconds" >&2; exit 1 ;;
+esac
 envsubst '${SIP_PROVIDER_HOST} ${SIP_PROVIDER_DOMAIN} ${SIP_PROVIDER_USER} ${SIP_PROVIDER_PASSWORD} ${SIP_PROVIDER_NUMBER} ${SIP_PROVIDER_MEDIA_ENCRYPTION}' \
   < /etc/asterisk/pjsip.conf.template > /etc/asterisk/pjsip.conf
 # IPv6 avoids NAT entirely: a FRITZ!Box rewrites the RTP source port even for forwarded ports,
