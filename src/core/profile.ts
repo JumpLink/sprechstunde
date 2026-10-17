@@ -20,6 +20,11 @@ export interface Profile {
   facts: Fact[];
   transfer?: { target: string; announce: string };
   /**
+   * Played by the telephony gateway, not by the agent, when no agent answers: a recording made
+   * beforehand (`npm run fallback`), so it works exactly when the agent and the models do not.
+   */
+  fallback?: string;
+  /**
    * `ttsVoice` is a Mistral voice id; `refAudio` is an audio file to clone, relative to the profile
    * file (absolute after `loadProfile`). At most one of them.
    */
@@ -85,6 +90,8 @@ export function parseProfile(raw: unknown, path = '<profile>'): Profile {
     if (!/^(tel:|sip:)/.test(target)) fail(path, '"transfer.target" must start with tel: or sip:');
     profile.transfer = { target, announce: str(raw.transfer, 'announce', `${path} transfer`) };
   }
+
+  if (raw.fallback !== undefined) profile.fallback = str(raw, 'fallback', path);
 
   if (raw.voice !== undefined) {
     if (!isRecord(raw.voice)) fail(path, '"voice" must be an object');

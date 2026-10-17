@@ -29,6 +29,11 @@ test('rejects a bad locale', () => {
   assert.throws(() => parseProfile(variant((r) => (r.locale = 'not a tag'))), /locale/);
 });
 
+test('fallback is optional and must not be empty', () => {
+  assert.equal(parseProfile(variant((r) => delete r.fallback)).fallback, undefined);
+  assert.throws(() => parseProfile(variant((r) => (r.fallback = ' '))), /fallback/);
+});
+
 test('rejects a transfer target that is neither tel: nor sip:', () => {
   assert.throws(
     () => parseProfile(variant((r) => (r.transfer = { target: 'http://x', announce: 'a' }))),

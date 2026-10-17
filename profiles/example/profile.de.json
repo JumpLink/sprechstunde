@@ -19,5 +19,6 @@
     "target": "tel:+4900000000",
     "announce": "Einen Moment bitte, ich verbinde Sie mit einer Mitarbeiterin."
   },
+  "fallback": "Strandbistro Möwe, guten Tag. Unser telefonischer Assistent ist gerade nicht erreichbar. Bitte rufen Sie später noch einmal an.",
   "voice": {}
 }
