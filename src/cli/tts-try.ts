@@ -2,9 +2,10 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { basename, extname } from 'node:path';
 import { parseArgs } from 'node:util';
 import { Mistral } from '@mistralai/mistralai';
-import { downsampleS16le, encodeWav, f32leToS16le, silenceS16le } from '../core/audio.js';
-import { refAudioFromFile } from '../agent/tts-voice.js';
+import { downsampleS16le, encodeWav, silenceS16le } from '../core/audio.js';
+import { refAudioFromFile, type TtsVoice } from '../agent/tts-voice.js';
 import { _ } from '../i18n.js';
+import { synthesize } from './speech.js';
 
 const SAMPLE_RATE = 24000;
 const PHONE_FACTOR = 3; // 24 kHz -> 8 kHz
@@ -28,6 +29,10 @@ interface Target {
   refAudioPath?: string;
 }
 
+function ttsVoice(target: Target): TtsVoice {
+  return target.refAudioPath ? { refAudio: refAudioFromFile(target.refAudioPath) } : { voice: target.voiceId };
+}
+
 function median(values: number[]): number {
   const sorted = [...values].sort((a, b) => a - b);
   const mid = Math.floor(sorted.length / 2);
@@ -38,34 +43,6 @@ function safeLabel(text: string): string {
   return text.replace(/[^A-Za-z0-9._-]+/g, '_');
 }
 
-async function synthesize(
-  client: Mistral,
-  model: string,
-  text: string,
-  target: Target,
-): Promise<{ pcm: Uint8Array; ttfaMs: number; totalMs: number }> {
-  const started = performance.now();
-  const stream = await client.audio.speech.complete({
-    model,
-    input: text,
-    responseFormat: 'pcm',
-    stream: true,
-    ...(target.refAudioPath ? { refAudio: refAudioFromFile(target.refAudioPath) } : { voiceId: target.voiceId }),
-  });
-
-  const chunks: Uint8Array[] = [];
-  let ttfaMs = -1;
-  for await (const event of stream) {
-    const data = event.data;
-    if (data.type !== 'speech.audio.delta') continue;
-    if (ttfaMs < 0) ttfaMs = performance.now() - started;
-    chunks.push(f32leToS16le(new Uint8Array(Buffer.from(data.audioData, 'base64'))));
-  }
-  const totalMs = performance.now() - started;
-  if (chunks.length === 0) throw new Error(_('no audio received'));
-  return { pcm: new Uint8Array(Buffer.concat(chunks)), ttfaMs, totalMs };
-}
-
 /**
  * One request per sentence, joined with short pauses, the way the agent speaks a reply. With a
  * cloned voice every request is cloned anew, so this is where the voice may drift.
@@ -74,13 +51,13 @@ async function synthesizeSplit(
   client: Mistral,
   model: string,
   text: string,
-  target: Target,
+  voice: TtsVoice,
 ): Promise<{ pcm: Uint8Array; ttfaMs: number; totalMs: number }> {
   const started = performance.now();
   const parts: Uint8Array[] = [];
   let ttfaMs = -1;
   for (const sentence of splitSentences(text)) {
-    const run = await synthesize(client, model, sentence, target);
+    const run = await synthesize(client, model, sentence, voice);
     if (ttfaMs < 0) ttfaMs = run.ttfaMs;
     if (parts.length > 0) parts.push(silenceS16le(SAMPLE_RATE, SPLIT_PAUSE_MS));
     parts.push(run.pcm);
@@ -132,7 +109,8 @@ async function main(): Promise<void> {
       // not the latency one caller sees.
       const runs = [];
       const run = values.split ? synthesizeSplit : synthesize;
-      for (let i = 0; i < repeat; i++) runs.push(await run(client, model, text, target));
+      const voice = ttsVoice(target);
+      for (let i = 0; i < repeat; i++) runs.push(await run(client, model, text, voice));
       const { pcm } = runs[0]!;
       const ttfa = median(runs.map((run) => run.ttfaMs));
       const ttfaMax = Math.max(...runs.map((run) => run.ttfaMs));

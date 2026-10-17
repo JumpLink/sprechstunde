@@ -17,8 +17,12 @@ local stack starts, but no real call has gone through yet.
 provider (SIP/TLS) → Asterisk (REGISTER) → livekit/sip → livekit-server (+ Valkey) → agent
 ```
 
-Asterisk is there because `livekit/sip` cannot register with a provider itself. If the agent is
-unreachable, Asterisk answers with a "no service" prompt instead of ringing out.
+Asterisk is there because `livekit/sip` cannot register with a provider itself. `livekit/sip` keeps
+a call ringing until an agent subscribes to its audio, about 2 s when one runs. If none does
+within `SPRECHSTUNDE_ANSWER_TIMEOUT` seconds (default 10), Asterisk answers and plays the profile's
+`fallback` text. `npm run fallback` records that text into `deploy/asterisk/sounds/fallback.wav`
+with the same Mistral voice as the agent; without the file Asterisk plays its English "no service"
+prompt.
 
 ## Quick start (local)
 
@@ -87,6 +91,7 @@ could not reach PipeWire); that is an observation on one machine, not a general 
 | `SPRECHSTUNDE_TTS_REF_AUDIO` | path to an audio file to clone; overrides every other voice setting |
 | `SPRECHSTUNDE_TRUNK_NUMBERS` | comma-separated numbers for the inbound trunk; empty accepts any |
 | `SPRECHSTUNDE_METRICS_DIR` | where latency metrics are written, default `var/metrics` |
+| `SPRECHSTUNDE_ANSWER_TIMEOUT` | seconds Asterisk lets LiveKit ring before it plays the fallback, default `10` |
 | `SIP_PROVIDER_*`, `TRANSFER_TARGET_NUMBER`, `TRANSFER_SIP_HOST` | Asterisk's provider registration and the one number a call may be transferred to; it replaces the profile's `transfer.target` — see `.env.example` |
 
 ### Profiles
@@ -210,7 +215,6 @@ de-duplicated. Malformed lines are skipped and counted.
 - 1&1 keeps a registration about two hours, not the requested ten minutes, and allows only a few
   contacts per number. Unregistering on stop is verified with `sip:contacts`; a killed container
   still leaves its contact behind.
-- The called-number format for `SPRECHSTUNDE_TRUNK_NUMBERS`.
 - On a transfer over 1&1 the target sees the assistant's own number, not the caller's. Whether
   Asterisk sends it or 1&1 replaces whatever Asterisk sends is not checked; passing the caller's
   number through would need the provider to allow it.
@@ -225,7 +229,9 @@ de-duplicated. Malformed lines are skipped and counted.
 - The session now shuts the job down when the caller hangs up; untested in a real call.
 - Echo mode closes its audio stream, track and source on shutdown; checked against the rtc-node
   API, not against a running call.
-- The "no service" prompt is English: Debian packages no German Asterisk core sounds.
+- The fallback with no agent running: an Asterisk-internal call into `[from-provider]` rang
+  LiveKit and played `fallback.wav` after 10 s. No real caller has heard it yet. Without a
+  recording the "no service" prompt is English: Debian packages no German Asterisk core sounds.
 
 ## Development
 

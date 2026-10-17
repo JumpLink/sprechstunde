@@ -7,9 +7,11 @@ src/agent/stt-merge.ts
 src/agent/transfer.ts
 src/agent/tts-hedge.ts
 src/agent/tts-voice.ts
+src/cli/fallback.ts
 src/cli/metrics.ts
 src/cli/provision.ts
 src/cli/sip-contacts.ts
+src/cli/speech.ts
 src/cli/stt-try.ts
 src/cli/tts-try.ts
 src/cli/voice.ts

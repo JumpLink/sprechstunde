@@ -16,7 +16,7 @@ tested yet"; keep that list honest when you change behaviour).
 (`tools.ts`), audio helpers. Knows nothing about phones, LiveKit or SIP
 |`src/agent/` |LiveKit wiring: `main.ts` (worker entry), `assistant.ts`, `transfer.ts`, STT guard /
 merge, hedged TTS, `metrics.ts`. Tests sit next to the file as `*.test.ts`
-|`src/cli/` |dev tools run via npm scripts: `provision`, `tts:try`, `stt:try`, `voice`
+|`src/cli/` |dev tools run via npm scripts: `provision`, `tts:try`, `stt:try`, `voice`, `fallback`
 |`src/i18n.ts` |gettext lookup; catalogues in `po/` (`de.po`, `sprechstunde.pot`)
 |`deploy/` |`livekit.yaml`, `sip.yaml`, `asterisk/` (provider leg: Asterisk registers with the SIP
 provider, `livekit/sip` cannot)

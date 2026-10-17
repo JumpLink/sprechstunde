@@ -50,6 +50,9 @@ services:
       TRANSFER_TARGET_NUMBER: "${TRANSFER_TARGET_NUMBER:-}"
       SIP_PUBLIC_ADDRESS: "${SIP_PUBLIC_ADDRESS:-}"
       SIP_PROVIDER_IPV6: "${SIP_PROVIDER_IPV6:-no}"
+      SPRECHSTUNDE_ANSWER_TIMEOUT: "${SPRECHSTUNDE_ANSWER_TIMEOUT:-}"
+    volumes:
+      - ./deploy/asterisk/sounds:/opt/sprechstunde/sounds:ro,z  # `npm run fallback` records into it
     depends_on: [sip]
     restart: unless-stopped
 
@@ -69,6 +72,7 @@ services:
       SPRECHSTUNDE_PROFILE: "${SPRECHSTUNDE_PROFILE:-}"
       SPRECHSTUNDE_MODE: "${SPRECHSTUNDE_MODE:-echo}"
       TRANSFER_TARGET_NUMBER: "${TRANSFER_TARGET_NUMBER:-}"
+      TRANSFER_SIP_HOST: "${TRANSFER_SIP_HOST:-}"
       SPRECHSTUNDE_AGENT_NAME: "${SPRECHSTUNDE_AGENT_NAME:-}"
       SPRECHSTUNDE_LLM_MODEL: "${SPRECHSTUNDE_LLM_MODEL:-}"
       SPRECHSTUNDE_STT_MODEL: "${SPRECHSTUNDE_STT_MODEL:-}"

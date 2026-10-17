@@ -26,6 +26,11 @@
       "recreate": "Test output only: latency metrics (JSONL, numbers only), TTS samples (`npm run tts:try`), voice reference clips (`dev/record-voice.sh` re-records one, `dev/fetch-thorsten-sample.sh` re-downloads the CC0 clip). Losing it loses old measurements and one's own recording, nothing else."
     },
     {
+      "path": "deploy/asterisk/sounds/fallback.wav",
+      "class": "derived",
+      "recreate": "`npm run fallback` records the profile's `fallback` text with Mistral TTS (needs MISTRAL_API_KEY and, for the venue's voice, the same SPRECHSTUNDE_TTS_* as the agent). Without it Asterisk plays its English prompt."
+    },
+    {
       "path": "console-recordings",
       "class": "derived",
       "recreate": "Written only by `lk agent console --record`: audio and session reports of test conversations. Throwaway; delete after review, never back it up."
