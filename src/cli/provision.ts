@@ -17,7 +17,7 @@ async function main(): Promise<void> {
     required('LIVEKIT_API_KEY'),
     required('LIVEKIT_API_SECRET'),
   );
-  const agentName = process.env.SPRECHSTUNDE_AGENT_NAME ?? 'sprechstunde';
+  const agentName = process.env.SPRECHSTUNDE_AGENT_NAME || 'sprechstunde';
   const numbers = (process.env.SPRECHSTUNDE_TRUNK_NUMBERS ?? '')
     .split(',')
     .map((number) => number.trim())

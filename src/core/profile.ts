@@ -114,7 +114,7 @@ export function parseProfile(raw: unknown, path = '<profile>'): Profile {
 }
 
 export function loadProfile(path?: string): Profile {
-  const file = path ?? process.env.SPRECHSTUNDE_PROFILE ?? DEFAULT_PROFILE_PATH;
+  const file = path ?? (process.env.SPRECHSTUNDE_PROFILE || DEFAULT_PROFILE_PATH);
   let text: string;
   try {
     text = readFileSync(file, 'utf8');

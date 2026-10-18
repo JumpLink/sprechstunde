@@ -29,6 +29,17 @@ test('rejects a bad locale', () => {
   assert.throws(() => parseProfile(variant((r) => (r.locale = 'not a tag'))), /locale/);
 });
 
+test('an empty SPRECHSTUNDE_PROFILE means the default profile', () => {
+  const saved = process.env.SPRECHSTUNDE_PROFILE;
+  process.env.SPRECHSTUNDE_PROFILE = '';
+  try {
+    assert.equal(loadProfile().id, example.id);
+  } finally {
+    if (saved === undefined) delete process.env.SPRECHSTUNDE_PROFILE;
+    else process.env.SPRECHSTUNDE_PROFILE = saved;
+  }
+});
+
 test('fallback is optional and must not be empty', () => {
   assert.equal(parseProfile(variant((r) => delete r.fallback)).fallback, undefined);
   assert.throws(() => parseProfile(variant((r) => (r.fallback = ' '))), /fallback/);
