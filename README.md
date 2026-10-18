@@ -223,7 +223,8 @@ de-duplicated. Malformed lines are skipped and counted.
   400. A person answering, and what the caller hears meanwhile, are untested.
 - The optional `agent` container (`podman compose --profile agent up`): the image builds and, in
   assistant mode, starts and registers as a worker with LiveKit (turn-detector files found, metrics
-  directory writable, German catalogue present). No call has gone through it.
+  directory writable, German catalogue present). A dispatch probe without a phone ran a session
+  in it, greeting synthesised and clean close; no phone call has gone through it yet.
 - The stall guard and the batch fallback are covered by unit tests with fake STTs, not yet by a
   real Mistral outage. The rescue path and `HedgedTTS` are verified only with fakes.
 - The session now shuts the job down when the caller hangs up; untested in a real call.
