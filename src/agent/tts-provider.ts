@@ -4,6 +4,7 @@ import * as mistral from '@livekit/agents-plugin-mistralai';
 import * as openai from '@livekit/agents-plugin-openai';
 import type { Mistral } from '@mistralai/mistralai';
 import type { Profile } from '../core/profile.js';
+import { activePreset, type Settings, type VoicePreset } from '../core/settings.js';
 import { spellOutNumbers } from '../core/spoken-numbers.js';
 import { _ } from '../i18n.js';
 import { DEFAULT_POCKET_URL, PocketTTS } from './pocket-tts.js';
@@ -28,10 +29,12 @@ export type TtsChoice = {
   provider: TtsProvider;
   model: string;
   voice?: string;
+  /** Path to an audio file to clone (Mistral only); wins over `voice` and the profile's voice. */
+  refAudio?: string;
   /** The name the assistant gives itself while it speaks with this voice; the profile's otherwise. */
   name?: string;
-  /** Env prefix this choice was read from, so the vendor's own settings are read from it too. */
-  prefix: string;
+  /** Id of the settings preset this choice came from, or none when the environment decided. */
+  preset?: string;
 };
 
 /**
@@ -52,7 +55,54 @@ export function ttsChoice(env: NodeJS.ProcessEnv = process.env, prefix = PRIMARY
   if ((provider === 'cartesia' || provider === 'openrouter') && !voice) {
     throw new Error(_('%s must be set').replace('%s', key('VOICE')));
   }
-  return { provider, model, voice, name: env[key('NAME')] || undefined, prefix };
+  return {
+    provider,
+    model,
+    voice,
+    refAudio: env[key('REF_AUDIO')] || undefined,
+    name: env[key('NAME')] || undefined,
+  };
+}
+
+/**
+ * The same choice from a settings preset instead of the environment. The preset carries the
+ * vendor's own fields, so nothing is read from the environment behind its back — otherwise a
+ * `SPRECHSTUNDE_TTS_REF_AUDIO` left over from an earlier test would override every preset voice.
+ */
+export function choiceFromPreset(preset: VoicePreset): TtsChoice {
+  const model = preset.model || DEFAULT_MODEL[preset.provider];
+  if (!model) {
+    throw new Error(
+      _('preset "%1" needs a model for the %2 provider').replace('%1', preset.id).replace('%2', preset.provider),
+    );
+  }
+  return {
+    provider: preset.provider,
+    model,
+    voice: preset.voice,
+    refAudio: preset.refAudio,
+    name: preset.name,
+    preset: preset.id,
+  };
+}
+
+/**
+ * The voice pair for one call. The settings file wins as a whole as soon as it names an active
+ * primary preset: mixing a preset with the `SPRECHSTUNDE_TTS_FALLBACK_…` keys would make the
+ * second voice depend on which of the two sources was edited last. Without an active primary
+ * nothing changes and the environment decides.
+ */
+export function ttsChoices(
+  settings: Settings | undefined,
+  env: NodeJS.ProcessEnv = process.env,
+): { primary: TtsChoice; fallback?: TtsChoice } {
+  const primary = activePreset(settings, 'primary');
+  if (!primary) return { primary: ttsChoice(env), fallback: ttsFallbackChoice(env) };
+  const fallback = activePreset(settings, 'fallback');
+  return {
+    primary: choiceFromPreset(primary),
+    ...(fallback && { fallback: choiceFromPreset(fallback) }),
+  };
 }
 
 /** The voice used when the primary one has no room for a call or fails; none unless configured. */
@@ -71,16 +121,14 @@ export function buildBaseTts(
   choice: TtsChoice,
   env: NodeJS.ProcessEnv = process.env,
 ): tts.TTS {
-  const { provider, model, voice, prefix } = choice;
+  const { provider, model, voice, refAudio } = choice;
   switch (provider) {
     case 'mistral':
+      // The choice carries what the vendor needs; the profile's own voice fills what it leaves open.
       return new mistral.TTS({
         client,
         model,
-        ...resolveTtsVoice(profile, {
-          SPRECHSTUNDE_TTS_VOICE: env[`${prefix}VOICE`],
-          SPRECHSTUNDE_TTS_REF_AUDIO: env[`${prefix}REF_AUDIO`],
-        }),
+        ...resolveTtsVoice(profile, { SPRECHSTUNDE_TTS_VOICE: voice, SPRECHSTUNDE_TTS_REF_AUDIO: refAudio }),
       });
     case 'cartesia':
       return new cartesia.TTS({ model, voice: voice!, language: profile.locale.split('-')[0]! });

@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import type { metrics } from '@livekit/agents';
-import { metricsLine, recordMetrics } from './metrics.js';
+import { callConfigLine, metricsLine, recordMetrics } from './metrics.js';
 
 const eouMetrics = {
   type: 'eou_metrics',
@@ -75,4 +75,16 @@ test('metricsLine keeps only numbers, ids and timestamps', () => {
     }
   }
   assert.equal(metricsLine({ ...extra, type: 'stt_metrics' } as unknown as metrics.AgentMetrics), null);
+});
+
+test('callConfigLine: ids and names only, no text', () => {
+  const line = callConfigLine({ jobId: 'job-1', ttsPreset: 'house', ttsProvider: 'pocket', llmModel: 'small' }, 42);
+  assert.deepEqual(line, {
+    type: 'call_config',
+    ts: 42,
+    jobId: 'job-1',
+    ttsPreset: 'house',
+    ttsProvider: 'pocket',
+    llmModel: 'small',
+  });
 });

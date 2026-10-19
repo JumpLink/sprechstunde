@@ -1,14 +1,15 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { ttsChoice, ttsFallbackChoice } from './tts-provider.js';
+import { parseSettings } from '../core/settings.js';
+import { choiceFromPreset, ttsChoice, ttsChoices, ttsFallbackChoice } from './tts-provider.js';
 
 test('ttsChoice: Mistral by default, voice from the profile', () => {
   assert.deepEqual(ttsChoice({}), {
     provider: 'mistral',
     model: 'voxtral-mini-tts-latest',
     voice: undefined,
+    refAudio: undefined,
     name: undefined,
-    prefix: 'SPRECHSTUNDE_TTS_',
   });
 });
 
@@ -18,8 +19,8 @@ test('ttsChoice: another vendor needs its own voice', () => {
     provider: 'cartesia',
     model: 'sonic-3.6',
     voice: 'v',
+    refAudio: undefined,
     name: undefined,
-    prefix: 'SPRECHSTUNDE_TTS_',
   });
 });
 
@@ -52,12 +53,70 @@ test('ttsFallbackChoice: none unless configured, read from its own keys', () => 
       provider: 'mistral',
       model: 'voxtral-mini-tts-latest',
       voice: 'm',
+      refAudio: undefined,
       name: 'Pascal',
-      prefix: 'SPRECHSTUNDE_TTS_FALLBACK_',
     },
   );
   assert.throws(
     () => ttsFallbackChoice({ SPRECHSTUNDE_TTS_FALLBACK_PROVIDER: 'cartesia' }),
     /SPRECHSTUNDE_TTS_FALLBACK_VOICE/,
   );
+});
+
+test('ttsChoice: the reference clip is part of the choice', () => {
+  assert.equal(ttsChoice({ SPRECHSTUNDE_TTS_REF_AUDIO: 'clip.wav' }).refAudio, 'clip.wav');
+  assert.equal(
+    ttsFallbackChoice({
+      SPRECHSTUNDE_TTS_FALLBACK_PROVIDER: 'mistral',
+      SPRECHSTUNDE_TTS_FALLBACK_REF_AUDIO: 'other.wav',
+    })?.refAudio,
+    'other.wav',
+  );
+});
+
+test('choiceFromPreset: the vendor default fills in the model', () => {
+  assert.deepEqual(choiceFromPreset({ id: 'house', label: 'House', provider: 'mistral', name: 'Alex' }), {
+    provider: 'mistral',
+    model: 'voxtral-mini-tts-latest',
+    voice: undefined,
+    refAudio: undefined,
+    name: 'Alex',
+    preset: 'house',
+  });
+  assert.equal(choiceFromPreset({ id: 'p', label: 'P', provider: 'pocket', voice: 'juergen' }).model, 'pocket-tts');
+  assert.throws(() => choiceFromPreset({ id: 'r', label: 'R', provider: 'openrouter', voice: 'v' }), /needs a model/);
+});
+
+test('ttsChoices: the environment decides while no preset is active', () => {
+  const env = { SPRECHSTUNDE_TTS_PROVIDER: 'pocket', SPRECHSTUNDE_TTS_FALLBACK_PROVIDER: 'mistral' };
+  assert.deepEqual(ttsChoices(undefined, env).primary.provider, 'pocket');
+  assert.deepEqual(ttsChoices(parseSettings({}), env).fallback?.provider, 'mistral');
+  // Presets that exist but are not active change nothing.
+  const idle = parseSettings({ presets: [{ id: 'c', label: 'C', provider: 'cartesia', voice: 'v' }] });
+  assert.equal(ttsChoices(idle, env).primary.provider, 'pocket');
+});
+
+test('ttsChoices: an active preset wins over the environment, as a pair', () => {
+  const settings = parseSettings({
+    presets: [
+      { id: 'house', label: 'House', provider: 'pocket', voice: 'juergen', name: 'Alex' },
+      { id: 'cloud', label: 'Cloud', provider: 'mistral', voice: 'm' },
+    ],
+    active: { primary: 'house', fallback: 'cloud' },
+  });
+  const env = { SPRECHSTUNDE_TTS_PROVIDER: 'cartesia', SPRECHSTUNDE_TTS_VOICE: 'from-env' };
+  const choices = ttsChoices(settings, env);
+  assert.equal(choices.primary.preset, 'house');
+  assert.equal(choices.primary.voice, 'juergen');
+  assert.equal(choices.primary.name, 'Alex');
+  assert.equal(choices.fallback?.preset, 'cloud');
+});
+
+test('ttsChoices: an active primary without a fallback leaves the env fallback out', () => {
+  const settings = parseSettings({
+    presets: [{ id: 'house', label: 'House', provider: 'pocket' }],
+    active: { primary: 'house' },
+  });
+  const choices = ttsChoices(settings, { SPRECHSTUNDE_TTS_FALLBACK_PROVIDER: 'mistral' });
+  assert.equal(choices.fallback, undefined);
 });

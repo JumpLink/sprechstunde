@@ -30,11 +30,43 @@ export function metricsLine(m: metrics.AgentMetrics): Record<string, unknown> | 
   }
 }
 
+export interface CallConfig {
+  jobId?: string;
+  /** Settings preset the voice came from, or none when the environment decided. */
+  ttsPreset?: string;
+  ttsProvider?: string;
+  llmModel?: string;
+}
+
+/**
+ * One line at the start of a call naming the voice and the model it runs with, so the latency
+ * lines that follow can be attributed to them (`npm run metrics`, the admin UI). Ids and names
+ * of our own configuration only — same rule as every other line here: no text, no caller.
+ */
+export function callConfigLine(config: CallConfig, now = Date.now()): Record<string, unknown> {
+  return {
+    type: 'call_config',
+    ts: now,
+    jobId: config.jobId,
+    ttsPreset: config.ttsPreset,
+    ttsProvider: config.ttsProvider,
+    llmModel: config.llmModel,
+  };
+}
+
 let warned = false;
+
+export function recordCallConfig(config: CallConfig): void {
+  write(callConfigLine(config));
+}
 
 export function recordMetrics(m: metrics.AgentMetrics): void {
   const line = metricsLine(m);
   if (!line) return;
+  write(line);
+}
+
+function write(line: Record<string, unknown>): void {
   const dir = metricsDir();
   try {
     mkdirSync(dir, { recursive: true });
