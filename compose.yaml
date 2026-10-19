@@ -121,6 +121,7 @@ services:
       - ./var/metrics:/app/var/metrics:z
       - ./var/settings:/app/var/settings:z
       - ./var/voices:/app/var/voices:ro,z
+      - ./var/profiles:/app/var/profiles:ro,z
       - ./var/transcripts:/app/var/transcripts:z
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8081/').then((r) => process.exit(r.ok ? 0 : 1), () => process.exit(1))"]
@@ -159,6 +160,7 @@ services:
     volumes:
       - ./var/settings:/app/var/settings:z
       - ./var/voices:/app/var/voices:ro,z
+      - ./var/profiles:/app/var/profiles:ro,z
       # Read-only: the UI reports the measurements, the agent is the one that writes them.
       - ./var/metrics:/app/var/metrics:ro,z
     restart: unless-stopped

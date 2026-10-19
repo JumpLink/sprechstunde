@@ -25,6 +25,11 @@ const DEFAULT_MODEL: Record<TtsProvider, string | undefined> = {
   kugel: 'kugel-3.5',
 };
 
+/** The model a vendor's provider uses when none is named; none for OpenRouter. */
+export function defaultTtsModel(provider: TtsProvider): string | undefined {
+  return DEFAULT_MODEL[provider];
+}
+
 /** Vendors whose voice ids are their own, so the profile's voice means nothing to them. */
 const NEEDS_OWN_VOICE: readonly TtsProvider[] = ['cartesia', 'openrouter', 'kugel'];
 

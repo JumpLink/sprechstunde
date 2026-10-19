@@ -18,9 +18,13 @@ import {
   TTS_PROVIDERS,
   writeSettings,
   PRESET_ID,
+  profileFilePath,
+  profilesDir,
 } from '../core/settings.js';
+import { listProfiles, loadProfile } from '../core/profile.js';
 import { choiceFromPreset, type TtsChoice, ttsChoice, ttsFallbackChoice } from '../agent/tts-provider.js';
 import { _ } from '../i18n.js';
+import { CATALOG_TARGETS, type CatalogService, type CatalogTarget, createCatalog } from './catalog.js';
 import { byPreset, callsFrom, METRIC_NAMES, readMetrics, summarizeCall } from './latency.js';
 import { appJs, pageHtml, uiStrings } from './page.js';
 import { previewWav, type Synthesizer } from './preview.js';
@@ -32,6 +36,7 @@ export const HOST = '127.0.0.1';
 const MAX_BODY_BYTES = 256 * 1024;
 /** Calls shown in the latency table. More would be a log, not an overview. */
 const RECENT_CALLS = 25;
+const CATALOG_PREFIX = '/api/catalog/';
 
 export interface AdminOptions {
   settingsPath: string;
@@ -39,6 +44,10 @@ export interface AdminOptions {
   synthesize: Synthesizer;
   /** Preview text the page starts with; the profile's greeting is what a caller really hears. */
   sampleText: string;
+  /** The profile the worker starts with: what a call uses while no other one is picked. */
+  startProfile?: { id: string; name?: string; locale?: string };
+  /** Vendor models and voices; the real vendors unless a test hands in a fake. */
+  catalog?: CatalogService;
   env?: NodeJS.ProcessEnv;
 }
 
@@ -120,6 +129,8 @@ function maybeNumber(value: unknown): number | undefined {
 
 export function createAdminServer(options: AdminOptions): Server {
   const env = options.env ?? process.env;
+
+  const catalog = options.catalog ?? createCatalog({ env });
 
   const read = (): Settings => readSettings(options.settingsPath) ?? emptySettings();
 
@@ -239,6 +250,75 @@ export function createAdminServer(options: AdminOptions): Server {
           summary: summarizeCall(call),
         })),
       });
+    }
+
+    // A string prefix, not a regex: xgettext on the CI runner loses track after `[^/]` in a regex
+    // literal and drops the strings that follow from the catalogue.
+    const catalogTarget = path.startsWith(CATALOG_PREFIX) ? path.slice(CATALOG_PREFIX.length) : undefined;
+    if (method === 'GET' && catalogTarget !== undefined) {
+      if (!(CATALOG_TARGETS as readonly string[]).includes(catalogTarget)) {
+        throw new HttpError(404, _('unknown catalog'));
+      }
+      const language = url.searchParams.get('language') || undefined;
+      if (language !== undefined && !/^[A-Za-z]{2,3}(-[A-Za-z0-9]{2,8})*$/.test(language)) {
+        throw new HttpError(400, _('"language" must be a BCP-47 tag'));
+      }
+      const refresh = url.searchParams.get('refresh');
+      return json(
+        response,
+        200,
+        await catalog.get(catalogTarget as CatalogTarget, {
+          refresh: refresh === '1' || refresh === 'true',
+          ...(language && { language }),
+        }),
+      );
+    }
+
+    if (method === 'GET' && path === '/api/profiles') {
+      let profiles: ReturnType<typeof listProfiles> = [];
+      let error: string | undefined;
+      try {
+        profiles = listProfiles(profilesDir(env));
+      } catch (failure) {
+        error = (failure as Error).message;
+      }
+      let active: string | null = null;
+      try {
+        active = read().profile ?? null;
+      } catch {
+        // an unreadable settings file is reported by /api/state
+      }
+      return json(response, 200, {
+        profiles,
+        active,
+        default: options.startProfile ?? null,
+        ...(error && { error }),
+      });
+    }
+
+    if (method === 'PUT' && path === '/api/profile') {
+      const wanted = body(await readBody(request));
+      const file = wanted.file;
+      if (file !== null && typeof file !== 'string') {
+        throw new HttpError(400, _('"file" must be a file name or null'));
+      }
+      if (file !== null) {
+        const target = profileFilePath(file, env);
+        if (!target) throw new HttpError(400, _('"file" must be the name of a .json file in the profiles directory'));
+        try {
+          loadProfile(target);
+        } catch (error) {
+          throw new HttpError(400, (error as Error).message);
+        }
+      }
+      return json(
+        response,
+        200,
+        update((settings) => {
+          const { profile: _previous, ...rest } = settings;
+          return file === null ? rest : { ...rest, profile: file };
+        }),
+      );
     }
 
     if (method === 'POST' && path === '/api/presets') {

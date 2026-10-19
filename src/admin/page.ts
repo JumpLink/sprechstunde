@@ -31,6 +31,8 @@ export function uiStrings(): Record<string, string> {
     noPresets: _('No presets yet. Add one, then make it the active voice.'),
     missingKey: _('no API key for this vendor in the environment'),
     calls: _('calls'),
+    startProfile: _('start profile: %s'),
+    profileError: _('does not load'),
   };
 }
 
@@ -101,6 +103,13 @@ export function pageHtml(): string {
   <button class="primary" type="submit">${_h('Save')}</button>
 </form>
 <p class="hint" id="env-voice"></p>
+
+<h2>${_h('Profile')}</h2>
+<p class="hint">${_h('The venue profile the next calls use. Without a choice, the profile the agent started with answers.')}</p>
+<form class="row" id="profile-form">
+  <label>${_h('Profile')}<select id="profile-file" name="file"></select></label>
+  <button class="primary" type="submit">${_h('Save')}</button>
+</form>
 
 <h2>${_h('Presets')}</h2>
 <table id="presets">
@@ -252,6 +261,19 @@ function renderActive() {
   }
 }
 
+function renderProfiles() {
+  const data = state.profiles;
+  const select = $("profile-file");
+  select.textContent = "";
+  const start = data.default;
+  option(select, "", start ? t("startProfile", start.id) : strings.none);
+  for (const entry of data.profiles) {
+    const label = entry.file + " (" + (entry.error ? strings.profileError : entry.id) + ")";
+    option(select, entry.file, label);
+  }
+  select.value = data.active || "";
+}
+
 function renderLlm() {
   const form = $("llm-form");
   form.model.value = state.settings.llm.model || "";
@@ -341,6 +363,18 @@ async function submitActive(event) {
       primary: form.primary.value,
       fallback: form.fallback.value,
     });
+    message(strings.saved);
+    renderAll();
+  } catch (error) {
+    message(error.message, true);
+  }
+}
+
+async function submitProfile(event) {
+  event.preventDefault();
+  try {
+    await api("PUT", "/api/profile", { file: event.target.file.value || null });
+    state.profiles = await api("GET", "/api/profiles");
     message(strings.saved);
     renderAll();
   } catch (error) {
@@ -451,6 +485,7 @@ function renderLatency(data) {
 
 function renderAll() {
   renderPresets();
+  renderProfiles();
   renderActive();
   renderLlm();
   renderPreviewChoices();
@@ -459,6 +494,7 @@ function renderAll() {
 async function load() {
   state = await api("GET", "/api/state");
   strings = state.strings;
+  state.profiles = await api("GET", "/api/profiles");
   $("settings-path").textContent = state.settingsPath;
   if (state.settingsError) message(state.settingsError, true);
   const providers = $("preset-provider");
@@ -475,6 +511,7 @@ async function load() {
 $("preset-form").addEventListener("submit", submitPreset);
 $("preset-cancel").addEventListener("click", resetForm);
 $("active-form").addEventListener("submit", submitActive);
+$("profile-form").addEventListener("submit", submitProfile);
 $("llm-form").addEventListener("submit", submitLlm);
 $("preview-form").addEventListener("submit", submitPreview);
 load().catch((error) => message(error.message, true));

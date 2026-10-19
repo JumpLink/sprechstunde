@@ -1,0 +1,385 @@
+/**
+ * What each vendor offers: models and voices, normalized to one shape so the admin UI can list and
+ * filter them without knowing five APIs. Admin only — the agent never asks a catalog during a call;
+ * a preset names a voice id, and that is all a call needs.
+ *
+ * Every fetcher is injectable (`fetch`, the vendor SDK clients), so the tests run without network
+ * or keys. A vendor that cannot be asked — no key, no network, an error answer — is reported as
+ * `available: false` with a short reason, never thrown out of the endpoint. Keys are never logged
+ * and are scrubbed from every reason.
+ */
+
+import { KugelAudio } from 'kugelaudio';
+import { Mistral } from '@mistralai/mistralai';
+import { defaultTtsModel, kugelApiKey, pocketUrl } from '../agent/tts-provider.js';
+import { TTS_PROVIDERS } from '../core/settings.js';
+import { _ } from '../i18n.js';
+import { mistralServer } from '../mistral.js';
+
+export const CATALOG_TARGETS = [...TTS_PROVIDERS, 'llm'] as const;
+export type CatalogTarget = (typeof CATALOG_TARGETS)[number];
+
+export interface CatalogModel {
+  id: string;
+  label: string;
+}
+
+export interface CatalogVoice {
+  /** What a preset's `voice` takes. */
+  id: string;
+  name: string;
+  /** Set when the voice belongs to one model (OpenRouter). */
+  model?: string;
+  languages: string[];
+  gender?: string;
+  description?: string;
+  sampleUrl?: string;
+}
+
+export interface Catalog {
+  /** The vendor; `llm` answers with the chat models of Mistral, the one LLM vendor the agent uses. */
+  provider: CatalogTarget;
+  available: boolean;
+  reason?: string;
+  models: CatalogModel[];
+  voices: CatalogVoice[];
+  fetchedAt: string;
+}
+
+/** The part of the KugelAudio client a catalog uses. */
+export interface KugelLike {
+  voices: {
+    list(options: { language?: string; includePublic?: boolean; limit?: number; offset?: number }): Promise<{
+      voices: Array<{
+        id: number;
+        name: string;
+        description?: string;
+        sex?: string;
+        supportedLanguages: string[];
+        sampleUrl?: string;
+      }>;
+      total: number;
+    }>;
+  };
+  models: { list(): Promise<Array<{ id: string; name: string }>> };
+}
+
+interface MistralModelCard {
+  id: string;
+  name?: string | null;
+  internal?: boolean;
+  capabilities?: { completionChat?: boolean; functionCalling?: boolean; audioSpeech?: boolean };
+}
+
+/** The part of the Mistral client a catalog uses. */
+export interface MistralLike {
+  audio: {
+    voices: {
+      list(request: { limit: number; offset: number }): Promise<{
+        items: Array<{
+          id: string;
+          name: string;
+          languages?: string[];
+          gender?: string | null;
+          description?: string | null;
+        }>;
+        total: number;
+      }>;
+    };
+  };
+  models: { list(): Promise<{ data?: MistralModelCard[] | undefined }> };
+}
+
+export interface CatalogDeps {
+  env?: NodeJS.ProcessEnv;
+  fetch?: typeof fetch;
+  kugel?: (apiKey: string) => KugelLike;
+  mistral?: (apiKey: string, env: NodeJS.ProcessEnv) => MistralLike;
+  now?: () => number;
+}
+
+export interface CatalogRequest {
+  /** Bypass the cache. */
+  refresh?: boolean;
+  /** BCP-47 language or language-region tag, for the vendors that filter by it. */
+  language?: string;
+}
+
+export interface CatalogService {
+  get(target: CatalogTarget, request?: CatalogRequest): Promise<Catalog>;
+}
+
+const CACHE_MS = 60 * 60 * 1000;
+const REQUEST_TIMEOUT_MS = 15_000;
+const PAGE_SIZE = 100;
+/** A runaway pagination loop is a bug on the vendor's side; the catalog stops at this many pages. */
+const MAX_PAGES = 20;
+const MAX_REASON_CHARS = 160;
+
+/** A vendor answered, but not with a success status. */
+class HttpStatusError extends Error {
+  constructor(readonly status: number) {
+    super(`HTTP ${status}`);
+  }
+}
+
+class MissingKeyError extends Error {}
+
+type Fetched = { models: CatalogModel[]; voices: CatalogVoice[] };
+type Context = {
+  env: NodeJS.ProcessEnv;
+  fetch: typeof fetch;
+  kugel: (apiKey: string) => KugelLike;
+  mistral: (apiKey: string, env: NodeJS.ProcessEnv) => MistralLike;
+  language?: string;
+};
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function str(value: unknown): string | undefined {
+  return typeof value === 'string' && value !== '' ? value : undefined;
+}
+
+function strings(value: unknown): string[] {
+  return Array.isArray(value) ? value.filter((entry): entry is string => typeof entry === 'string') : [];
+}
+
+async function getJson(context: Context, url: string, headers: Record<string, string> = {}): Promise<unknown> {
+  const response = await context.fetch(url, { headers, signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS) });
+  if (!response.ok) throw new HttpStatusError(response.status);
+  return response.json();
+}
+
+function requireKey(context: Context, name: string): string {
+  const key = context.env[name];
+  if (!key) throw new MissingKeyError(_('no API key for this vendor in the environment'));
+  return key;
+}
+
+function voice(entry: CatalogVoice): CatalogVoice {
+  // Drop empty optionals so a response never carries `"gender": null`-style noise.
+  const result: CatalogVoice = { id: entry.id, name: entry.name, languages: entry.languages };
+  for (const key of ['model', 'gender', 'description', 'sampleUrl'] as const) {
+    if (entry[key]) result[key] = entry[key];
+  }
+  return result;
+}
+
+async function fetchKugel(context: Context): Promise<Fetched> {
+  requireKey(context, 'KUGELAUDIO_API_KEY');
+  // The same key and region rule a call uses.
+  const client = context.kugel(kugelApiKey(context.env));
+  const models = (await client.models.list()).map((model) => ({ id: model.id, label: model.name || model.id }));
+  const voices: CatalogVoice[] = [];
+  for (let page = 0; page < MAX_PAGES; page++) {
+    const result = await client.voices.list({
+      ...(context.language && { language: context.language.split('-')[0] }),
+      includePublic: true,
+      limit: PAGE_SIZE,
+      offset: voices.length,
+    });
+    for (const entry of result.voices) {
+      voices.push(
+        voice({
+          id: String(entry.id),
+          name: entry.name,
+          languages: entry.supportedLanguages ?? [],
+          gender: entry.sex,
+          description: entry.description,
+          sampleUrl: entry.sampleUrl,
+        }),
+      );
+    }
+    if (result.voices.length === 0 || voices.length >= result.total) break;
+  }
+  return { models, voices };
+}
+
+async function mistralCards(context: Context): Promise<{ client: MistralLike; cards: MistralModelCard[] }> {
+  const client = context.mistral(requireKey(context, 'MISTRAL_API_KEY'), context.env);
+  const cards = ((await client.models.list()).data ?? []).filter((card) => !card.internal);
+  return { client, cards };
+}
+
+const toModel = (card: MistralModelCard): CatalogModel => ({ id: card.id, label: card.name || card.id });
+
+async function fetchMistral(context: Context): Promise<Fetched> {
+  const { client, cards } = await mistralCards(context);
+  const models = cards.filter((card) => card.capabilities?.audioSpeech).map(toModel);
+  const voices: CatalogVoice[] = [];
+  // Presets and the account's own cloned voices, both addressed by id.
+  for (let page = 0; page < MAX_PAGES; page++) {
+    const result = await client.audio.voices.list({ limit: PAGE_SIZE, offset: voices.length });
+    for (const entry of result.items) {
+      voices.push(
+        voice({
+          id: entry.id,
+          name: entry.name,
+          languages: entry.languages ?? [],
+          gender: entry.gender ?? undefined,
+          description: entry.description ?? undefined,
+        }),
+      );
+    }
+    if (result.items.length === 0 || voices.length >= result.total) break;
+  }
+  return { models, voices };
+}
+
+async function fetchLlm(context: Context): Promise<Fetched> {
+  const { cards } = await mistralCards(context);
+  // The agent's one tool (the transfer) needs function calling.
+  const models = cards.filter((card) => card.capabilities?.completionChat && card.capabilities.functionCalling);
+  return { models: models.map(toModel), voices: [] };
+}
+
+async function fetchOpenRouter(context: Context): Promise<Fetched> {
+  const body = await getJson(context, 'https://openrouter.ai/api/v1/models?output_modalities=speech');
+  const data = isRecord(body) && Array.isArray(body.data) ? body.data : [];
+  const models: CatalogModel[] = [];
+  const voices: CatalogVoice[] = [];
+  for (const entry of data) {
+    if (!isRecord(entry)) continue;
+    const id = str(entry.id);
+    if (!id) continue;
+    models.push({ id, label: str(entry.name) ?? id });
+    // Voices belong to a model here: the same name on two models is two entries.
+    for (const name of strings(entry.supported_voices))
+      voices.push(voice({ id: name, name, model: id, languages: [] }));
+  }
+  return { models, voices };
+}
+
+// What the vendor documents for GET /voices; cursor pagination.
+const CARTESIA_VERSION = '2025-04-16';
+
+async function fetchCartesia(context: Context): Promise<Fetched> {
+  const key = requireKey(context, 'CARTESIA_API_KEY');
+  const voices: CatalogVoice[] = [];
+  let after: string | undefined;
+  for (let page = 0; page < MAX_PAGES; page++) {
+    const query = new URLSearchParams({ limit: String(PAGE_SIZE) });
+    if (context.language) query.set('language', context.language.split('-')[0]!);
+    if (after) query.set('starting_after', after);
+    const body = await getJson(context, `https://api.cartesia.ai/voices?${query}`, {
+      'X-API-Key': key,
+      'Cartesia-Version': CARTESIA_VERSION,
+    });
+    const data = isRecord(body) && Array.isArray(body.data) ? body.data : Array.isArray(body) ? body : [];
+    for (const entry of data) {
+      if (!isRecord(entry)) continue;
+      const id = str(entry.id);
+      if (!id) continue;
+      const locales = Array.isArray(entry.accents)
+        ? entry.accents.map((accent) => (isRecord(accent) ? str(accent.locale) : undefined)).filter((l) => l)
+        : [];
+      voices.push(
+        voice({
+          id,
+          name: str(entry.name) ?? id,
+          languages: locales.length > 0 ? (locales as string[]) : ([str(entry.language)].filter((l) => l) as string[]),
+          gender: str(entry.gender),
+          description: str(entry.description) ?? str(entry.tagline),
+        }),
+      );
+    }
+    after = isRecord(body) && body.has_more === true ? str(body.next_page) : undefined;
+    if (!after) break;
+  }
+  // There is no model listing; the one the provider defaults to is all that is known.
+  const model = defaultTtsModel('cartesia');
+  return { models: model ? [{ id: model, label: model }] : [], voices };
+}
+
+// What the image shipped with before `GET /voices` existed.
+const POCKET_FALLBACK_VOICES = ['alba', 'juergen'];
+
+async function fetchPocket(context: Context): Promise<Fetched> {
+  let names = POCKET_FALLBACK_VOICES;
+  let language: string | undefined;
+  try {
+    const body = await getJson(context, `${pocketUrl(context.env)}/voices`);
+    if (isRecord(body)) {
+      const listed = strings(body.voices);
+      if (listed.length > 0) names = listed;
+      language = str(body.language);
+    }
+  } catch (error) {
+    // A server from before the endpoint answers 404; anything else means it is not there.
+    if (!(error instanceof HttpStatusError && error.status === 404)) throw error;
+  }
+  const model = defaultTtsModel('pocket');
+  return {
+    models: model ? [{ id: model, label: model }] : [],
+    voices: names.map((name) => voice({ id: name, name, languages: language ? [language] : [] })),
+  };
+}
+
+const FETCHERS: Record<CatalogTarget, (context: Context) => Promise<Fetched>> = {
+  mistral: fetchMistral,
+  cartesia: fetchCartesia,
+  openrouter: fetchOpenRouter,
+  pocket: fetchPocket,
+  kugel: fetchKugel,
+  llm: fetchLlm,
+};
+
+/** Env values that must never appear in a reason, whatever a vendor echoes back. */
+function secretsOf(env: NodeJS.ProcessEnv): string[] {
+  return Object.entries(env)
+    .filter(([name, value]) => /KEY|SECRET|TOKEN|PASSWORD/.test(name) && value && value.length >= 8)
+    .map(([, value]) => value!);
+}
+
+function reasonOf(error: unknown, env: NodeJS.ProcessEnv): string {
+  if (error instanceof MissingKeyError) return error.message;
+  if (error instanceof HttpStatusError) return _('the vendor answered with %s').replace('%s', `HTTP ${error.status}`);
+  let message = error instanceof Error ? error.message : String(error);
+  for (const secret of secretsOf(env)) message = message.split(secret).join('***');
+  // Prefixed keys (Kugel's region) reach the SDK in another shape; the bare key was scrubbed above.
+  message = message.replace(/\s+/g, ' ').slice(0, MAX_REASON_CHARS);
+  return _('the request failed: %s').replace('%s', message);
+}
+
+export function createCatalog(deps: CatalogDeps = {}): CatalogService {
+  const env = deps.env ?? process.env;
+  const now = deps.now ?? Date.now;
+  const context = (language?: string): Context => ({
+    env,
+    fetch: deps.fetch ?? fetch,
+    kugel: deps.kugel ?? ((apiKey) => new KugelAudio({ apiKey })),
+    mistral:
+      deps.mistral ??
+      ((apiKey, environment) => new Mistral({ apiKey, ...mistralServer(environment) }) as unknown as MistralLike),
+    ...(language && { language }),
+  });
+  const cache = new Map<string, { at: number; catalog: Catalog }>();
+
+  return {
+    async get(target, request = {}) {
+      const key = `${target}|${request.language ?? ''}`;
+      const cached = cache.get(key);
+      if (!request.refresh && cached && now() - cached.at < CACHE_MS) return cached.catalog;
+
+      const fetchedAt = new Date(now()).toISOString();
+      try {
+        const { models, voices } = await FETCHERS[target](context(request.language));
+        const catalog: Catalog = { provider: target, available: true, models, voices, fetchedAt };
+        cache.set(key, { at: now(), catalog });
+        return catalog;
+      } catch (error) {
+        // Not cached: a key added a minute later, or a vendor back up, should show on the next look.
+        return {
+          provider: target,
+          available: false,
+          reason: reasonOf(error, env),
+          models: [],
+          voices: [],
+          fetchedAt,
+        };
+      }
+    },
+  };
+}

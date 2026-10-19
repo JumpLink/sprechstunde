@@ -14,7 +14,7 @@ import { _ } from '../i18n.js';
 import { mistralClient } from '../mistral.js';
 import { buildLlm, llmFallbackModel, llmModel } from './llm.js';
 import { recordCallConfig, recordMetrics } from './metrics.js';
-import { currentSettings } from './settings.js';
+import { currentSettings, profileForCall } from './settings.js';
 import { attachTranscript, transcriptDir } from './transcript.js';
 import { transferSipParticipant } from './transfer.js';
 import { StallGuardSTT } from './stt-guard.js';
@@ -154,7 +154,7 @@ async function voiceForCall(
   };
 }
 
-export async function runAssistant(ctx: JobContext, venue: Profile): Promise<void> {
+export async function runAssistant(ctx: JobContext, startProfile: Profile): Promise<void> {
   const stopCpuProfile = startCpuProfile(ctx.job?.id || 'job');
 
   // `lk agent console` runs a fake job without a room: there is no participant to wait for.
@@ -163,6 +163,7 @@ export async function runAssistant(ctx: JobContext, venue: Profile): Promise<voi
   const client = mistralClient();
   // Read once per call: the voice must not change halfway through because the UI was used.
   const settings = currentSettings();
+  const venue = profileForCall(startProfile, settings);
   const speech = await voiceForCall(client, venue, settings);
   // Each voice may carry its own name; greeting, prompt and announcements follow the voice.
   const profile = withAssistantName(venue, speech.choice.name);
@@ -217,6 +218,7 @@ export async function runAssistant(ctx: JobContext, venue: Profile): Promise<voi
   // Which voice and model this call used, so the latency lines below can be read per voice.
   recordCallConfig({
     jobId: ctx.job?.id,
+    profile: venue.id,
     ttsPreset: speech.choice.preset,
     ttsProvider: speech.choice.provider,
     llmModel: llmModel(settings),

@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, rmSync, readFileSync, writeFileSync } from 'node:fs';
 import { request as httpRequest } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { tmpdir } from 'node:os';
@@ -7,6 +7,7 @@ import { join } from 'node:path';
 import { after, test } from 'node:test';
 import { readSettings, type Settings } from '../core/settings.js';
 import type { TtsChoice } from '../agent/tts-provider.js';
+import type { CatalogService } from './catalog.js';
 import { createAdminServer } from './server.js';
 import type { Synthesized } from './preview.js';
 
@@ -23,6 +24,7 @@ const ENV: NodeJS.ProcessEnv = {
 interface Harness {
   url: string;
   settingsPath: string;
+  profilesDir: string;
   metricsDir: string;
   /** Every choice the server asked the fake vendor to synthesize. */
   asked: Array<{ choice: TtsChoice; text: string }>;
@@ -35,11 +37,20 @@ after(() => {
 });
 
 async function start(
-  options: { env?: NodeJS.ProcessEnv; settings?: unknown; metrics?: string } = {},
+  options: {
+    env?: NodeJS.ProcessEnv;
+    settings?: unknown;
+    metrics?: string;
+    profiles?: Record<string, string>;
+    catalog?: CatalogService;
+  } = {},
 ): Promise<Harness> {
   const dir = mkdtempSync(join(tmpdir(), 'sprechstunde-admin-'));
   const settingsPath = join(dir, 'voice.json');
   const metricsDir = join(dir, 'metrics');
+  const profilesDir = join(dir, 'profiles');
+  mkdirSync(profilesDir);
+  for (const [name, content] of Object.entries(options.profiles ?? {})) writeFileSync(join(profilesDir, name), content);
   if (options.settings !== undefined) {
     writeFileSync(
       settingsPath,
@@ -47,7 +58,6 @@ async function start(
     );
   }
   if (options.metrics !== undefined) {
-    const { mkdirSync } = await import('node:fs');
     mkdirSync(metricsDir, { recursive: true });
     writeFileSync(join(metricsDir, '2026-10-19.jsonl'), options.metrics);
   }
@@ -57,7 +67,9 @@ async function start(
     settingsPath,
     metricsDir,
     sampleText: 'Guten Tag.',
-    env: options.env ?? ENV,
+    ...(options.catalog && { catalog: options.catalog }),
+    startProfile: { id: 'start', name: 'Test', locale: 'de-DE' },
+    env: { ...(options.env ?? ENV), SPRECHSTUNDE_PROFILES_DIR: profilesDir },
     // 240 samples of silence at 24 kHz; no vendor is involved.
     synthesize: async (choice, text): Promise<Synthesized> => {
       asked.push({ choice, text });
@@ -67,7 +79,7 @@ async function start(
   await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
   servers.push(server);
   const { port } = server.address() as AddressInfo;
-  return { url: `http://127.0.0.1:${port}`, settingsPath, metricsDir, asked };
+  return { url: `http://127.0.0.1:${port}`, settingsPath, profilesDir, metricsDir, asked };
 }
 
 /** A request as the page makes it: same origin, JSON body. */
@@ -311,4 +323,102 @@ test('a preset id in the URL is decoded and must match the id pattern', async ()
   }
   const ok = await call(harness, 'DELETE', '/api/presets/%6Aane');
   assert.equal(ok.status, 200);
+});
+
+const venue = (id: string) =>
+  JSON.stringify({
+    id,
+    locale: 'de-DE',
+    timeZone: 'Europe/Berlin',
+    assistantName: 'Test',
+    greeting: 'Hallo, ich bin eine KI.',
+    instructions: 'Be brief.',
+    facts: [],
+  });
+
+test('GET /api/profiles lists every json file, broken ones with an error', async () => {
+  const harness = await start({
+    profiles: { 'b.json': venue('beta'), 'a.json': '{ nope', 'notes.txt': 'x', '../x.json': 'y' },
+  });
+  const data = (await (await fetch(`${harness.url}/api/profiles`)).json()) as {
+    profiles: Array<{ file: string; id: string; name?: string; locale?: string; error?: string }>;
+    active: string | null;
+    default: { id: string };
+  };
+  assert.deepEqual(
+    data.profiles.map((entry) => [entry.file, entry.id, Boolean(entry.error)]),
+    [
+      ['a.json', 'a', true],
+      ['b.json', 'beta', false],
+    ],
+  );
+  assert.equal(data.profiles[1]!.locale, 'de-DE');
+  assert.equal(data.profiles[1]!.name, 'Test');
+  assert.equal(data.active, null);
+  assert.equal(data.default.id, 'start');
+});
+
+test('PUT /api/profile picks a file and null goes back to the default', async () => {
+  const harness = await start({ profiles: { 'b.json': venue('beta') }, settings: { presets: [PRESET] } });
+  const picked = await call(harness, 'PUT', '/api/profile', { file: 'b.json' });
+  assert.equal(picked.status, 200);
+  const settings = readSettings(harness.settingsPath);
+  assert.equal(settings?.profile, 'b.json');
+  // The rest of the settings survives the change.
+  assert.equal(settings?.presets.length, 1);
+  const listed = (await (await fetch(`${harness.url}/api/profiles`)).json()) as { active: string | null };
+  assert.equal(listed.active, 'b.json');
+
+  const reset = await call(harness, 'PUT', '/api/profile', { file: null });
+  assert.equal(reset.status, 200);
+  assert.equal(readSettings(harness.settingsPath)?.profile, undefined);
+});
+
+test('PUT /api/profile refuses paths, missing and broken files', async () => {
+  const harness = await start({ profiles: { 'bad.json': '{}' } });
+  for (const file of ['../etc.json', 'sub/x.json', 'bad.json', 'missing.json', 'x.txt', 5, undefined]) {
+    const response = await call(harness, 'PUT', '/api/profile', { file });
+    assert.equal(response.status, 400, String(file));
+  }
+  assert.equal(readSettings(harness.settingsPath), undefined);
+});
+
+test('GET /api/profiles without a directory is an empty list', async () => {
+  const harness = await start();
+  rmSync(harness.profilesDir, { recursive: true });
+  const data = (await (await fetch(`${harness.url}/api/profiles`)).json()) as { profiles: unknown[] };
+  assert.deepEqual(data.profiles, []);
+});
+
+test('GET /api/catalog/<target> answers from the catalog; bad input is refused', async () => {
+  const asked: unknown[] = [];
+  const harness = await start({
+    catalog: {
+      get: async (target, request) => {
+        asked.push([target, request]);
+        return { provider: target, available: true, models: [], voices: [], fetchedAt: '2026-01-01T00:00:00.000Z' };
+      },
+    },
+  });
+  const ok = await fetch(`${harness.url}/api/catalog/kugel?refresh=1&language=de-DE`);
+  assert.equal(ok.status, 200);
+  assert.equal(((await ok.json()) as { provider: string }).provider, 'kugel');
+  await fetch(`${harness.url}/api/catalog/llm`);
+  assert.deepEqual(asked, [
+    ['kugel', { refresh: true, language: 'de-DE' }],
+    ['llm', { refresh: false }],
+  ]);
+
+  assert.equal((await fetch(`${harness.url}/api/catalog/nobody`)).status, 404);
+  assert.equal((await fetch(`${harness.url}/api/catalog/kugel?language=../x`)).status, 400);
+});
+
+test('GET /api/catalog never throws out of the endpoint and never serves a key', async () => {
+  const harness = await start();
+  // The default catalog with no key for Cartesia in this environment: unavailable, status 200.
+  const response = await fetch(`${harness.url}/api/catalog/kugel`);
+  assert.equal(response.status, 200);
+  const text = await response.text();
+  assert.equal((JSON.parse(text) as { available: boolean }).available, false);
+  assert.equal(text.includes(KEY), false);
 });

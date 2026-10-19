@@ -32,6 +32,8 @@ export function metricsLine(m: metrics.AgentMetrics): Record<string, unknown> | 
 
 export interface CallConfig {
   jobId?: string;
+  /** Id of the profile this call ran with. */
+  profile?: string;
   /** Settings preset the voice came from, or none when the environment decided. */
   ttsPreset?: string;
   ttsProvider?: string;
@@ -49,6 +51,7 @@ export function callConfigLine(config: CallConfig, now = Date.now()): Record<str
     type: 'call_config',
     ts: now,
     jobId: config.jobId,
+    profile: config.profile,
     ttsPreset: config.ttsPreset,
     ttsProvider: config.ttsProvider,
     llmModel: config.llmModel,

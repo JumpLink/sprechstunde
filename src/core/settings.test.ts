@@ -8,6 +8,7 @@ import {
   emptySettings,
   parseSettings,
   presetRefAudioPath,
+  profileFilePath,
   readSettings,
   settingsFile,
   type Settings,
@@ -163,4 +164,20 @@ test('presetRefAudioPath resolves against SPRECHSTUNDE_VOICES_DIR', () => {
   assert.equal(presetRefAudioPath('clip.wav', env), '/srv/voices/clip.wav');
   assert.equal(presetRefAudioPath('../clip.wav', env), null);
   assert.equal(presetRefAudioPath('/srv/voices/clip.wav', env), null);
+});
+
+test('parseSettings: a profile is a plain .json file name, old files have none', () => {
+  assert.equal(parseSettings({ profile: 'venue.de.json' }).profile, 'venue.de.json');
+  assert.equal('profile' in parseSettings({}), false);
+  assert.equal('profile' in parseSettings({ profile: '' }), false);
+  for (const bad of ['../x.json', 'a/b.json', '/etc/x.json', '.hidden.json', 'venue.txt', 'venue', 5]) {
+    assert.throws(() => parseSettings({ profile: bad }), /profile/, String(bad));
+  }
+});
+
+test('profileFilePath: stays inside the profiles directory', () => {
+  const env = { SPRECHSTUNDE_PROFILES_DIR: '/srv/profiles' };
+  assert.equal(profileFilePath('venue.json', env), '/srv/profiles/venue.json');
+  assert.equal(profileFilePath('../venue.json', env), null);
+  assert.equal(profileFilePath('a/venue.json', env), null);
 });

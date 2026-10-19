@@ -10,6 +10,7 @@ ENV HF_HOME=/home/pocket/.cache/huggingface POCKET_LANGUAGE=german POCKET_VOICE=
 # POCKET_VOICE can switch between them at runtime. Needs network at build time; the preset voices
 # need no Hugging Face login.
 ARG POCKET_PRESET_VOICES="juergen alba"
+ENV POCKET_PRESET_VOICES=$POCKET_PRESET_VOICES
 RUN python -c "from pocket_tts import TTSModel; import os, sys; \
 m = TTSModel.load_model(language=os.environ['POCKET_LANGUAGE']); \
 [m.get_state_for_audio_prompt(v) for v in sys.argv[1:]]" $POCKET_PRESET_VOICES

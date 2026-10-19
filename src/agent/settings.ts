@@ -1,4 +1,5 @@
-import { readSettings, type Settings, settingsFile } from '../core/settings.js';
+import { loadProfile, type Profile } from '../core/profile.js';
+import { profileFilePath, readSettings, type Settings, settingsFile } from '../core/settings.js';
 import { _ } from '../i18n.js';
 
 /**
@@ -15,5 +16,27 @@ export function currentSettings(env: NodeJS.ProcessEnv = process.env): Settings 
   } catch (error) {
     console.warn(_('ignoring the settings file, using the environment instead:'), (error as Error).message);
     return undefined;
+  }
+}
+
+/**
+ * The profile for this call: the one the admin UI picked, or the one the worker started with.
+ * A picked file that cannot be loaded must not cost the call either, so it is reported (the file
+ * name only, never its content) and the start profile answers.
+ */
+export function profileForCall(
+  start: Profile,
+  settings: Settings | undefined,
+  env: NodeJS.ProcessEnv = process.env,
+): Profile {
+  const file = settings?.profile;
+  if (!file) return start;
+  try {
+    const path = profileFilePath(file, env);
+    if (!path) throw new Error('not a file in the profiles directory');
+    return loadProfile(path);
+  } catch (error) {
+    console.warn(_('ignoring the selected profile, using the start profile instead:'), file, (error as Error).message);
+    return start;
   }
 }
