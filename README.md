@@ -291,7 +291,7 @@ It binds to `127.0.0.1` and has **no login**: whoever reaches the port may chang
 spend API credit on previews. It refuses a request whose `Host` is not loopback and a change that
 does not come from its own page, which stops a browser elsewhere on the machine from driving it, but
 it is not an admin panel to expose — do not forward the port, and do not put it on a public
-interface.
+interface. Write requests need a same-origin `Origin` header, so a plain `curl` write is rejected by design.
 
 ## Not tested yet
 
