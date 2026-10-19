@@ -127,7 +127,7 @@ ones). Options:
 1. **Preset voices speaking German.** Voxtral supports German, so a preset may do. Listen first:
    `npm run tts:try` (needs `MISTRAL_API_KEY`) synthesises a German test sentence with several
    voices (`--voice <id>`, `--ref <audio file>`, `--text "…"`, `--model`) and writes
-   `var/tts/<voice>.wav` plus a `.8k.wav` that approximates the phone line, with time to first
+   `var/samples/<YYYY-MM-DD>_tts-try/<voice>.wav` plus a `.8k.wav` that approximates the phone line, with time to first
    audio and total time per voice.
 2. **Clone from reference audio.** 2–3 s of speech are enough. `dev/fetch-thorsten-sample.sh`
    downloads one CC0 clip of the Thorsten-Voice dataset to `var/voices/thorsten.wav`. Use it with
