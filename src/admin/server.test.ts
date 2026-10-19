@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdirSync, mkdtempSync, rmSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, rmSync, readFileSync, symlinkSync, writeFileSync } from 'node:fs';
 import { request as httpRequest } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { tmpdir } from 'node:os';
@@ -44,6 +44,7 @@ async function start(
     metrics?: string;
     profiles?: Record<string, string>;
     catalog?: CatalogService;
+    fetch?: typeof fetch;
     /** Files of the built settings app by path; none means the app is not built. */
     web?: Record<string, string>;
   } = {},
@@ -83,6 +84,7 @@ async function start(
     sampleText: 'Guten Tag.',
     webDir,
     ...(options.catalog && { catalog: options.catalog }),
+    ...(options.fetch && { fetch: options.fetch }),
     startProfile: { id: 'start', name: 'Test', locale: 'de-DE' },
     loadStartProfile: () => parseProfile(JSON.parse(venue('start'))),
     env: { ...(options.env ?? ENV), SPRECHSTUNDE_PROFILES_DIR: profilesDir },
@@ -160,6 +162,8 @@ test('the settings app is served with its own types and a strict policy', async 
   const policy = page.headers.get('content-security-policy') ?? '';
   assert.match(policy, /default-src 'none'/);
   assert.match(policy, /script-src 'self'(;|$)/);
+  assert.match(policy, /media-src 'self' blob:(;|$)/);
+  assert.doesNotMatch(policy, /https:/);
   assert.equal(page.headers.get('x-frame-options'), 'DENY');
   assert.match(await page.text(), /assets\/app\.js/);
 
@@ -632,4 +636,105 @@ test('preview: a voice that is not a preset is validated like one and synthesize
     assert.equal((await call(harness, 'POST', '/api/preview', { voice })).status, 400, JSON.stringify(voice));
   }
   assert.equal(harness.asked.length, 1);
+});
+
+test('preview: a text over 1000 characters is refused before any vendor is asked', async () => {
+  const harness = await start();
+  const response = await call(harness, 'POST', '/api/preview', { text: 'x'.repeat(1001) });
+  assert.equal(response.status, 400);
+  assert.equal(harness.asked.length, 0);
+  assert.equal((await call(harness, 'POST', '/api/preview', { text: 'x'.repeat(1000) })).status, 200);
+});
+
+test('preview: an inline voice needs a known provider and short plain model and voice strings', async () => {
+  const harness = await start();
+  const bad = [
+    { provider: 'evil' },
+    { provider: 'mistral', model: 'm'.repeat(101) },
+    { provider: 'mistral', voice: 'v\nx' },
+    { provider: 'mistral', voice: 'v\u0000' },
+    { provider: 'mistral', model: 5 },
+    { provider: 'mistral', voice: { a: 1 } },
+  ];
+  for (const voice of bad) {
+    assert.equal((await call(harness, 'POST', '/api/preview', { voice })).status, 400, JSON.stringify(voice));
+  }
+  assert.equal(harness.asked.length, 0);
+  const ok = await call(harness, 'POST', '/api/preview', {
+    voice: { provider: 'mistral', model: 'm'.repeat(100), voice: 'v' },
+  });
+  assert.equal(ok.status, 200);
+});
+
+const SAMPLE_CATALOG: CatalogService = {
+  get: async (target) => ({
+    provider: target,
+    available: true,
+    models: [],
+    voices: [
+      { id: 'a', name: 'A', languages: ['de'], sampleUrl: 'https://vendor.invalid/a.mp3' },
+      { id: 'b', name: 'B', languages: ['de'] },
+      { id: 'c', name: 'C', languages: ['de'], sampleUrl: 'http://vendor.invalid/c.mp3' },
+      { id: 'd', name: 'D', languages: ['de'], sampleUrl: 'https://vendor.invalid/d.html' },
+    ],
+    fetchedAt: '2026-01-01T00:00:00.000Z',
+  }),
+};
+
+test('GET /api/sample proxies the catalog sample, never a client-supplied URL', async () => {
+  const fetched: string[] = [];
+  const fakeFetch = (async (address: string) => {
+    fetched.push(address);
+    const audio = !address.endsWith('.html');
+    return new Response(new Uint8Array([1, 2, 3]), {
+      headers: { 'content-type': audio ? 'audio/mpeg' : 'text/html' },
+    });
+  }) as unknown as typeof fetch;
+  const harness = await start({ catalog: SAMPLE_CATALOG, fetch: fakeFetch });
+
+  const ok = await fetch(`${harness.url}/api/sample?provider=kugel&voice=a`);
+  assert.equal(ok.status, 200);
+  assert.equal(ok.headers.get('content-type'), 'audio/mpeg');
+  assert.deepEqual([...new Uint8Array(await ok.arrayBuffer())], [1, 2, 3]);
+  assert.deepEqual(fetched, ['https://vendor.invalid/a.mp3']);
+
+  const missing = [
+    'provider=kugel&voice=nobody',
+    'provider=kugel&voice=b',
+    'provider=kugel&voice=a&model=other',
+    'provider=kugel&voice=https://evil.invalid/x.mp3',
+  ];
+  for (const query of missing) {
+    assert.equal((await fetch(`${harness.url}/api/sample?${query}`)).status, 404, query);
+  }
+  assert.equal((await fetch(`${harness.url}/api/sample?provider=llm&voice=a`)).status, 400);
+  assert.equal((await fetch(`${harness.url}/api/sample?provider=nope&voice=a`)).status, 400);
+  // Plain http and a non-audio answer are refused.
+  assert.equal((await fetch(`${harness.url}/api/sample?provider=kugel&voice=c`)).status, 502);
+  assert.equal((await fetch(`${harness.url}/api/sample?provider=kugel&voice=d`)).status, 502);
+  assert.deepEqual(fetched, ['https://vendor.invalid/a.mp3', 'https://vendor.invalid/d.html']);
+});
+
+test('GET /api/sample refuses a sample that is too big or a vendor that fails', async () => {
+  const big = (async () =>
+    new Response(new Uint8Array(5 * 1024 * 1024 + 1), {
+      headers: { 'content-type': 'audio/mpeg' },
+    })) as unknown as typeof fetch;
+  const harness = await start({ catalog: SAMPLE_CATALOG, fetch: big });
+  assert.equal((await fetch(`${harness.url}/api/sample?provider=kugel&voice=a`)).status, 502);
+
+  const down = (async () => {
+    throw new Error('offline');
+  }) as unknown as typeof fetch;
+  const other = await start({ catalog: SAMPLE_CATALOG, fetch: down });
+  assert.equal((await fetch(`${other.url}/api/sample?provider=kugel&voice=a`)).status, 502);
+});
+
+test('a symlink inside the web directory cannot serve a file from outside it', async () => {
+  const harness = await start({ web: WEB });
+  const dir = join(harness.profilesDir, '..');
+  symlinkSync(join(dir, 'secret.txt'), join(dir, 'web', 'assets', 'leak.txt'));
+  const response = await fetch(`${harness.url}/assets/leak.txt`);
+  assert.equal(response.status, 404);
+  assert.doesNotMatch(await response.text(), new RegExp(KEY));
 });

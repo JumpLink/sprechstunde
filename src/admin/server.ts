@@ -40,6 +40,14 @@ const MAX_BODY_BYTES = 256 * 1024;
 /** Calls shown in the latency table. More would be a log, not an overview. */
 const RECENT_CALLS = 25;
 const CATALOG_PREFIX = '/api/catalog/';
+const PRESET_PREFIX = '/api/presets/';
+
+/** A preview is a sentence or two; more is credit spent on a vendor for nothing. */
+const MAX_PREVIEW_CHARS = 1000;
+const MAX_VOICE_FIELD_CHARS = 100;
+/** A vendor sample is a few seconds of audio; anything bigger is not one. */
+const MAX_SAMPLE_BYTES = 5 * 1024 * 1024;
+const SAMPLE_TIMEOUT_MS = 10_000;
 
 export interface AdminOptions {
   settingsPath: string;
@@ -54,6 +62,8 @@ export interface AdminOptions {
   /** Vendor models and voices; the real vendors unless a test hands in a fake. */
   catalog?: CatalogService;
   env?: NodeJS.ProcessEnv;
+  /** Fetches vendor samples; the global `fetch` unless a test hands in a fake. */
+  fetch?: typeof fetch;
   /** The built settings app; found next to this build when absent, `null` for none (tests). */
   webDir?: string | null;
 }
@@ -131,6 +141,21 @@ function json(response: ServerResponse, status: number, payload: unknown): void 
   send(response, status, 'application/json; charset=utf-8', JSON.stringify(payload));
 }
 
+/** A short plain string: no control characters, so nothing in it can break a header, a log or a URL. */
+function plainField(value: unknown, name: string): string | undefined {
+  if (value === undefined || value === null || value === '') return undefined;
+  if (typeof value !== 'string' || value.length > MAX_VOICE_FIELD_CHARS) {
+    throw new HttpError(400, _('"%s" must be a short plain string').replace('%s', name));
+  }
+  for (const char of value) {
+    const code = char.charCodeAt(0);
+    if (code < 32 || code === 127) {
+      throw new HttpError(400, _('"%s" must be a short plain string').replace('%s', name));
+    }
+  }
+  return value;
+}
+
 function slot(value: unknown): string | undefined {
   return typeof value === 'string' && value.trim() !== '' ? value : undefined;
 }
@@ -139,6 +164,34 @@ function slot(value: unknown): string | undefined {
 function maybeNumber(value: unknown): number | undefined {
   if (value === undefined || value === null || value === '') return undefined;
   return typeof value === 'number' ? value : Number(value);
+}
+
+/** The sample as bytes with the vendor's audio type; refuses anything else or anything too big. */
+async function fetchSample(fetcher: typeof fetch, address: string): Promise<{ type: string; body: Uint8Array }> {
+  const bad = () => new HttpError(502, _('the vendor sample could not be fetched'));
+  if (!address.startsWith('https://')) throw bad();
+  let upstream: Response;
+  try {
+    upstream = await fetcher(address, { signal: AbortSignal.timeout(SAMPLE_TIMEOUT_MS) });
+  } catch {
+    throw bad();
+  }
+  const type = upstream.headers.get('content-type')?.split(';')[0]?.trim().toLowerCase() ?? '';
+  if (!upstream.ok || !type.startsWith('audio/') || !upstream.body) throw bad();
+  const declared = Number(upstream.headers.get('content-length'));
+  if (declared > MAX_SAMPLE_BYTES) throw bad();
+  const chunks: Uint8Array[] = [];
+  let size = 0;
+  try {
+    for await (const chunk of upstream.body) {
+      size += chunk.byteLength;
+      if (size > MAX_SAMPLE_BYTES) throw bad();
+      chunks.push(chunk);
+    }
+  } catch {
+    throw bad();
+  }
+  return { type, body: Buffer.concat(chunks) };
 }
 
 export function createAdminServer(options: AdminOptions): Server {
@@ -209,12 +262,15 @@ export function createAdminServer(options: AdminOptions): Server {
 
   /** A voice that is not saved as a preset (a catalog entry being tried): same validation as a preset. */
   const choiceFromInline = (inline: Record<string, unknown>): TtsChoice => {
+    if (!(TTS_PROVIDERS as readonly unknown[]).includes(inline.provider)) {
+      throw new HttpError(400, _('"provider" must be one of: %s').replace('%s', TTS_PROVIDERS.join(', ')));
+    }
+    const model = plainField(inline.model, 'model');
+    const voice = plainField(inline.voice, 'voice');
     try {
       const { presets } = parseSettings(
         {
-          presets: [
-            { id: 'preview', label: 'preview', provider: inline.provider, model: inline.model, voice: inline.voice },
-          ],
+          presets: [{ id: 'preview', label: 'preview', provider: inline.provider, model, voice }],
         },
         options.settingsPath,
       );
@@ -247,7 +303,10 @@ export function createAdminServer(options: AdminOptions): Server {
     }
     const url = new URL(request.url ?? '/', `http://${request.headers.host}`);
     const path = url.pathname;
-    const rawPresetId = /^\/api\/presets\/(.+)$/.exec(path)?.[1];
+    const rawPresetId =
+      path.startsWith(PRESET_PREFIX) && path.length > PRESET_PREFIX.length
+        ? path.slice(PRESET_PREFIX.length)
+        : undefined;
     let presetId: string | undefined;
     if (rawPresetId !== undefined) {
       try {
@@ -298,6 +357,20 @@ export function createAdminServer(options: AdminOptions): Server {
           ...(language && { language }),
         }),
       );
+    }
+
+    if (method === 'GET' && path === '/api/sample') {
+      const provider = url.searchParams.get('provider') ?? '';
+      if (!(TTS_PROVIDERS as readonly string[]).includes(provider)) throw new HttpError(400, _('unknown provider'));
+      const id = url.searchParams.get('voice') ?? '';
+      const model = url.searchParams.get('model') || undefined;
+      // The address comes from the catalog the vendor answered with, never from the request.
+      const voice = (await catalog.get(provider as CatalogTarget)).voices.find(
+        (entry) => entry.id === id && (!model || entry.model === model),
+      );
+      if (!voice?.sampleUrl) throw new HttpError(404, _('no sample for this voice'));
+      const sample = await fetchSample(options.fetch ?? fetch, voice.sampleUrl);
+      return send(response, 200, sample.type, sample.body);
     }
 
     if (method === 'GET' && path === '/api/profiles') {
@@ -470,6 +543,9 @@ export function createAdminServer(options: AdminOptions): Server {
     if (method === 'POST' && path === '/api/preview') {
       const wanted = body(await readBody(request));
       const text = slot(wanted.text) ?? options.sampleText;
+      if (text.length > MAX_PREVIEW_CHARS) {
+        throw new HttpError(400, _('the text may have at most %s characters').replace('%s', String(MAX_PREVIEW_CHARS)));
+      }
       const choice = isRecord(wanted.voice)
         ? choiceFromInline(wanted.voice)
         : choiceFor(current(), slot(wanted.preset));

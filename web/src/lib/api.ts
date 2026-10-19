@@ -33,4 +33,12 @@ export async function preview(
   return { url: URL.createObjectURL(await response.blob()), ttfaMs };
 }
 
+/** The vendor sample of a catalog voice, played through the server so the page talks to no one else. */
+export const sampleUrl = (provider: string, voice: string, model?: string): string =>
+  `/api/sample?${new URLSearchParams({ provider, voice, ...(model && { model }) })}`;
+
+export function revoke(url: string | undefined): void {
+  if (url) URL.revokeObjectURL(url);
+}
+
 export const message = (error: unknown): string => (error instanceof Error ? error.message : String(error));

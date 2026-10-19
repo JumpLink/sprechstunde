@@ -13,7 +13,7 @@ export function mistralServer(env: NodeJS.ProcessEnv = process.env): { server?: 
   const value = env.SPRECHSTUNDE_MISTRAL_SERVER || '';
   if (!value) return {};
   if ((SERVERS as readonly string[]).includes(value)) return { server: value as Server };
-  if (/^https?:\/\//.test(value)) return { serverURL: value };
+  if (new RegExp('^https?://').test(value)) return { serverURL: value };
   throw new Error(_('SPRECHSTUNDE_MISTRAL_SERVER must be global, eu, us or a URL'));
 }
 

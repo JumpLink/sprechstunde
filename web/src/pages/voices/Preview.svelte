@@ -1,7 +1,8 @@
 <script lang="ts">
   import { Play } from '@lucide/svelte';
+  import { onDestroy } from 'svelte';
   import { toast } from 'svelte-sonner';
-  import { message, preview } from '$lib/api';
+  import { message, preview, revoke } from '$lib/api';
   import { _, fill } from '$lib/i18n.svelte';
   import { app } from '$lib/store.svelte';
   import Button from '$lib/ui/Button.svelte';
@@ -22,12 +23,17 @@
     ...(app.state?.settings.presets ?? []).map((preset) => ({ id: preset.id, label: preset.label })),
   ]);
 
+  onDestroy(() => {
+    for (const previous of results) revoke(previous.url);
+  });
+
   async function run(): Promise<void> {
     if (selected.length === 0) {
       toast.error(_('Pick at least one voice'));
       return;
     }
     running = true;
+    for (const previous of results) revoke(previous.url);
     results = [];
     for (const id of selected) {
       const label = options.find((option) => option.id === id)?.label ?? id;

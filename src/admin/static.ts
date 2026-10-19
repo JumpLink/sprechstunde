@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, realpathSync, statSync } from 'node:fs';
 import { dirname, extname, join, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -23,7 +23,7 @@ const TYPES: Record<string, string> = {
   '.txt': 'text/plain; charset=utf-8',
 };
 
-/** Nothing leaves the page but requests to this server; samples are vendor audio or blobs. */
+/** Nothing leaves the page but requests to this server; vendor samples come through its proxy. */
 const CSP = [
   "default-src 'none'",
   "script-src 'self'",
@@ -31,7 +31,7 @@ const CSP = [
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data:",
   "font-src 'self'",
-  "media-src 'self' blob: https:",
+  "media-src 'self' blob:",
   "connect-src 'self'",
   "form-action 'none'",
   "frame-ancestors 'none'",
@@ -69,6 +69,10 @@ export function serveStatic(webDir: string | undefined, urlPath: string): Static
   const page = extname(decoded) === '';
   const file = page ? join(root, 'index.html') : wanted;
   if (!existsSync(file) || !statSync(file).isFile()) return 'not-found';
+  // A symlink inside the directory may point anywhere; only what it resolves to counts.
+  const real = realpathSync(file);
+  const realRoot = realpathSync(root);
+  if (real !== realRoot && !real.startsWith(realRoot + sep)) return 'not-found';
 
   const type = TYPES[extname(file)] ?? 'application/octet-stream';
   const immutable = decoded.startsWith('/assets/');

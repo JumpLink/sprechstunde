@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-20 00:37+0200\n"
+"POT-Creation-Date: 2026-10-20 00:48+0200\n"
 "PO-Revision-Date: 2026-10-19 23:10+0200\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -45,56 +45,83 @@ msgstr "Einstellungsdatei: %s"
 msgid "no audio received"
 msgstr "kein Audio empfangen"
 
-#: src/admin/server.ts:92
+#: src/admin/server.ts:102
 msgid "the request body is too large"
 msgstr "der Anfragekörper ist zu groß"
 
-#: src/admin/server.ts:108
+#: src/admin/server.ts:118
 msgid "the request body must be a JSON object"
 msgstr "der Anfragekörper muss ein JSON-Objekt sein"
 
-#: src/admin/server.ts:230
+#: src/admin/server.ts:148 src/admin/server.ts:153
+#, javascript-format
+msgid "\"%s\" must be a short plain string"
+msgstr "„%s“ muss ein kurzer Text ohne Steuerzeichen sein"
+
+#: src/admin/server.ts:171
+msgid "the vendor sample could not be fetched"
+msgstr "die Hörprobe des Anbieters konnte nicht geladen werden"
+
+#: src/admin/server.ts:266
+#, javascript-format
+msgid "\"provider\" must be one of: %s"
+msgstr "„provider“ muss einer dieser Werte sein: %s"
+
+#: src/admin/server.ts:286
 msgid "no voice is configured"
 msgstr "es ist keine Stimme konfiguriert"
 
-#: src/admin/server.ts:234 src/admin/server.ts:400
+#: src/admin/server.ts:290 src/admin/server.ts:473
 #, javascript-format
 msgid "no preset with id %s"
 msgstr "keine Voreinstellung mit der Id %s"
 
-#: src/admin/server.ts:244
+#: src/admin/server.ts:300
 msgid "this server answers on 127.0.0.1 only"
 msgstr "dieser Server antwortet nur auf 127.0.0.1"
 
-#: src/admin/server.ts:246
+#: src/admin/server.ts:302
 msgid "a change must come from the page this server serves"
 msgstr "eine Änderung muss von der Seite kommen, die dieser Server ausliefert"
 
-#: src/admin/server.ts:258
+#: src/admin/server.ts:317
 msgid "invalid preset id"
 msgstr "ungültige Preset-ID"
 
-#: src/admin/server.ts:286
+#: src/admin/server.ts:345
 msgid "unknown catalog"
 msgstr "unbekannter Katalog"
 
-#: src/admin/server.ts:290
+#: src/admin/server.ts:349
 msgid "\"language\" must be a BCP-47 tag"
 msgstr "„language“ muss ein BCP-47-Tag sein"
 
-#: src/admin/server.ts:334 src/admin/server.ts:367
+#: src/admin/server.ts:364
+msgid "unknown provider"
+msgstr "unbekannter Anbieter"
+
+#: src/admin/server.ts:371
+msgid "no sample for this voice"
+msgstr "keine Hörprobe für diese Stimme"
+
+#: src/admin/server.ts:407 src/admin/server.ts:440
 msgid "\"file\" must be the name of a .json file in the profiles directory"
 msgstr "\"file\" muss der Name einer .json-Datei im Profilverzeichnis sein"
 
-#: src/admin/server.ts:363
+#: src/admin/server.ts:436
 msgid "\"file\" must be a file name or null"
 msgstr "\"file\" muss ein Dateiname oder null sein"
 
-#: src/admin/server.ts:498
+#: src/admin/server.ts:547
+#, javascript-format
+msgid "the text may have at most %s characters"
+msgstr "der Text darf höchstens %s Zeichen haben"
+
+#: src/admin/server.ts:574
 msgid "the settings app is not built: run `npm run web:build`"
 msgstr "Die Einstellungs-App ist nicht gebaut: `npm run web:build` ausführen"
 
-#: src/admin/server.ts:506
+#: src/admin/server.ts:582
 msgid "unknown route"
 msgstr "unbekannte Route"
 
@@ -459,7 +486,7 @@ msgstr "Abbrechen"
 
 #: web/src/lib/voices.ts:22 web/src/pages/voices/Presets.svelte:93
 #: web/src/pages/voices/Presets.svelte:98
-#: web/src/pages/voices/Preview.svelte:21
+#: web/src/pages/voices/Preview.svelte:22
 msgid "Environment"
 msgstr "Umgebung"
 
@@ -505,7 +532,7 @@ msgid "Seconds"
 msgstr "Sekunden"
 
 #: web/src/pages/Calls.svelte:67 web/src/pages/Llm.svelte:60
-#: web/src/pages/Overview.svelte:90 web/src/pages/voices/Catalog.svelte:126
+#: web/src/pages/Overview.svelte:90 web/src/pages/voices/Catalog.svelte:135
 #: web/src/pages/voices/PresetForm.svelte:87
 msgid "Model"
 msgstr "Modell"
@@ -771,108 +798,108 @@ msgstr "Schlüssel gesetzt"
 msgid "no key"
 msgstr "kein Schlüssel"
 
-#: web/src/pages/voices/Catalog.svelte:46
+#: web/src/pages/voices/Catalog.svelte:47
 msgid "Catalog refreshed"
 msgstr "Katalog aktualisiert"
 
-#: web/src/pages/voices/Catalog.svelte:110
+#: web/src/pages/voices/Catalog.svelte:119
 msgid "Voice catalog"
 msgstr "Stimmenkatalog"
 
-#: web/src/pages/voices/Catalog.svelte:110
+#: web/src/pages/voices/Catalog.svelte:119
 msgid "What each provider offers, with the vendor samples"
 msgstr "Was jeder Anbieter bietet, mit den Hörproben der Hersteller"
 
-#: web/src/pages/voices/Catalog.svelte:112
+#: web/src/pages/voices/Catalog.svelte:121
 #, javascript-format
 msgid "Fetched %s"
 msgstr "Abgerufen %s"
 
-#: web/src/pages/voices/Catalog.svelte:114
+#: web/src/pages/voices/Catalog.svelte:123
 msgid "Refresh"
 msgstr "Aktualisieren"
 
-#: web/src/pages/voices/Catalog.svelte:120
+#: web/src/pages/voices/Catalog.svelte:129
 #: web/src/pages/voices/PresetForm.svelte:82
 msgid "Provider"
 msgstr "Anbieter"
 
-#: web/src/pages/voices/Catalog.svelte:128
+#: web/src/pages/voices/Catalog.svelte:137
 msgid "All models"
 msgstr "Alle Modelle"
 
-#: web/src/pages/voices/Catalog.svelte:133
+#: web/src/pages/voices/Catalog.svelte:142
 msgid "Language"
 msgstr "Sprache"
 
-#: web/src/pages/voices/Catalog.svelte:135
+#: web/src/pages/voices/Catalog.svelte:144
 msgid "Any language"
 msgstr "Jede Sprache"
 
-#: web/src/pages/voices/Catalog.svelte:140
+#: web/src/pages/voices/Catalog.svelte:149
 msgid "Gender"
 msgstr "Geschlecht"
 
-#: web/src/pages/voices/Catalog.svelte:142
+#: web/src/pages/voices/Catalog.svelte:151
 msgid "Any"
 msgstr "Beliebig"
 
-#: web/src/pages/voices/Catalog.svelte:147
+#: web/src/pages/voices/Catalog.svelte:156
 msgid "Search"
 msgstr "Suche"
 
-#: web/src/pages/voices/Catalog.svelte:148
+#: web/src/pages/voices/Catalog.svelte:157
 msgid "Name, id or description"
 msgstr "Name, ID oder Beschreibung"
 
-#: web/src/pages/voices/Catalog.svelte:151
+#: web/src/pages/voices/Catalog.svelte:160
 msgid "Test with your own text"
 msgstr "Mit eigenem Text testen"
 
-#: web/src/pages/voices/Catalog.svelte:162
+#: web/src/pages/voices/Catalog.svelte:171
 msgid "This catalog is not available"
 msgstr "Dieser Katalog ist nicht verfügbar"
 
-#: web/src/pages/voices/Catalog.svelte:163
+#: web/src/pages/voices/Catalog.svelte:172
 msgid "The provider did not answer."
 msgstr "Der Anbieter hat nicht geantwortet."
 
-#: web/src/pages/voices/Catalog.svelte:166
+#: web/src/pages/voices/Catalog.svelte:175
 msgid "No voice matches"
 msgstr "Keine Stimme passt"
 
-#: web/src/pages/voices/Catalog.svelte:166
+#: web/src/pages/voices/Catalog.svelte:175
 msgid "Loosen the filters."
 msgstr "Lockere die Filter."
 
-#: web/src/pages/voices/Catalog.svelte:168
+#: web/src/pages/voices/Catalog.svelte:177
 #, javascript-format
 msgid "%s voices"
 msgstr "%s Stimmen"
 
-#: web/src/pages/voices/Catalog.svelte:184
+#: web/src/pages/voices/Catalog.svelte:193
 msgid "Vendor sample"
 msgstr "Hörprobe des Herstellers"
 
-#: web/src/pages/voices/Catalog.svelte:190
+#: web/src/pages/voices/Catalog.svelte:199
 #, javascript-format
 msgid "Your text, first audio after %s ms"
 msgstr "Dein Text, erstes Audio nach %s ms"
 
-#: web/src/pages/voices/Catalog.svelte:198
-#: web/src/pages/voices/Preview.svelte:62
+#: web/src/pages/voices/Catalog.svelte:207
+#: web/src/pages/voices/Preview.svelte:68
 msgid "Synthesizing…"
 msgstr "Wird synthetisiert …"
 
-#: web/src/pages/voices/Catalog.svelte:198
+#: web/src/pages/voices/Catalog.svelte:207
 msgid "Test with my text"
 msgstr "Mit meinem Text testen"
 
-#: web/src/pages/voices/Catalog.svelte:200
+#: web/src/pages/voices/Catalog.svelte:209
 msgid "Save as preset"
 msgstr "Als Preset speichern"
 
-#: web/src/pages/voices/Catalog.svelte:207
+#: web/src/pages/voices/Catalog.svelte:216
 msgid "Show more"
 msgstr "Mehr anzeigen"
 
@@ -986,38 +1013,38 @@ msgstr "„%s“ wird entfernt. Das lässt sich nicht rückgängig machen."
 msgid "Delete"
 msgstr "Löschen"
 
-#: web/src/pages/voices/Preview.svelte:27
+#: web/src/pages/voices/Preview.svelte:32
 msgid "Pick at least one voice"
 msgstr "Wähle mindestens eine Stimme"
 
-#: web/src/pages/voices/Preview.svelte:45
+#: web/src/pages/voices/Preview.svelte:51
 msgid "Compare voices"
 msgstr "Stimmen vergleichen"
 
-#: web/src/pages/voices/Preview.svelte:45
+#: web/src/pages/voices/Preview.svelte:51
 msgid ""
 "Speak one text with several presets and see how fast the first audio arrives"
 msgstr ""
 "Sprich einen Text mit mehreren Presets und sieh, wie schnell das erste Audio "
 "ankommt"
 
-#: web/src/pages/voices/Preview.svelte:48
+#: web/src/pages/voices/Preview.svelte:54
 msgid "Voices to compare"
 msgstr "Zu vergleichende Stimmen"
 
-#: web/src/pages/voices/Preview.svelte:56
+#: web/src/pages/voices/Preview.svelte:62
 msgid "Text to speak"
 msgstr "Zu sprechender Text"
 
-#: web/src/pages/voices/Preview.svelte:60
+#: web/src/pages/voices/Preview.svelte:66
 msgid "Phone quality (8 kHz)"
 msgstr "Telefonqualität (8 kHz)"
 
-#: web/src/pages/voices/Preview.svelte:62
+#: web/src/pages/voices/Preview.svelte:68
 msgid "Play"
 msgstr "Abspielen"
 
-#: web/src/pages/voices/Preview.svelte:72
+#: web/src/pages/voices/Preview.svelte:78
 #, javascript-format
 msgid "First audio after %s ms"
 msgstr "Erstes Audio nach %s ms"

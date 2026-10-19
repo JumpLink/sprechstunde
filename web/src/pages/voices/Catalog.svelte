@@ -1,7 +1,8 @@
 <script lang="ts">
   import { Play, Plus, RefreshCw } from '@lucide/svelte';
+  import { onDestroy } from 'svelte';
   import { toast } from 'svelte-sonner';
-  import { api, message, preview } from '$lib/api';
+  import { api, message, preview, revoke, sampleUrl } from '$lib/api';
   import { when } from '$lib/format';
   import { _, currentLanguage, fill } from '$lib/i18n.svelte';
   import { app } from '$lib/store.svelte';
@@ -52,11 +53,18 @@
     }
   }
 
+  function revokeAll(): void {
+    for (const entry of Object.values(tested)) revoke(entry.url);
+    tested = {};
+  }
+
+  onDestroy(revokeAll);
+
   function pick(next: Provider): void {
     provider = next;
     model = language = gender = search = '';
     shown = PAGE;
-    tested = {};
+    revokeAll();
     void load();
   }
 
@@ -81,6 +89,7 @@
 
   async function test(voice: CatalogVoice): Promise<void> {
     const id = key(voice);
+    revoke(tested[id]?.url);
     tested[id] = { busy: true };
     try {
       const result = await preview(
@@ -182,7 +191,7 @@
           {#if voice.sampleUrl}
             <div>
               <p class="mb-1 text-xs text-muted-foreground">{_('Vendor sample')}</p>
-              <Audio src={voice.sampleUrl} />
+              <Audio src={sampleUrl(provider, voice.id, voice.model)} />
             </div>
           {/if}
           {#if result?.url}
