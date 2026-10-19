@@ -288,6 +288,13 @@ A profile dropdown picks which venue profile (a `*.json` file in `SPRECHSTUNDE_P
 next calls use; "start profile" means the one the agent was started with. The profile id lands in
 the `call_config` metrics line.
 
+`GET /api/catalog/<kugel|mistral|cartesia|openrouter|pocket|llm>` lists what a vendor offers right
+now — models and voices with languages, gender and, where the vendor has one, a ready-made sample
+URL — so new voices can be tried without reading vendor docs. `?language=de` filters, `?refresh=1`
+skips the one-hour cache. A vendor without a key, or one that does not answer, comes back as
+`available: false` with a reason instead of an error. Only the admin asks; a call never waits on a
+catalog. Pocket's list comes from its own `GET /voices`.
+
 What it writes is `var/settings/voice.json` (`SPRECHSTUNDE_SETTINGS_FILE`). The agent reads that
 file when a call starts, so the next caller hears the new voice without a restart — and as long as
 the file names no active voice, or cannot be read, the `SPRECHSTUNDE_TTS_*` and `SPRECHSTUNDE_LLM_*`
