@@ -36,6 +36,7 @@ export const HOST = '127.0.0.1';
 const MAX_BODY_BYTES = 256 * 1024;
 /** Calls shown in the latency table. More would be a log, not an overview. */
 const RECENT_CALLS = 25;
+const CATALOG_PREFIX = '/api/catalog/';
 
 export interface AdminOptions {
   settingsPath: string;
@@ -251,7 +252,9 @@ export function createAdminServer(options: AdminOptions): Server {
       });
     }
 
-    const catalogTarget = /^\/api\/catalog\/([^/]+)$/.exec(path)?.[1];
+    // A string prefix, not a regex: xgettext on the CI runner loses track after `[^/]` in a regex
+    // literal and drops the strings that follow from the catalogue.
+    const catalogTarget = path.startsWith(CATALOG_PREFIX) ? path.slice(CATALOG_PREFIX.length) : undefined;
     if (method === 'GET' && catalogTarget !== undefined) {
       if (!(CATALOG_TARGETS as readonly string[]).includes(catalogTarget)) {
         throw new HttpError(404, _('unknown catalog'));

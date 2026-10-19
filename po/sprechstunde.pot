@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-20 00:14+0200\n"
+"POT-Creation-Date: 2026-10-20 00:17+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -263,52 +263,52 @@ msgstr ""
 msgid "no audio received"
 msgstr ""
 
-#: src/admin/server.ts:84
+#: src/admin/server.ts:85
 msgid "the request body is too large"
 msgstr ""
 
-#: src/admin/server.ts:100
+#: src/admin/server.ts:101
 msgid "the request body must be a JSON object"
 msgstr ""
 
-#: src/admin/server.ts:199
+#: src/admin/server.ts:200
 msgid "no voice is configured"
 msgstr ""
 
-#: src/admin/server.ts:203 src/admin/server.ts:337
+#: src/admin/server.ts:204 src/admin/server.ts:340
 #, javascript-format
 msgid "no preset with id %s"
 msgstr ""
 
-#: src/admin/server.ts:213
+#: src/admin/server.ts:214
 msgid "this server answers on 127.0.0.1 only"
 msgstr ""
 
-#: src/admin/server.ts:215
+#: src/admin/server.ts:216
 msgid "a change must come from the page this server serves"
 msgstr ""
 
-#: src/admin/server.ts:227
+#: src/admin/server.ts:228
 msgid "invalid preset id"
 msgstr ""
 
-#: src/admin/server.ts:257
+#: src/admin/server.ts:260
 msgid "unknown catalog"
 msgstr ""
 
-#: src/admin/server.ts:261
+#: src/admin/server.ts:264
 msgid "\"language\" must be a BCP-47 tag"
 msgstr ""
 
-#: src/admin/server.ts:300
+#: src/admin/server.ts:303
 msgid "\"file\" must be a file name or null"
 msgstr ""
 
-#: src/admin/server.ts:304
+#: src/admin/server.ts:307
 msgid "\"file\" must be the name of a .json file in the profiles directory"
 msgstr ""
 
-#: src/admin/server.ts:425
+#: src/admin/server.ts:428
 msgid "unknown route"
 msgstr ""
 
