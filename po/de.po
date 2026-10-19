@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-19 23:30+0200\n"
+"POT-Creation-Date: 2026-10-19 23:31+0200\n"
 "PO-Revision-Date: 2026-10-19 23:10+0200\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -328,12 +328,12 @@ msgid "LIVEKIT_URL, LIVEKIT_API_KEY and LIVEKIT_API_SECRET must be set"
 msgstr ""
 "LIVEKIT_URL, LIVEKIT_API_KEY und LIVEKIT_API_SECRET müssen gesetzt sein"
 
-#: src/agent/tts-provider.ts:59 src/agent/tts-provider.ts:151
+#: src/agent/tts-provider.ts:60 src/agent/tts-provider.ts:152
 msgid "%1 must be one of: %2"
 msgstr "%1 muss einer dieser Werte sein: %2"
 
-#: src/agent/tts-provider.ts:62 src/agent/tts-provider.ts:65
-#: src/agent/tts-provider.ts:147 src/agent/tts-provider.ts:177
+#: src/agent/tts-provider.ts:63 src/agent/tts-provider.ts:66
+#: src/agent/tts-provider.ts:148 src/agent/tts-provider.ts:178
 #: src/cli/fallback.ts:23 src/cli/provision.ts:10 src/cli/sip-contacts.ts:18
 #: src/cli/stt-try.ts:100 src/cli/tts-try.ts:88 src/cli/voice.ts:12
 #: src/mistral.ts:21
@@ -341,16 +341,16 @@ msgstr "%1 muss einer dieser Werte sein: %2"
 msgid "%s must be set"
 msgstr "%s muss gesetzt sein"
 
-#: src/agent/tts-provider.ts:68
+#: src/agent/tts-provider.ts:69
 #, javascript-format
 msgid "%s must be a numeric KugelAudio voice id"
 msgstr "%s muss eine numerische KugelAudio-Stimmen-ID sein"
 
-#: src/agent/tts-provider.ts:88
+#: src/agent/tts-provider.ts:89
 msgid "preset \"%1\" needs a model for the %2 provider"
 msgstr "Voreinstellung „%1“ braucht ein Modell für den Anbieter %2"
 
-#: src/agent/tts-provider.ts:92
+#: src/agent/tts-provider.ts:93
 #, javascript-format
 msgid "preset \"%s\" needs a numeric KugelAudio voice id"
 msgstr "Voreinstellung „%s“ braucht eine numerische KugelAudio-Stimmen-ID"
