@@ -295,6 +295,17 @@ A profile dropdown picks which venue profile (a `*.json` file in `SPRECHSTUNDE_P
 next calls use; "start profile" means the one the agent was started with. The profile id lands in
 the `call_config` metrics line.
 
+The Knowledge page edits a profile in `SPRECHSTUNDE_PROFILES_DIR`: name, greeting (never empty,
+the AI disclosure), instructions, facts (add, edit, delete, reorder), the transfer announcement and
+target, the fallback text. Tools and the system prompt are read-only; the prompt shows what the
+edited draft would produce. A save is checked by the loader's own parser, keeps every field the page
+does not edit, is written atomically, and copies the old file to `.history/` first (the newest 20
+per profile; `History` restores one). A save from a stale page is refused with 409. The transfer
+target never reaches the browser in full: it shows masked, and an empty field keeps it. The start
+profile and anything outside the profiles directory are read-only; "Duplicate into profiles
+directory" copies one. `compose.yaml` mounts `var/profiles` read-write into `admin` only; the
+profiles, `.history/` included, are state and stay out of git.
+
 `GET /api/catalog/<kugel|mistral|cartesia|openrouter|pocket|llm>` lists what a vendor offers right
 now — models and voices with languages, gender and, where the vendor has one, a ready-made sample
 URL — so new voices can be tried without reading vendor docs. `?language=de` filters, `?refresh=1`

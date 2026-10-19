@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-20 00:52+0200\n"
+"POT-Creation-Date: 2026-10-20 00:54+0200\n"
 "PO-Revision-Date: 2026-10-19 23:10+0200\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -57,7 +57,9 @@ msgstr "„%s“ ist zu lang"
 
 #: src/admin/profile-store.ts:99
 msgid "the transfer target must be a phone number, tel:+… or sip:user@host"
-msgstr "das Weiterleitungsziel muss eine Telefonnummer, tel:+… oder sip:nutzer@host sein"
+msgstr ""
+"das Weiterleitungsziel muss eine Telefonnummer, tel:+… oder sip:nutzer@host "
+"sein"
 
 #: src/admin/profile-store.ts:102
 msgid "\"draft\" must be an object"
@@ -106,7 +108,9 @@ msgstr "„revision“ muss die Revision sein, die die Seite geladen hat"
 #: src/admin/profile-store.ts:283
 msgid ""
 "the profile changed since you loaded it: reload it and make the change again"
-msgstr "das Profil hat sich geändert, seit du es geladen hast: neu laden und die Änderung noch einmal machen"
+msgstr ""
+"das Profil hat sich geändert, seit du es geladen hast: neu laden und die "
+"Änderung noch einmal machen"
 
 #: src/admin/profile-store.ts:309
 msgid "no such version"
@@ -612,122 +616,270 @@ msgstr "Sekunden"
 msgid "Model"
 msgstr "Modell"
 
-#: web/src/pages/Knowledge.svelte:49
+#: web/src/pages/Knowledge.svelte:43 web/src/pages/Knowledge.svelte:73
+#: web/src/pages/Knowledge.svelte:171
+msgid "You have unsaved changes. Leave and discard them?"
+msgstr "Es gibt ungespeicherte Änderungen. Verlassen und verwerfen?"
+
+#: web/src/pages/Knowledge.svelte:85 web/src/pages/Knowledge.svelte:112
 msgid "Profile saved"
 msgstr "Profil gespeichert"
 
-#: web/src/pages/Knowledge.svelte:62
+#: web/src/pages/Knowledge.svelte:98
 msgid "Copying is not possible here"
 msgstr "Kopieren ist hier nicht möglich"
 
-#: web/src/pages/Knowledge.svelte:74 web/src/pages/Knowledge.svelte:81
+#: web/src/pages/Knowledge.svelte:148
+msgid "Profile created"
+msgstr "Profil angelegt"
+
+#: web/src/pages/Knowledge.svelte:175
+msgid "Version restored"
+msgstr "Version wiederhergestellt"
+
+#: web/src/pages/Knowledge.svelte:200 web/src/pages/Knowledge.svelte:207
+#: web/src/pages/Knowledge.svelte:251
 msgid "Profile"
 msgstr "Profil"
 
-#: web/src/pages/Knowledge.svelte:74
+#: web/src/pages/Knowledge.svelte:200
 msgid "Which venue profile the next call uses. The agent reads it per call."
 msgstr ""
 "Welches Betriebsprofil der nächste Anruf nutzt. Der Agent liest es bei jedem "
 "Anruf neu."
 
-#: web/src/pages/Knowledge.svelte:84 web/src/pages/Overview.svelte:59
+#: web/src/pages/Knowledge.svelte:210 web/src/pages/Overview.svelte:59
 msgid "Start profile"
 msgstr "Startprofil"
 
-#: web/src/pages/Knowledge.svelte:88
+#: web/src/pages/Knowledge.svelte:214
 #, javascript-format
 msgid "%s (broken)"
 msgstr "%s (defekt)"
 
-#: web/src/pages/Knowledge.svelte:93
+#: web/src/pages/Knowledge.svelte:219
 msgid "Active"
 msgstr "Aktiv"
 
-#: web/src/pages/Knowledge.svelte:93
+#: web/src/pages/Knowledge.svelte:219
 msgid "Use this profile"
 msgstr "Dieses Profil verwenden"
 
-#: web/src/pages/Knowledge.svelte:102
+#: web/src/pages/Knowledge.svelte:221 web/src/pages/Knowledge.svelte:472
+msgid "History"
+msgstr "Verlauf"
+
+#: web/src/pages/Knowledge.svelte:232
+msgid "Read-only"
+msgstr "Schreibgeschützt"
+
+#: web/src/pages/Knowledge.svelte:232
+msgid ""
+"This profile is not in the profiles directory, so it cannot be changed here. "
+"Make an editable copy to work on it."
+msgstr "Dieses Profil liegt nicht im Profilordner und lässt sich hier nicht ändern. Lege eine bearbeitbare Kopie an."
+
+#: web/src/pages/Knowledge.svelte:241
+msgid "Name of the copy"
+msgstr "Name der Kopie"
+
+#: web/src/pages/Knowledge.svelte:241
+msgid "A file name such as my-venue.json"
+msgstr "Ein Dateiname wie mein-lokal.json"
+
+#: web/src/pages/Knowledge.svelte:245
+msgid "Duplicate into profiles directory"
+msgstr "In den Profilordner duplizieren"
+
+#: web/src/pages/Knowledge.svelte:251 web/src/pages/Knowledge.svelte:273
 #, javascript-format
 msgid "Language %s, time zone %s"
 msgstr "Sprache %s, Zeitzone %s"
 
-#: web/src/pages/Knowledge.svelte:105
+#: web/src/pages/Knowledge.svelte:253
+msgid "Name of the assistant"
+msgstr "Name des Assistenten"
+
+#: web/src/pages/Knowledge.svelte:256 web/src/pages/Knowledge.svelte:276
 msgid "Greeting"
 msgstr "Begrüßung"
 
-#: web/src/pages/Knowledge.svelte:110
+#: web/src/pages/Knowledge.svelte:256
+msgid ""
+"Must say that the caller talks to an AI (EU AI Act, Art. 50). It cannot be "
+"empty."
+msgstr "Muss sagen, dass die anrufende Person mit einer KI spricht (EU-KI-Verordnung, Art. 50). Darf nicht leer sein."
+
+#: web/src/pages/Knowledge.svelte:259 web/src/pages/Knowledge.svelte:281
 msgid "Instructions"
 msgstr "Anweisungen"
 
-#: web/src/pages/Knowledge.svelte:116
+#: web/src/pages/Knowledge.svelte:262 web/src/pages/Knowledge.svelte:287
 msgid "Fallback text"
 msgstr "Ersatztext"
 
-#: web/src/pages/Knowledge.svelte:123
+#: web/src/pages/Knowledge.svelte:262
+msgid "Spoken when the assistant cannot answer. Leave empty for none."
+msgstr "Wird gesagt, wenn der Assistent nicht antworten kann. Leer lassen für keinen Text."
+
+#: web/src/pages/Knowledge.svelte:295
 msgid "Facts"
 msgstr "Fakten"
 
-#: web/src/pages/Knowledge.svelte:123
+#: web/src/pages/Knowledge.svelte:295
 #, javascript-format
 msgid "%s facts the assistant can answer from"
 msgstr "%s Fakten, aus denen der Assistent antwortet"
 
-#: web/src/pages/Knowledge.svelte:124
+#: web/src/pages/Knowledge.svelte:299
+msgid "Add fact"
+msgstr "Fakt hinzufügen"
+
+#: web/src/pages/Knowledge.svelte:303
 msgid "Search facts"
 msgstr "Fakten durchsuchen"
 
-#: web/src/pages/Knowledge.svelte:126
+#: web/src/pages/Knowledge.svelte:305
 msgid "No facts found"
 msgstr "Keine Fakten gefunden"
 
-#: web/src/pages/Knowledge.svelte:139
+#: web/src/pages/Knowledge.svelte:312
+msgid "Topic"
+msgstr "Thema"
+
+#: web/src/pages/Knowledge.svelte:316 web/src/pages/Knowledge.svelte:317
+msgid "Answer"
+msgstr "Antwort"
+
+#: web/src/pages/Knowledge.svelte:321
+msgid "Move up"
+msgstr "Nach oben"
+
+#: web/src/pages/Knowledge.svelte:327
+msgid "Move down"
+msgstr "Nach unten"
+
+#: web/src/pages/Knowledge.svelte:333
+msgid "Delete fact"
+msgstr "Fakt löschen"
+
+#: web/src/pages/Knowledge.svelte:353
 msgid "Tools"
 msgstr "Werkzeuge"
 
-#: web/src/pages/Knowledge.svelte:139
+#: web/src/pages/Knowledge.svelte:353
 msgid "What the assistant can do besides talking"
 msgstr "Was der Assistent außer Sprechen kann"
 
-#: web/src/pages/Knowledge.svelte:141
+#: web/src/pages/Knowledge.svelte:355
 msgid "No tools for this profile"
 msgstr "Keine Werkzeuge für dieses Profil"
 
-#: web/src/pages/Knowledge.svelte:156
+#: web/src/pages/Knowledge.svelte:370
 msgid "required"
 msgstr "Pflicht"
 
-#: web/src/pages/Knowledge.svelte:169
+#: web/src/pages/Knowledge.svelte:391
+msgid "Transfer calls to a person"
+msgstr "Anrufe an eine Person weiterleiten"
+
+#: web/src/pages/Knowledge.svelte:394 web/src/pages/Knowledge.svelte:411
 msgid "Announcement before transferring"
 msgstr "Ansage vor dem Weiterleiten"
 
-#: web/src/pages/Knowledge.svelte:173
+#: web/src/pages/Knowledge.svelte:398 web/src/pages/Knowledge.svelte:415
 msgid "Transfer target"
 msgstr "Weiterleitungsziel"
 
-#: web/src/pages/Knowledge.svelte:180
+#: web/src/pages/Knowledge.svelte:401
+#, javascript-format
+msgid ""
+"Now: %s. The number is never shown in full. Enter a new one to replace it, "
+"or leave empty to keep it."
+msgstr "Jetzt: %s. Die Nummer wird nie vollständig angezeigt. Gib eine neue ein, um sie zu ersetzen, oder lass das Feld leer, um sie zu behalten."
+
+#: web/src/pages/Knowledge.svelte:402
+msgid "A phone number, tel:+… or sip:user@host"
+msgstr "Eine Telefonnummer, tel:+… oder sip:nutzer@host"
+
+#: web/src/pages/Knowledge.svelte:423
 msgid "System prompt"
 msgstr "Systemprompt"
 
-#: web/src/pages/Knowledge.svelte:180
+#: web/src/pages/Knowledge.svelte:424
+msgid "What the model would receive with your unsaved changes"
+msgstr "Was das Modell mit deinen ungespeicherten Änderungen erhielte"
+
+#: web/src/pages/Knowledge.svelte:424
 msgid "Exactly what the model receives"
 msgstr "Genau das, was das Modell erhält"
 
-#: web/src/pages/Knowledge.svelte:187
+#: web/src/pages/Knowledge.svelte:432
 msgid "Hide"
 msgstr "Verbergen"
 
-#: web/src/pages/Knowledge.svelte:187
+#: web/src/pages/Knowledge.svelte:432
 msgid "Show"
 msgstr "Anzeigen"
 
-#: web/src/pages/Knowledge.svelte:192
+#: web/src/pages/Knowledge.svelte:437
 msgid "Copied"
 msgstr "Kopiert"
 
-#: web/src/pages/Knowledge.svelte:192
+#: web/src/pages/Knowledge.svelte:437
 msgid "Copy"
 msgstr "Kopieren"
+
+#: web/src/pages/Knowledge.svelte:449 web/src/pages/Knowledge.svelte:451
+msgid "Unsaved changes"
+msgstr "Ungespeicherte Änderungen"
+
+#: web/src/pages/Knowledge.svelte:453
+msgid "Discard"
+msgstr "Verwerfen"
+
+#: web/src/pages/Knowledge.svelte:454 web/src/pages/Llm.svelte:73
+#: web/src/pages/voices/PresetForm.svelte:101
+#: web/src/pages/voices/Presets.svelte:111
+msgid "Save"
+msgstr "Speichern"
+
+#: web/src/pages/Knowledge.svelte:462
+msgid "The profile changed"
+msgstr "Das Profil hat sich geändert"
+
+#: web/src/pages/Knowledge.svelte:463
+msgid ""
+"Someone changed this profile after you opened it. Reload to see the current "
+"version; your edits here are lost."
+msgstr "Das Profil wurde geändert, nachdem du es geöffnet hast. Lade neu, um die aktuelle Version zu sehen; deine Änderungen hier gehen verloren."
+
+#: web/src/pages/Knowledge.svelte:464
+msgid "Reload"
+msgstr "Neu laden"
+
+#: web/src/pages/Knowledge.svelte:473
+msgid ""
+"The last 20 versions of this profile. Restoring keeps the current one in the "
+"history."
+msgstr "Die letzten 20 Versionen dieses Profils. Beim Wiederherstellen bleibt die aktuelle im Verlauf."
+
+#: web/src/pages/Knowledge.svelte:478
+msgid "No earlier versions yet"
+msgstr "Noch keine früheren Versionen"
+
+#: web/src/pages/Knowledge.svelte:483
+#, javascript-format
+msgid "%s bytes"
+msgstr "%s Byte"
+
+#: web/src/pages/Knowledge.svelte:484
+msgid "Restore"
+msgstr "Wiederherstellen"
+
+#: web/src/pages/Knowledge.svelte:492
+msgid "Close"
+msgstr "Schließen"
 
 #: web/src/pages/Llm.svelte:46
 msgid "Language model saved"
@@ -751,11 +903,6 @@ msgstr "Versuchszeitlimit (Sekunden)"
 #: web/src/pages/Llm.svelte:66
 msgid "After this long without an answer the fallback model takes over"
 msgstr "Nach dieser Zeit ohne Antwort übernimmt das Ersatzmodell"
-
-#: web/src/pages/Llm.svelte:73 web/src/pages/voices/PresetForm.svelte:101
-#: web/src/pages/voices/Presets.svelte:111
-msgid "Save"
-msgstr "Speichern"
 
 #: web/src/pages/Llm.svelte:78
 msgid "Loading the model list…"

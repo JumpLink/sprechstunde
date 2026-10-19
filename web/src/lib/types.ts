@@ -91,7 +91,31 @@ export interface Catalog {
   fetchedAt: string;
 }
 
+export interface Fact {
+  topic: string;
+  answer: string;
+}
+
+/** What the page edits; the transfer target arrives masked and is sent only when changed. */
+export interface Draft {
+  assistantName: string;
+  greeting: string;
+  instructions: string;
+  facts: Fact[];
+  transfer: { announce: string; targetMasked: string } | null;
+  fallback: string | null;
+}
+
+export interface HistoryVersion {
+  version: string;
+  at: string;
+  size: number;
+}
+
 export interface Knowledge {
+  editable: boolean;
+  revision?: string;
+  draft?: Draft;
   profile: { id: string; assistantName: string; locale: string; timeZone: string };
   file: string | null;
   source: 'selected' | 'active' | 'start';
