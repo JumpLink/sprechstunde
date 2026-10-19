@@ -14,6 +14,7 @@
     "**/*.md",
     "**/*.yml",
     "**/*.yaml",
+    "web/**/*.svelte",
     "**/node_modules",
     "**/dist",
     "**/coverage"

@@ -16,9 +16,14 @@
       "recreate": "`npm ci`, then `npm run download-files` (the turn-detector tokenizer is stored inside node_modules)"
     },
     {
+      "path": "web/node_modules",
+      "class": "derived",
+      "recreate": "`npm run web:install` (the settings UI has its own package, web/package.json)"
+    },
+    {
       "path": "dist",
       "class": "derived",
-      "recreate": "`npm run build` and `bash dev/i18n.sh compile`"
+      "recreate": "`npm run build` and `bash dev/i18n.sh compile` (the settings UI lands in dist/web)"
     },
     {
       "path": "var",

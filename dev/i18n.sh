@@ -3,7 +3,8 @@
 #
 #   dev/i18n.sh extract    refresh po/sprechstunde.pot and merge it into every po/<lang>.po
 #   dev/i18n.sh check      fail if the catalogues are stale, fuzzy or incomplete
-#   dev/i18n.sh compile    build dist/locale/<lang>/LC_MESSAGES/sprechstunde.mo
+#   dev/i18n.sh compile    build dist/locale/<lang>/LC_MESSAGES/sprechstunde.mo and the web app's JSON
+#   dev/i18n.sh web-locale write only dist/web/locale/<lang>.json (`npm run web:build` does this)
 #
 # Same approach as the other apps in this workspace: English msgids in the source, `_()` and `_n()`
 # as the markers, one German catalogue from the first user-facing string on.
@@ -15,16 +16,22 @@ POT="po/$DOMAIN.pot"
 
 case "${1:-}" in
 extract)
-    find src -type f -name '*.ts' -not -name '*.test.ts' | sort > po/POTFILES.in
+    find src web/src -type f \( -name '*.ts' -o -name '*.svelte' \) -not -name '*.test.ts' | sort > po/POTFILES.in
+    # xgettext has no Svelte reader: pull the `_('…')` calls out into a mirror tree and read that.
+    mirror="$(mktemp -d)"
+    trap 'rm -rf "$mirror"' EXIT
+    grep '\.svelte$' po/POTFILES.in | xargs node dev/svelte-strings.mjs "$mirror"
     # `--from-code` matters: without it xgettext refuses any non-ASCII msgid.
     xgettext \
+        --directory="$mirror" \
+        --directory=. \
         --files-from=po/POTFILES.in \
         --output="$POT" \
         --from-code=UTF-8 \
         --language=JavaScript \
         --keyword=_ \
         --keyword=_n:1,2 \
-        `# _h() = translate and HTML-escape, the admin page's marker` \
+        `# _h() = translate and HTML-escape, the old admin page's marker` \
         --keyword=_h \
         --add-comments=TRANSLATORS \
         --package-name="$DOMAIN"
@@ -39,14 +46,15 @@ extract)
     done < po/LINGUAS
     printf 'extracted %s msgids\n' "$(grep -c '^msgid "' "$POT")"
     ;;
-compile)
+compile | web-locale)
     while read -r lang; do
         [ -n "$lang" ] || continue
         out="dist/locale/$lang/LC_MESSAGES"
         mkdir -p "$out"
         # `--check` refuses a catalogue whose format specifiers do not match its msgid.
         msgfmt --check --output-file="$out/$DOMAIN.mo" "po/$lang.po"
-        printf 'compiled %-6s -> %s\n' "$lang" "$out/$DOMAIN.mo"
+        node --import tsx dev/mo-to-json.mjs "$out/$DOMAIN.mo" "dist/web/locale/$lang.json"
+        printf 'compiled %-6s -> %s, dist/web/locale/%s.json\n' "$lang" "$out/$DOMAIN.mo" "$lang"
     done < po/LINGUAS
     ;;
 check)
@@ -71,7 +79,7 @@ check)
     exit "$status"
     ;;
 *)
-    printf 'usage: %s <extract|check|compile>\n' "$0" >&2
+    printf 'usage: %s <extract|check|compile|web-locale>\n' "$0" >&2
     exit 2
     ;;
 esac

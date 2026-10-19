@@ -3,7 +3,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends gettext && rm -
 WORKDIR /app
 COPY package.json package-lock.json tsconfig.json ./
 RUN npm ci
+COPY web/package.json web/package-lock.json ./web/
+RUN npm run web:install
 COPY src ./src
+COPY web ./web
 COPY po ./po
 COPY dev ./dev
 RUN npm run build && npm run i18n:compile

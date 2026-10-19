@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-20 00:26+0200\n"
+"POT-Creation-Date: 2026-10-20 00:34+0200\n"
 "PO-Revision-Date: 2026-10-19 23:10+0200\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -45,12 +45,15 @@ msgstr "Einstellungsdatei: %s"
 msgid "Add"
 msgstr "Hinzufügen"
 
-#: src/admin/page.ts:16 src/admin/page.ts:131
+#: src/admin/page.ts:16 src/admin/page.ts:131 web/src/lib/ui/Confirm.svelte:28
+#: web/src/pages/voices/PresetForm.svelte:100
 msgid "Cancel"
 msgstr "Abbrechen"
 
 #: src/admin/page.ts:17 src/admin/page.ts:103 src/admin/page.ts:111
-#: src/admin/page.ts:152
+#: src/admin/page.ts:152 web/src/pages/Llm.svelte:73
+#: web/src/pages/voices/PresetForm.svelte:101
+#: web/src/pages/voices/Presets.svelte:111
 msgid "Save"
 msgstr "Speichern"
 
@@ -58,7 +61,7 @@ msgstr "Speichern"
 msgid "Edit"
 msgstr "Bearbeiten"
 
-#: src/admin/page.ts:19
+#: src/admin/page.ts:19 web/src/pages/voices/Presets.svelte:177
 msgid "Delete"
 msgstr "Löschen"
 
@@ -68,10 +71,12 @@ msgid "Delete the preset \"%s\"?"
 msgstr "Voreinstellung „%s“ löschen?"
 
 #: src/admin/page.ts:21 src/admin/page.ts:142
+#: web/src/pages/voices/Preview.svelte:62
 msgid "Play"
 msgstr "Abspielen"
 
-#: src/admin/page.ts:22
+#: src/admin/page.ts:22 web/src/pages/voices/Catalog.svelte:198
+#: web/src/pages/voices/Preview.svelte:62
 msgid "Synthesizing…"
 msgstr "Wird synthetisiert …"
 
@@ -156,15 +161,20 @@ msgstr ""
 "ausfällt oder keine freie Sitzung hat. Ohne primäre Voreinstellung "
 "entscheidet die Umgebung."
 
-#: src/admin/page.ts:101
+#: src/admin/page.ts:101 web/src/pages/Overview.svelte:71
+#: web/src/pages/voices/Presets.svelte:88
+#: web/src/pages/voices/Presets.svelte:135
 msgid "Primary"
 msgstr "Primär"
 
-#: src/admin/page.ts:102
+#: src/admin/page.ts:102 web/src/pages/Overview.svelte:76
+#: web/src/pages/Overview.svelte:93 web/src/pages/voices/Presets.svelte:88
+#: web/src/pages/voices/Presets.svelte:136
 msgid "Fallback"
 msgstr "Ersatz"
 
 #: src/admin/page.ts:107 src/admin/page.ts:110
+#: web/src/pages/Knowledge.svelte:74 web/src/pages/Knowledge.svelte:81
 msgid "Profile"
 msgstr "Profil"
 
@@ -176,11 +186,13 @@ msgstr ""
 "Das Betriebsprofil, das die nächsten Anrufe nutzen. Ohne Auswahl antwortet "
 "das Profil, mit dem der Agent gestartet ist."
 
-#: src/admin/page.ts:114
+#: src/admin/page.ts:114 web/src/pages/voices/Presets.svelte:122
+#: web/src/pages/Voices.svelte:23
 msgid "Presets"
 msgstr "Voreinstellungen"
 
 #: src/admin/page.ts:117 src/admin/page.ts:124
+#: web/src/pages/voices/PresetForm.svelte:79
 msgid "Label"
 msgstr "Bezeichnung"
 
@@ -193,14 +205,19 @@ msgid "Vendor"
 msgstr "Anbieter"
 
 #: src/admin/page.ts:117 src/admin/page.ts:126 src/admin/page.ts:149
+#: web/src/pages/Calls.svelte:67 web/src/pages/Llm.svelte:60
+#: web/src/pages/Overview.svelte:89 web/src/pages/voices/Catalog.svelte:126
+#: web/src/pages/voices/PresetForm.svelte:87
 msgid "Model"
 msgstr "Modell"
 
-#: src/admin/page.ts:118 src/admin/page.ts:127
+#: src/admin/page.ts:118 src/admin/page.ts:127 web/src/pages/Overview.svelte:68
+#: web/src/pages/voices/PresetForm.svelte:90
 msgid "Voice"
 msgstr "Stimme"
 
 #: src/admin/page.ts:118 src/admin/page.ts:129
+#: web/src/pages/voices/PresetForm.svelte:96
 msgid "Assistant name"
 msgstr "Name des Assistenten"
 
@@ -208,7 +225,7 @@ msgstr "Name des Assistenten"
 msgid "the vendor's default"
 msgstr "Standard des Anbieters"
 
-#: src/admin/page.ts:128
+#: src/admin/page.ts:128 web/src/pages/voices/PresetForm.svelte:93
 msgid "Reference audio"
 msgstr "Referenzaufnahme"
 
@@ -244,7 +261,7 @@ msgstr ""
 "Das Ersatzmodell wird gefragt, wenn das erste nicht innerhalb des "
 "Versuchszeitlimits antwortet."
 
-#: src/admin/page.ts:150
+#: src/admin/page.ts:150 web/src/pages/Llm.svelte:63
 msgid "Fallback model"
 msgstr "Ersatzmodell"
 
@@ -264,7 +281,7 @@ msgstr ""
 "Aus den Metrikdateien, neueste zuerst. p50 und p95 sind Nearest-Rank über "
 "die Zeilen eines Anrufs."
 
-#: src/admin/page.ts:158
+#: src/admin/page.ts:158 web/src/pages/Calls.svelte:59
 msgid "Recent calls"
 msgstr "Letzte Anrufe"
 
@@ -634,6 +651,545 @@ msgstr ""
 #: src/mistral.ts:17
 msgid "SPRECHSTUNDE_MISTRAL_SERVER must be global, eu, us or a URL"
 msgstr "SPRECHSTUNDE_MISTRAL_SERVER muss global, eu, us oder eine URL sein"
+
+#: web/src/App.svelte:28 web/src/App.svelte:90
+msgid "Main navigation"
+msgstr "Hauptnavigation"
+
+#: web/src/App.svelte:44
+msgid "Not found"
+msgstr "Nicht gefunden"
+
+#: web/src/App.svelte:49
+msgid "Switch language"
+msgstr "Sprache wechseln"
+
+#: web/src/App.svelte:55
+msgid "Switch between light and dark"
+msgstr "Zwischen hell und dunkel wechseln"
+
+#: web/src/App.svelte:73
+msgid "There is no such page."
+msgstr "Diese Seite gibt es nicht."
+
+#: web/src/lib/nav.ts:13
+msgid "Overview"
+msgstr "Übersicht"
+
+#: web/src/lib/nav.ts:14 web/src/pages/Voices.svelte:22
+msgid "Voices"
+msgstr "Stimmen"
+
+#: web/src/lib/nav.ts:15 web/src/pages/Llm.svelte:58
+#: web/src/pages/Overview.svelte:86
+msgid "Language model"
+msgstr "Sprachmodell"
+
+#: web/src/lib/nav.ts:16
+msgid "Knowledge"
+msgstr "Wissen"
+
+#: web/src/lib/nav.ts:17 web/src/pages/Calls.svelte:42
+msgid "Calls"
+msgstr "Anrufe"
+
+#: web/src/lib/voices.ts:22 web/src/pages/voices/Presets.svelte:93
+#: web/src/pages/voices/Presets.svelte:98
+#: web/src/pages/voices/Preview.svelte:21
+msgid "Environment"
+msgstr "Umgebung"
+
+#: web/src/lib/voices.ts:23
+msgid "Not set"
+msgstr "Nicht gesetzt"
+
+#: web/src/pages/Calls.svelte:34 web/src/pages/Overview.svelte:106
+msgid "No calls measured yet"
+msgstr "Noch keine Anrufe gemessen"
+
+#: web/src/pages/Calls.svelte:34 web/src/pages/Overview.svelte:106
+msgid "Numbers appear after the first call."
+msgstr "Zahlen erscheinen nach dem ersten Anruf."
+
+#: web/src/pages/Calls.svelte:36
+msgid "By voice preset"
+msgstr "Nach Stimmen-Preset"
+
+#: web/src/pages/Calls.svelte:36
+msgid "Median per metric in milliseconds"
+msgstr "Median je Messwert in Millisekunden"
+
+#: web/src/pages/Calls.svelte:41 web/src/pages/Calls.svelte:66
+msgid "Preset"
+msgstr "Preset"
+
+#: web/src/pages/Calls.svelte:59
+#, javascript-format
+msgid "%s unreadable lines were skipped"
+msgstr "%s unlesbare Zeilen wurden übersprungen"
+
+#: web/src/pages/Calls.svelte:64
+msgid "Start"
+msgstr "Beginn"
+
+#: web/src/pages/Calls.svelte:65
+msgid "Seconds"
+msgstr "Sekunden"
+
+#: web/src/pages/Knowledge.svelte:49
+msgid "Profile saved"
+msgstr "Profil gespeichert"
+
+#: web/src/pages/Knowledge.svelte:62
+msgid "Copying is not possible here"
+msgstr "Kopieren ist hier nicht möglich"
+
+#: web/src/pages/Knowledge.svelte:74
+msgid "Which venue profile the next call uses. The agent reads it per call."
+msgstr ""
+"Welches Betriebsprofil der nächste Anruf nutzt. Der Agent liest es bei jedem "
+"Anruf neu."
+
+#: web/src/pages/Knowledge.svelte:84 web/src/pages/Overview.svelte:59
+msgid "Start profile"
+msgstr "Startprofil"
+
+#: web/src/pages/Knowledge.svelte:88
+#, javascript-format
+msgid "%s (broken)"
+msgstr "%s (defekt)"
+
+#: web/src/pages/Knowledge.svelte:93
+msgid "Active"
+msgstr "Aktiv"
+
+#: web/src/pages/Knowledge.svelte:93
+msgid "Use this profile"
+msgstr "Dieses Profil verwenden"
+
+#: web/src/pages/Knowledge.svelte:102
+#, javascript-format
+msgid "Language %s, time zone %s"
+msgstr "Sprache %s, Zeitzone %s"
+
+#: web/src/pages/Knowledge.svelte:105
+msgid "Greeting"
+msgstr "Begrüßung"
+
+#: web/src/pages/Knowledge.svelte:110
+msgid "Instructions"
+msgstr "Anweisungen"
+
+#: web/src/pages/Knowledge.svelte:116
+msgid "Fallback text"
+msgstr "Ersatztext"
+
+#: web/src/pages/Knowledge.svelte:123
+msgid "Facts"
+msgstr "Fakten"
+
+#: web/src/pages/Knowledge.svelte:123
+#, javascript-format
+msgid "%s facts the assistant can answer from"
+msgstr "%s Fakten, aus denen der Assistent antwortet"
+
+#: web/src/pages/Knowledge.svelte:124
+msgid "Search facts"
+msgstr "Fakten durchsuchen"
+
+#: web/src/pages/Knowledge.svelte:126
+msgid "No facts found"
+msgstr "Keine Fakten gefunden"
+
+#: web/src/pages/Knowledge.svelte:139
+msgid "Tools"
+msgstr "Werkzeuge"
+
+#: web/src/pages/Knowledge.svelte:139
+msgid "What the assistant can do besides talking"
+msgstr "Was der Assistent außer Sprechen kann"
+
+#: web/src/pages/Knowledge.svelte:141
+msgid "No tools for this profile"
+msgstr "Keine Werkzeuge für dieses Profil"
+
+#: web/src/pages/Knowledge.svelte:156
+msgid "required"
+msgstr "Pflicht"
+
+#: web/src/pages/Knowledge.svelte:169
+msgid "Announcement before transferring"
+msgstr "Ansage vor dem Weiterleiten"
+
+#: web/src/pages/Knowledge.svelte:173
+msgid "Transfer target"
+msgstr "Weiterleitungsziel"
+
+#: web/src/pages/Knowledge.svelte:180
+msgid "System prompt"
+msgstr "Systemprompt"
+
+#: web/src/pages/Knowledge.svelte:180
+msgid "Exactly what the model receives"
+msgstr "Genau das, was das Modell erhält"
+
+#: web/src/pages/Knowledge.svelte:187
+msgid "Hide"
+msgstr "Verbergen"
+
+#: web/src/pages/Knowledge.svelte:187
+msgid "Show"
+msgstr "Anzeigen"
+
+#: web/src/pages/Knowledge.svelte:192
+msgid "Copied"
+msgstr "Kopiert"
+
+#: web/src/pages/Knowledge.svelte:192
+msgid "Copy"
+msgstr "Kopieren"
+
+#: web/src/pages/Llm.svelte:46
+msgid "Language model saved"
+msgstr "Sprachmodell gespeichert"
+
+#: web/src/pages/Llm.svelte:58
+msgid ""
+"The model answers; the fallback model is tried when it times out or fails"
+msgstr ""
+"Das Modell antwortet; das Ersatzmodell kommt bei Zeitüberschreitung oder "
+"Fehler zum Zug"
+
+#: web/src/pages/Llm.svelte:66
+msgid "Attempt timeout (seconds)"
+msgstr "Versuchszeitlimit (Sekunden)"
+
+#: web/src/pages/Llm.svelte:66
+msgid "After this long without an answer the fallback model takes over"
+msgstr "Nach dieser Zeit ohne Antwort übernimmt das Ersatzmodell"
+
+#: web/src/pages/Llm.svelte:78
+msgid "Loading the model list…"
+msgstr "Modellliste wird geladen…"
+
+#: web/src/pages/Llm.svelte:80
+msgid "The model list is not available; type a model name."
+msgstr "Die Modellliste ist nicht verfügbar; gib einen Modellnamen ein."
+
+#: web/src/pages/Llm.svelte:82
+msgid "Suggestions come from the provider; any model name works."
+msgstr "Die Vorschläge kommen vom Anbieter; jeder Modellname funktioniert."
+
+#: web/src/pages/Overview.svelte:43
+msgid "Voice, first audio"
+msgstr "Stimme, erstes Audio"
+
+#: web/src/pages/Overview.svelte:44
+msgid "Model, first token"
+msgstr "Modell, erstes Token"
+
+#: web/src/pages/Overview.svelte:45
+msgid "End of speech detected"
+msgstr "Sprechende erkannt"
+
+#: web/src/pages/Overview.svelte:46
+msgid "Transcription"
+msgstr "Transkription"
+
+#: web/src/pages/Overview.svelte:58
+msgid "Active profile"
+msgstr "Aktives Profil"
+
+#: web/src/pages/Overview.svelte:58
+msgid "What the assistant knows and says on the next call"
+msgstr "Was der Assistent beim nächsten Anruf weiß und sagt"
+
+#: web/src/pages/Overview.svelte:61
+msgid "The profile the agent started with"
+msgstr "Das Profil, mit dem der Agent gestartet ist"
+
+#: web/src/pages/Overview.svelte:64
+msgid "Show knowledge and tools"
+msgstr "Wissen und Werkzeuge anzeigen"
+
+#: web/src/pages/Overview.svelte:68
+msgid "Primary voice and the one that takes over when it fails"
+msgstr "Hauptstimme und die, die bei einem Ausfall übernimmt"
+
+#: web/src/pages/Overview.svelte:82
+msgid "Change voices"
+msgstr "Stimmen ändern"
+
+#: web/src/pages/Overview.svelte:86
+msgid "Answers first, the fallback after a timeout or error"
+msgstr "Antwortet zuerst, das Ersatzmodell nach Zeitüberschreitung oder Fehler"
+
+#: web/src/pages/Overview.svelte:90
+msgid "Default (mistral-small-latest)"
+msgstr "Standard (mistral-small-latest)"
+
+#: web/src/pages/Overview.svelte:94
+msgid "None"
+msgstr "Keines"
+
+#: web/src/pages/Overview.svelte:98
+msgid "Change model"
+msgstr "Modell ändern"
+
+#: web/src/pages/Overview.svelte:102
+msgid "Latest calls"
+msgstr "Letzte Anrufe"
+
+#: web/src/pages/Overview.svelte:102
+msgid "Median over the last ten calls"
+msgstr "Median über die letzten zehn Anrufe"
+
+#: web/src/pages/Overview.svelte:116
+#, javascript-format
+msgid "%s calls"
+msgstr "%s Anrufe"
+
+#: web/src/pages/Overview.svelte:121
+msgid "API keys"
+msgstr "API-Schlüssel"
+
+#: web/src/pages/Overview.svelte:121
+msgid "Which providers this server can call"
+msgstr "Welche Anbieter dieser Server ansprechen kann"
+
+#: web/src/pages/Overview.svelte:124
+msgid "key set"
+msgstr "Schlüssel gesetzt"
+
+#: web/src/pages/Overview.svelte:124
+msgid "no key"
+msgstr "kein Schlüssel"
+
+#: web/src/pages/voices/Catalog.svelte:46
+msgid "Catalog refreshed"
+msgstr "Katalog aktualisiert"
+
+#: web/src/pages/voices/Catalog.svelte:110
+msgid "Voice catalog"
+msgstr "Stimmenkatalog"
+
+#: web/src/pages/voices/Catalog.svelte:110
+msgid "What each provider offers, with the vendor samples"
+msgstr "Was jeder Anbieter bietet, mit den Hörproben der Hersteller"
+
+#: web/src/pages/voices/Catalog.svelte:112
+#, javascript-format
+msgid "Fetched %s"
+msgstr "Abgerufen %s"
+
+#: web/src/pages/voices/Catalog.svelte:114
+msgid "Refresh"
+msgstr "Aktualisieren"
+
+#: web/src/pages/voices/Catalog.svelte:120
+#: web/src/pages/voices/PresetForm.svelte:82
+msgid "Provider"
+msgstr "Anbieter"
+
+#: web/src/pages/voices/Catalog.svelte:128
+msgid "All models"
+msgstr "Alle Modelle"
+
+#: web/src/pages/voices/Catalog.svelte:133
+msgid "Language"
+msgstr "Sprache"
+
+#: web/src/pages/voices/Catalog.svelte:135
+msgid "Any language"
+msgstr "Jede Sprache"
+
+#: web/src/pages/voices/Catalog.svelte:140
+msgid "Gender"
+msgstr "Geschlecht"
+
+#: web/src/pages/voices/Catalog.svelte:142
+msgid "Any"
+msgstr "Beliebig"
+
+#: web/src/pages/voices/Catalog.svelte:147
+msgid "Search"
+msgstr "Suche"
+
+#: web/src/pages/voices/Catalog.svelte:148
+msgid "Name, id or description"
+msgstr "Name, ID oder Beschreibung"
+
+#: web/src/pages/voices/Catalog.svelte:151
+msgid "Test with your own text"
+msgstr "Mit eigenem Text testen"
+
+#: web/src/pages/voices/Catalog.svelte:162
+msgid "This catalog is not available"
+msgstr "Dieser Katalog ist nicht verfügbar"
+
+#: web/src/pages/voices/Catalog.svelte:163
+msgid "The provider did not answer."
+msgstr "Der Anbieter hat nicht geantwortet."
+
+#: web/src/pages/voices/Catalog.svelte:166
+msgid "No voice matches"
+msgstr "Keine Stimme passt"
+
+#: web/src/pages/voices/Catalog.svelte:166
+msgid "Loosen the filters."
+msgstr "Lockere die Filter."
+
+#: web/src/pages/voices/Catalog.svelte:168
+#, javascript-format
+msgid "%s voices"
+msgstr "%s Stimmen"
+
+#: web/src/pages/voices/Catalog.svelte:184
+msgid "Vendor sample"
+msgstr "Hörprobe des Herstellers"
+
+#: web/src/pages/voices/Catalog.svelte:190
+#, javascript-format
+msgid "Your text, first audio after %s ms"
+msgstr "Dein Text, erstes Audio nach %s ms"
+
+#: web/src/pages/voices/Catalog.svelte:198
+msgid "Test with my text"
+msgstr "Mit meinem Text testen"
+
+#: web/src/pages/voices/Catalog.svelte:200
+msgid "Save as preset"
+msgstr "Als Preset speichern"
+
+#: web/src/pages/voices/Catalog.svelte:207
+msgid "Show more"
+msgstr "Mehr anzeigen"
+
+#: web/src/pages/voices/PresetForm.svelte:57
+msgid "Preset saved"
+msgstr "Preset gespeichert"
+
+#: web/src/pages/voices/PresetForm.svelte:67
+msgid "Edit preset"
+msgstr "Preset bearbeiten"
+
+#: web/src/pages/voices/PresetForm.svelte:67
+#: web/src/pages/voices/Presets.svelte:124
+msgid "Add preset"
+msgstr "Preset hinzufügen"
+
+#: web/src/pages/voices/PresetForm.svelte:69
+msgid "ID"
+msgstr "ID"
+
+#: web/src/pages/voices/PresetForm.svelte:69
+msgid "Letters, digits, dot, dash and underscore"
+msgstr "Buchstaben, Ziffern, Punkt, Bindestrich und Unterstrich"
+
+#: web/src/pages/voices/PresetForm.svelte:82
+msgid "No API key set for this provider"
+msgstr "Für diesen Anbieter ist kein API-Schlüssel gesetzt"
+
+#: web/src/pages/voices/PresetForm.svelte:88
+msgid "The vendor's default"
+msgstr "Standard des Anbieters"
+
+#: web/src/pages/voices/PresetForm.svelte:93
+msgid "File in the voices directory, Mistral only"
+msgstr "Datei im Stimmenverzeichnis, nur Mistral"
+
+#: web/src/pages/voices/Presets.svelte:60
+msgid "Active voices saved"
+msgstr "Aktive Stimmen gespeichert"
+
+#: web/src/pages/voices/Presets.svelte:74
+#, javascript-format
+msgid "Deleted %s"
+msgstr "„%s“ gelöscht"
+
+#: web/src/pages/voices/Presets.svelte:86
+msgid "Active voices"
+msgstr "Aktive Stimmen"
+
+#: web/src/pages/voices/Presets.svelte:86
+msgid "The primary voice speaks; the fallback takes over when it fails"
+msgstr "Die Hauptstimme spricht; die Ersatzstimme übernimmt bei einem Ausfall"
+
+#: web/src/pages/voices/Presets.svelte:103
+#, javascript-format
+msgid "Environment: %s"
+msgstr "Umgebung: %s"
+
+#: web/src/pages/voices/Presets.svelte:103
+msgid "Environment: not configured"
+msgstr "Umgebung: nicht konfiguriert"
+
+#: web/src/pages/voices/Presets.svelte:122
+msgid "Saved voice settings you can switch between"
+msgstr "Gespeicherte Stimmeneinstellungen zum Umschalten"
+
+#: web/src/pages/voices/Presets.svelte:127
+msgid "No presets yet"
+msgstr "Noch keine Presets"
+
+#: web/src/pages/voices/Presets.svelte:127
+msgid "Add one here, or save a voice from the catalog."
+msgstr "Lege hier eines an oder speichere eine Stimme aus dem Katalog."
+
+#: web/src/pages/voices/Presets.svelte:146
+#, javascript-format
+msgid "Edit %s"
+msgstr "%s bearbeiten"
+
+#: web/src/pages/voices/Presets.svelte:154
+#, javascript-format
+msgid "Delete %s"
+msgstr "%s löschen"
+
+#: web/src/pages/voices/Presets.svelte:175
+msgid "Delete preset?"
+msgstr "Preset löschen?"
+
+#: web/src/pages/voices/Presets.svelte:176
+#, javascript-format
+msgid "\"%s\" is removed. This cannot be undone."
+msgstr "„%s“ wird entfernt. Das lässt sich nicht rückgängig machen."
+
+#: web/src/pages/voices/Preview.svelte:27
+msgid "Pick at least one voice"
+msgstr "Wähle mindestens eine Stimme"
+
+#: web/src/pages/voices/Preview.svelte:45
+msgid "Compare voices"
+msgstr "Stimmen vergleichen"
+
+#: web/src/pages/voices/Preview.svelte:45
+msgid ""
+"Speak one text with several presets and see how fast the first audio arrives"
+msgstr ""
+"Sprich einen Text mit mehreren Presets und sieh, wie schnell das erste Audio "
+"ankommt"
+
+#: web/src/pages/voices/Preview.svelte:48
+msgid "Voices to compare"
+msgstr "Zu vergleichende Stimmen"
+
+#: web/src/pages/voices/Preview.svelte:56
+msgid "Text to speak"
+msgstr "Zu sprechender Text"
+
+#: web/src/pages/voices/Preview.svelte:60
+msgid "Phone quality (8 kHz)"
+msgstr "Telefonqualität (8 kHz)"
+
+#: web/src/pages/voices/Preview.svelte:72
+#, javascript-format
+msgid "First audio after %s ms"
+msgstr "Erstes Audio nach %s ms"
+
+#: web/src/pages/Voices.svelte:24
+msgid "Catalog"
+msgstr "Katalog"
 
 #~ msgid "path, Mistral only"
 #~ msgstr "Pfad, nur Mistral"
