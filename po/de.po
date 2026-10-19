@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-19 23:14+0200\n"
+"POT-Creation-Date: 2026-10-19 23:25+0200\n"
 "PO-Revision-Date: 2026-10-19 23:10+0200\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -12,17 +12,17 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: src/admin/main.ts:21
+#: src/admin/main.ts:22
 #, javascript-format
 msgid "%s must be a port number"
 msgstr "%s muss eine Portnummer sein"
 
-#: src/admin/main.ts:43
+#: src/admin/main.ts:48
 #, javascript-format
 msgid "settings UI on %s"
 msgstr "Einstellungsoberfläche auf %s"
 
-#: src/admin/main.ts:44
+#: src/admin/main.ts:49
 #, javascript-format
 msgid "settings file: %s"
 msgstr "Einstellungsdatei: %s"
@@ -248,28 +248,28 @@ msgstr "der Anfragekörper ist zu groß"
 msgid "the request body must be a JSON object"
 msgstr "der Anfragekörper muss ein JSON-Objekt sein"
 
-#: src/admin/server.ts:188
+#: src/admin/server.ts:189
 msgid "no voice is configured"
 msgstr "es ist keine Stimme konfiguriert"
 
-#: src/admin/server.ts:192 src/admin/server.ts:259
+#: src/admin/server.ts:193 src/admin/server.ts:260
 #, javascript-format
 msgid "no preset with id %s"
 msgstr "keine Voreinstellung mit der Id %s"
 
-#: src/admin/server.ts:202
+#: src/admin/server.ts:203
 msgid "this server answers on 127.0.0.1 only"
 msgstr "dieser Server antwortet nur auf 127.0.0.1"
 
-#: src/admin/server.ts:204
+#: src/admin/server.ts:205
 msgid "a change must come from the page this server serves"
 msgstr "eine Änderung muss von der Seite kommen, die dieser Server ausliefert"
 
-#: src/admin/server.ts:216
+#: src/admin/server.ts:217
 msgid "invalid preset id"
 msgstr "ungültige Preset-ID"
 
-#: src/admin/server.ts:347
+#: src/admin/server.ts:348
 msgid "unknown route"
 msgstr "unbekannte Route"
 
@@ -277,16 +277,16 @@ msgstr "unbekannte Route"
 msgid "CPU profile written to"
 msgstr "CPU-Profil geschrieben nach"
 
-#: src/agent/assistant.ts:141
+#: src/agent/assistant.ts:142
 msgid "Pocket TTS has no free session, this call uses the fallback voice"
 msgstr ""
 "Pocket TTS hat keine freie Sitzung, dieser Anruf nutzt die Ersatzstimme"
 
-#: src/agent/assistant.ts:186
+#: src/agent/assistant.ts:187
 msgid "transfer failed"
 msgstr "Weiterleitung fehlgeschlagen"
 
-#: src/agent/assistant.ts:238
+#: src/agent/assistant.ts:239
 msgid "CPU profile failed"
 msgstr "CPU-Profil fehlgeschlagen"
 
@@ -324,21 +324,32 @@ msgid "LIVEKIT_URL, LIVEKIT_API_KEY and LIVEKIT_API_SECRET must be set"
 msgstr ""
 "LIVEKIT_URL, LIVEKIT_API_KEY und LIVEKIT_API_SECRET müssen gesetzt sein"
 
-#: src/agent/tts-provider.ts:50
+#: src/agent/tts-provider.ts:59 src/agent/tts-provider.ts:151
 msgid "%1 must be one of: %2"
 msgstr "%1 muss einer dieser Werte sein: %2"
 
-#: src/agent/tts-provider.ts:53 src/agent/tts-provider.ts:56
-#: src/agent/tts-provider.ts:137 src/cli/fallback.ts:23 src/cli/provision.ts:10
-#: src/cli/sip-contacts.ts:18 src/cli/stt-try.ts:100 src/cli/tts-try.ts:88
-#: src/cli/voice.ts:12 src/mistral.ts:21
+#: src/agent/tts-provider.ts:62 src/agent/tts-provider.ts:65
+#: src/agent/tts-provider.ts:147 src/agent/tts-provider.ts:177
+#: src/cli/fallback.ts:23 src/cli/provision.ts:10 src/cli/sip-contacts.ts:18
+#: src/cli/stt-try.ts:100 src/cli/tts-try.ts:88 src/cli/voice.ts:12
+#: src/mistral.ts:21
 #, javascript-format
 msgid "%s must be set"
 msgstr "%s muss gesetzt sein"
 
-#: src/agent/tts-provider.ts:76
+#: src/agent/tts-provider.ts:68
+#, javascript-format
+msgid "%s must be a numeric KugelAudio voice id"
+msgstr "%s muss eine numerische KugelAudio-Stimmen-ID sein"
+
+#: src/agent/tts-provider.ts:88
 msgid "preset \"%1\" needs a model for the %2 provider"
 msgstr "Voreinstellung „%1“ braucht ein Modell für den Anbieter %2"
+
+#: src/agent/tts-provider.ts:92
+#, javascript-format
+msgid "preset \"%s\" needs a numeric KugelAudio voice id"
+msgstr "Voreinstellung „%s“ braucht eine numerische KugelAudio-Stimmen-ID"
 
 #: src/agent/watchdog.ts:46
 msgid "worker is unhealthy; exiting so the container restarts"
