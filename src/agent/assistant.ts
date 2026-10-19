@@ -8,20 +8,22 @@ import * as silero from '@livekit/agents-plugin-silero';
 import { ParticipantKind } from '@livekit/rtc-node';
 import { buildInstructions } from '../core/prompt.js';
 import { type Profile, withAssistantName } from '../core/profile.js';
+import type { Settings } from '../core/settings.js';
 import { transferRequest } from '../core/tools.js';
 import { _ } from '../i18n.js';
 import { mistralClient } from '../mistral.js';
-import { recordMetrics } from './metrics.js';
+import { buildLlm, llmFallbackModel, llmModel } from './llm.js';
+import { recordCallConfig, recordMetrics } from './metrics.js';
+import { currentSettings } from './settings.js';
 import { attachTranscript, transcriptDir } from './transcript.js';
 import { transferSipParticipant } from './transfer.js';
 import { StallGuardSTT } from './stt-guard.js';
 import { ContiguousSTT } from './stt-merge.js';
 import { openPocketSession } from './pocket-tts.js';
 import { HedgedTTS } from './tts-hedge.js';
-import { buildBaseTts, pocketUrl, type TtsChoice, ttsChoice, ttsFallbackChoice } from './tts-provider.js';
+import { buildBaseTts, pocketUrl, type TtsChoice, ttsChoices } from './tts-provider.js';
 
 const DEFAULT_STT_MODEL = 'voxtral-mini-transcribe-realtime-2602';
-const DEFAULT_LLM_MODEL = 'mistral-small-latest';
 const FALLBACK_STT_MODEL = 'voxtral-mini-latest';
 
 // Mistral's realtime STT only finalises when the VAD reports end of speech, so the silence the
@@ -118,7 +120,8 @@ function buildTts(client: Mistral, profile: Profile, choice: TtsChoice): tts.TTS
 }
 
 /**
- * The voice for this call, decided once at its start. With a fallback configured, a Pocket call
+ * The voice for this call, decided once at its start from the settings file or the environment
+ * (see `ttsChoices`). With a fallback configured, a Pocket call
  * first reserves a session on the Pocket server; when all are taken the whole call speaks with the
  * fallback voice and its name, so a busy server never changes the voice mid-call. The fallback
  * still stands behind the primary for real failures (server down, errors).
@@ -126,9 +129,9 @@ function buildTts(client: Mistral, profile: Profile, choice: TtsChoice): tts.TTS
 async function voiceForCall(
   client: Mistral,
   profile: Profile,
+  settings: Settings | undefined,
 ): Promise<{ tts: tts.TTS; choice: TtsChoice; release?: () => Promise<void> }> {
-  const primary = ttsChoice();
-  const fallback = ttsFallbackChoice();
+  const { primary, fallback } = ttsChoices(settings);
   if (!fallback) return { tts: buildTts(client, profile, primary), choice: primary };
 
   let release: (() => Promise<void>) | undefined;
@@ -156,7 +159,9 @@ export async function runAssistant(ctx: JobContext, venue: Profile): Promise<voi
   const participant = ctx.isFakeJob ? undefined : await ctx.waitForParticipant();
 
   const client = mistralClient();
-  const speech = await voiceForCall(client, venue);
+  // Read once per call: the voice must not change halfway through because the UI was used.
+  const settings = currentSettings();
+  const speech = await voiceForCall(client, venue, settings);
   // Each voice may carry its own name; greeting, prompt and announcements follow the voice.
   const profile = withAssistantName(venue, speech.choice.name);
 
@@ -190,7 +195,7 @@ export async function runAssistant(ctx: JobContext, venue: Profile): Promise<voi
   const session = new voice.AgentSession({
     vad,
     stt: buildStt(client, vad, profile.locale.split('-')[0]!),
-    llm: new mistral.LLM({ client, model: process.env.SPRECHSTUNDE_LLM_MODEL || DEFAULT_LLM_MODEL }),
+    llm: buildLlm(client, settings),
     tts: speech.tts,
     turnHandling: {
       turnDetection: new livekit.turnDetector.MultilingualModel(),
@@ -207,6 +212,14 @@ export async function runAssistant(ctx: JobContext, venue: Profile): Promise<voi
     },
   });
 
+  // Which voice and model this call used, so the latency lines below can be read per voice.
+  recordCallConfig({
+    jobId: ctx.job?.id,
+    ttsPreset: speech.choice.preset,
+    ttsProvider: speech.choice.provider,
+    llmModel: llmModel(settings),
+    llmFallbackModel: llmFallbackModel(settings),
+  });
   session.on(voice.AgentSessionEventTypes.MetricsCollected, (event) => recordMetrics(event.metrics));
   const debugTranscripts = transcriptDir();
   if (debugTranscripts) attachTranscript(session, ctx.job.id, debugTranscripts);

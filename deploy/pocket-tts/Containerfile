@@ -6,11 +6,13 @@ RUN useradd --create-home --uid 1000 pocket \
       pocket-tts==3.3.0 torch==2.14.1+cpu
 USER pocket
 ENV HF_HOME=/home/pocket/.cache/huggingface POCKET_LANGUAGE=german POCKET_VOICE=juergen
-# Weights and the default voice go into the image, so the server starts without network. Needs
-# network at build time; the preset voices need no Hugging Face login.
-RUN python -c "from pocket_tts import TTSModel; import os; \
+# Weights and the preset voices go into the image, so the server starts without network and
+# POCKET_VOICE can switch between them at runtime. Needs network at build time; the preset voices
+# need no Hugging Face login.
+ARG POCKET_PRESET_VOICES="juergen alba"
+RUN python -c "from pocket_tts import TTSModel; import os, sys; \
 m = TTSModel.load_model(language=os.environ['POCKET_LANGUAGE']); \
-m.get_state_for_audio_prompt(os.environ['POCKET_VOICE'])"
+[m.get_state_for_audio_prompt(v) for v in sys.argv[1:]]" $POCKET_PRESET_VOICES
 ENV HF_HUB_OFFLINE=1
 WORKDIR /app
 COPY server.py ./

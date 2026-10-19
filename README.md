@@ -31,7 +31,7 @@ Needs Node ≥ 22, Podman with `podman compose`, and gettext for the catalogues.
 ```sh
 npm ci
 cp .env.example .env          # fill in the LiveKit secret first; the rest can wait
-npm run stack:up              # valkey, livekit-server, livekit/sip, asterisk
+npm run stack:up              # valkey, livekit-server, livekit/sip, asterisk (creates the var/ bind-mount dirs first: podman fails on missing ones)
 npm run provision             # inbound trunk + dispatch rule, idempotent
 SPRECHSTUNDE_MODE=echo npm run agent:dev
 ```
@@ -87,6 +87,8 @@ could not reach PipeWire); that is an observation on one machine, not a general 
 | `SPRECHSTUNDE_MODE` | `assistant` or `echo` |
 | `SPRECHSTUNDE_AGENT_NAME` | name used for explicit dispatch, default `sprechstunde` |
 | `SPRECHSTUNDE_STT_MODEL` / `_LLM_MODEL` / `_TTS_MODEL` | override the Mistral models |
+| `SPRECHSTUNDE_LLM_FALLBACK_MODEL` | optional second LLM, asked when the first is too slow or fails. Empty (the default) leaves the single model in place |
+| `SPRECHSTUNDE_LLM_ATTEMPT_TIMEOUT` | seconds one LLM gets before the fallback is asked, default `3`. Only used with a fallback model |
 | `SPRECHSTUNDE_TTS_PROVIDER` | `mistral` (default), `cartesia` (needs `CARTESIA_API_KEY`, model default `sonic-3.6`), `openrouter` (needs `OPENROUTER_API_KEY` and `SPRECHSTUNDE_TTS_MODEL`, e.g. `elevenlabs/eleven-flash-v2.5`) or `pocket` (Kyutai Pocket TTS on this machine, see [Local voice](#local-voice-kyutai-pocket-tts)). OpenRouter is for comparing voices: it routes to vendors outside the EU |
 | `SPRECHSTUNDE_TTS_VOICE` | override the profile's TTS voice. A voice id belongs to one vendor, so for `cartesia` and `openrouter` it is required and the profile's voice is ignored; `pocket` defaults to the server's voice |
 | `SPRECHSTUNDE_TTS_NAME` | the name the assistant uses with this voice. Every whole-word mention of the profile's `assistantName` in the greeting, the instructions and the transfer announcement becomes this name |
@@ -95,6 +97,9 @@ could not reach PipeWire); that is an observation on one machine, not a general 
 | `SPRECHSTUNDE_TTS_REF_AUDIO` | path to an audio file to clone; overrides every other voice setting |
 | `SPRECHSTUNDE_TRUNK_NUMBERS` | comma-separated numbers for the inbound trunk; empty accepts any |
 | `SPRECHSTUNDE_METRICS_DIR` | where latency metrics are written, default `var/metrics` |
+| `SPRECHSTUNDE_SETTINGS_FILE` | the voices and models picked in the [settings UI](#settings-ui), default `var/settings/voice.json`. As soon as it names an active voice, it wins over the `SPRECHSTUNDE_TTS_*` and `SPRECHSTUNDE_LLM_*` variables above; a missing or unreadable file leaves them in charge |
+| `SPRECHSTUNDE_VOICES_DIR` | where a preset's `refAudio` clip lives, default `var/voices` (mounted read-only into the containers). A preset may only name a relative path inside it; `SPRECHSTUNDE_TTS_REF_AUDIO` stays unrestricted |
+| `SPRECHSTUNDE_ADMIN_PORT` | port of the settings UI on `127.0.0.1`, default `8091` |
 | `SPRECHSTUNDE_MISTRAL_SERVER` | empty: Mistral's global endpoint, which does not say where a request runs. `eu` or `us`: [regional inference](https://docs.mistral.ai/inference/regional-inference), processing stays in that region, billed at 1.1× list price. A URL is used as is |
 | `SPRECHSTUNDE_TRANSCRIPT_DIR` | debug only, off when empty: writes what caller and agent said, plus turn events, to `<dir>/<date>/<job id>.jsonl`. In compose any non-empty value turns it on and writes to `var/transcripts` |
 | `SPRECHSTUNDE_ANSWER_TIMEOUT` | seconds Asterisk lets LiveKit ring before it plays the fallback, default `10` |
@@ -122,7 +127,7 @@ ones). Options:
 1. **Preset voices speaking German.** Voxtral supports German, so a preset may do. Listen first:
    `npm run tts:try` (needs `MISTRAL_API_KEY`) synthesises a German test sentence with several
    voices (`--voice <id>`, `--ref <audio file>`, `--text "…"`, `--model`) and writes
-   `var/tts/<voice>.wav` plus a `.8k.wav` that approximates the phone line, with time to first
+   `var/samples/<YYYY-MM-DD>_tts-try/<voice>.wav` plus a `.8k.wav` that approximates the phone line, with time to first
    audio and total time per voice.
 2. **Clone from reference audio.** 2–3 s of speech are enough. `dev/fetch-thorsten-sample.sh`
    downloads one CC0 clip of the Thorsten-Voice dataset to `var/voices/thorsten.wav`. Use it with
@@ -172,7 +177,11 @@ SPRECHSTUNDE_TTS_FALLBACK_PROVIDER=mistral SPRECHSTUNDE_TTS_FALLBACK_VOICE=<voic
   2.5x, 4 → 208 ms / 1.4x, 6 → 285 ms / 0.95x (falls behind). A caller mostly listens, so 4
   workers should carry more than 4 calls; that is an estimate, not measured. Measure on the
   target server before relying on it.
-- Memory: ~0.75 GB per worker (4 workers ≈ 3 GB); the image is ~1.5 GB with weights and voice.
+- Memory: ~0.75 GB per worker (4 workers ≈ 3 GB); the image is ~1.5 GB with the weights and the
+  preset voices. Which voices are baked in is the build argument `POCKET_PRESET_VOICES`
+  (default `juergen alba`); the image runs with `HF_HUB_OFFLINE=1`, so a voice that was not baked
+  in cannot be loaded later. `POCKET_VOICE` picks the server's default among them and a request's
+  `voice` field overrides it per request, so switching between baked voices needs no rebuild.
 - Reference audio: a cloned voice from an 8–10 s clip worked; a 19 s clip broke sentences off.
 
 If you use Mistral's API, check the training opt-out in the admin panel (Privacy → "Anonymous
@@ -198,6 +207,12 @@ What the agent does beyond the defaults, and why:
   before it fails over. A final transcript that arrives late still gets a reply. The rescue owns
   the utterance from the moment it starts: a transcript the realtime stream delivers afterwards is
   dropped, because it is the same words a second time.
+- **LLM fallback** (off by default): with `SPRECHSTUNDE_LLM_FALLBACK_MODEL` set, both models go
+  behind `llm.FallbackAdapter` and the second is asked when the first has not answered within
+  `SPRECHSTUNDE_LLM_ATTEMPT_TIMEOUT` seconds (default 3) or fails. On 2026-10-19 Mistral answered
+  single requests only after 10 s and returned 503s mid-call, which leaves the caller in silence.
+  Three seconds is already a long pause on the phone, and the second model needs its own time on
+  top. Not seen firing in a real call yet.
 - **One contiguous frame for batch STT** (`ContiguousSTT`, `src/agent/stt-merge.ts`):
   `mergeFrames` in `@livekit/agents` 1.9.3 is quadratic. On 2026-10-16 it blocked the event loop
   for 12.3 s on about 12 s of audio (`npm run bench:merge-frames`). The wrapper hands the batch
@@ -248,8 +263,42 @@ npm run metrics -- --json
 Percentiles are nearest-rank. A TTS chunk hedged by `HedgedTTS` can appear twice; lines are not
 de-duplicated. Malformed lines are skipped and counted.
 
+## Settings UI
+
+Which voice a venue sounds best in is decided by ear, and changing it through `.env` means editing
+a file and restarting the worker between every two candidates. The settings UI takes that loop out
+of the shell:
+
+```sh
+npm run admin                                     # http://127.0.0.1:8091
+podman compose --profile agent up -d admin        # same thing in the container
+```
+
+It keeps a list of **presets** — a vendor plus its model, voice, reference clip and the name the
+assistant uses — and one active pair, a primary voice and an optional fallback. Previewing a preset
+synthesizes the profile's greeting through the very code a call uses (`buildBaseTts`), shows the
+time to the first audio sample, and plays several presets next to each other; "phone" resamples the
+sample to the 8 kHz a line carries, which is where a voice that sounded fine on speakers often does
+not. The same page sets the LLM, its fallback and the attempt timeout, and lists the measured
+latency of the recent calls, grouped by the preset they ran on.
+
+What it writes is `var/settings/voice.json` (`SPRECHSTUNDE_SETTINGS_FILE`). The agent reads that
+file when a call starts, so the next caller hears the new voice without a restart — and as long as
+the file names no active voice, or cannot be read, the `SPRECHSTUNDE_TTS_*` and `SPRECHSTUNDE_LLM_*`
+variables stay in charge exactly as before.
+
+It binds to `127.0.0.1` and has **no login**: whoever reaches the port may change the voice and
+spend API credit on previews. It refuses a request whose `Host` is not loopback and a change that
+does not come from its own page, which stops a browser elsewhere on the machine from driving it, but
+it is not an admin panel to expose — do not forward the port, and do not put it on a public
+interface. Write requests need a same-origin `Origin` header, so a plain `curl` write is rejected by design.
+
 ## Not tested yet
 
+- The settings UI has only been exercised by its own tests with a fake vendor: routes, validation,
+  the WAV it returns and the two guards. Previews against the real vendors, the latency view on
+  grown metrics files and a call that picks up a voice changed mid-shift are unverified, as is the
+  `admin` container.
 - Pocket TTS on a phone call, the session limit and the switch to the fallback voice under load:
   covered by unit tests with a fake server and by hand against the real server, not in a call.
   A mid-call failure switches to the fallback voice while the assistant keeps the first voice's

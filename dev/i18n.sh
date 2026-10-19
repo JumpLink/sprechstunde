@@ -24,6 +24,8 @@ extract)
         --language=JavaScript \
         --keyword=_ \
         --keyword=_n:1,2 \
+        `# _h() = translate and HTML-escape, the admin page's marker` \
+        --keyword=_h \
         --add-comments=TRANSLATORS \
         --package-name="$DOMAIN"
     while read -r lang; do

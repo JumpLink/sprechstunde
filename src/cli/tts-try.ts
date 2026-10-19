@@ -10,7 +10,7 @@ import { synthesize } from './speech.js';
 
 const SAMPLE_RATE = 24000;
 const PHONE_FACTOR = 3; // 24 kHz -> 8 kHz
-const OUT_DIR = 'var/tts';
+const OUT_DIR = `var/samples/${localDate()}_tts-try`;
 const DEFAULT_MODEL = 'voxtral-mini-tts-latest';
 const DEFAULT_VOICES = ['fr_marie_neutral', 'en_paul_neutral', 'gb_jane_neutral', 'gb_oliver_neutral'];
 const DEFAULT_TEXT =
@@ -18,6 +18,11 @@ const DEFAULT_TEXT =
   'Ich bin eine künstliche Intelligenz. ' +
   'Wir haben heute von siebzehn Uhr dreißig bis dreiundzwanzig Uhr geöffnet, und für Sonntag sind noch zwölf Plätze frei.';
 const SPLIT_PAUSE_MS = 300;
+
+function localDate(now = new Date()): string {
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+}
 
 /** Sentence chunks as the agent's TTS stream adapter sends them: one request each. */
 function splitSentences(text: string): string[] {

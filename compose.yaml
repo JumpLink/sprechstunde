@@ -97,6 +97,8 @@ services:
       TRANSFER_SIP_HOST: "${TRANSFER_SIP_HOST:-}"
       SPRECHSTUNDE_AGENT_NAME: "${SPRECHSTUNDE_AGENT_NAME:-}"
       SPRECHSTUNDE_LLM_MODEL: "${SPRECHSTUNDE_LLM_MODEL:-}"
+      SPRECHSTUNDE_LLM_FALLBACK_MODEL: "${SPRECHSTUNDE_LLM_FALLBACK_MODEL:-}"
+      SPRECHSTUNDE_LLM_ATTEMPT_TIMEOUT: "${SPRECHSTUNDE_LLM_ATTEMPT_TIMEOUT:-}"
       SPRECHSTUNDE_STT_MODEL: "${SPRECHSTUNDE_STT_MODEL:-}"
       SPRECHSTUNDE_TTS_PROVIDER: "${SPRECHSTUNDE_TTS_PROVIDER:-}"
       SPRECHSTUNDE_TTS_MODEL: "${SPRECHSTUNDE_TTS_MODEL:-}"
@@ -115,10 +117,44 @@ services:
     userns_mode: keep-id
     volumes:
       - ./var/metrics:/app/var/metrics:z
+      - ./var/settings:/app/var/settings:z
+      - ./var/voices:/app/var/voices:ro,z
       - ./var/transcripts:/app/var/transcripts:z
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8081/').then((r) => process.exit(r.ok ? 0 : 1), () => process.exit(1))"]
       interval: 30s
       start_period: 30s
     depends_on: [livekit]
+    restart: unless-stopped
+
+  # The settings UI on 127.0.0.1:8091: pick the voice, compare presets, read the last calls'
+  # latency. Same image as the agent, a separate process — reloading the page must never touch a
+  # call in progress. It writes var/settings/voice.json, which the agent reads per call.
+  admin:
+    profiles: ["agent"]
+    build:
+      context: .
+      dockerfile: Containerfile
+    image: localhost/sprechstunde-agent:0.1.0
+    command: ["node", "dist/admin/main.js"]
+    network_mode: host
+    environment:
+      SPRECHSTUNDE_ADMIN_PORT: "${SPRECHSTUNDE_ADMIN_PORT:-8091}"
+      SPRECHSTUNDE_PROFILE: "${SPRECHSTUNDE_PROFILE:-}"
+      # Previews go to the same vendors a call would, so the UI needs their keys too.
+      MISTRAL_API_KEY: "${MISTRAL_API_KEY:-}"
+      SPRECHSTUNDE_MISTRAL_SERVER: "${SPRECHSTUNDE_MISTRAL_SERVER:-}"
+      CARTESIA_API_KEY: "${CARTESIA_API_KEY:-}"
+      OPENROUTER_API_KEY: "${OPENROUTER_API_KEY:-}"
+      POCKET_TTS_URL: "${POCKET_TTS_URL:-}"
+      SPRECHSTUNDE_TTS_PROVIDER: "${SPRECHSTUNDE_TTS_PROVIDER:-}"
+      SPRECHSTUNDE_TTS_MODEL: "${SPRECHSTUNDE_TTS_MODEL:-}"
+      SPRECHSTUNDE_TTS_VOICE: "${SPRECHSTUNDE_TTS_VOICE:-}"
+      SPRECHSTUNDE_TTS_NAME: "${SPRECHSTUNDE_TTS_NAME:-}"
+    userns_mode: keep-id
+    volumes:
+      - ./var/settings:/app/var/settings:z
+      - ./var/voices:/app/var/voices:ro,z
+      # Read-only: the UI reports the measurements, the agent is the one that writes them.
+      - ./var/metrics:/app/var/metrics:ro,z
     restart: unless-stopped

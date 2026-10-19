@@ -23,7 +23,13 @@
     {
       "path": "var",
       "class": "derived",
-      "recreate": "Test output only: latency metrics (JSONL, numbers only; the agent container bind-mounts `var/metrics`), debug transcripts of one's own test calls in `var/transcripts` (only with SPRECHSTUNDE_TRANSCRIPT_DIR; personal data, delete once read), TTS samples (`npm run tts:try`), voice reference clips (`dev/record-voice.sh` re-records one, `dev/fetch-thorsten-sample.sh` re-downloads the CC0 clip). Losing it loses old measurements and one's own recording, nothing else."
+      "recreate": "Test output only: latency metrics (JSONL, numbers only; the agent container bind-mounts `var/metrics`), debug transcripts of one's own test calls in `var/transcripts` (only with SPRECHSTUNDE_TRANSCRIPT_DIR; personal data, delete once read), TTS samples in `var/samples/` (one folder per test run, e.g. `npm run tts:try` writes `<date>_tts-try`; the folder has a README), voice reference clips (`dev/record-voice.sh` re-records one, `dev/fetch-thorsten-sample.sh` re-downloads the CC0 clip). Losing it loses old measurements and one's own recording, nothing else. The one exception is `var/settings/voice.json`, declared below."
+    },
+    {
+      "path": "var/settings/voice.json",
+      "class": "state",
+      "why": "The voices and models the agent actually runs with: presets plus the active primary/fallback, written by the settings UI (`npm run admin`). Nothing else records which voice a venue was tuned to; losing it drops the line back to the SPRECHSTUNDE_TTS_* values in .env and the comparison work has to be redone by ear.",
+      "recreate": "Only by picking the voices again in the settings UI. Delete it and the agent runs on .env alone, so a missing file is degraded, not broken."
     },
     {
       "path": "deploy/asterisk/sounds/fallback.wav",
