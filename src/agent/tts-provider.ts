@@ -21,6 +21,7 @@ const DEFAULT_MODEL: Record<TtsProvider, string | undefined> = {
   openrouter: undefined,
   // Our own server runs one model; the name only shows up in the metrics.
   pocket: 'pocket-tts',
+  // Not in the SDK's `TTSModels` type, but the API accepted it in a real call on 2026-10-19.
   kugel: 'kugel-3.5',
 };
 
