@@ -16,7 +16,7 @@ POT="po/$DOMAIN.pot"
 
 case "${1:-}" in
 extract)
-    find src web/src -type f \( -name '*.ts' -o -name '*.svelte' \) -not -name '*.test.ts' | sort > po/POTFILES.in
+    find src web/src -type f \( -name '*.ts' -o -name '*.svelte' \) -not -name '*.test.ts' | LC_ALL=C sort > po/POTFILES.in
     # xgettext has no Svelte reader: pull the `_('…')` calls out into a mirror tree and read that.
     mirror="$(mktemp -d)"
     trap 'rm -rf "$mirror"' EXIT

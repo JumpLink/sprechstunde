@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-20 00:59+0200\n"
+"POT-Creation-Date: 2026-10-20 01:02+0200\n"
 "PO-Revision-Date: 2026-10-19 23:10+0200\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -1038,6 +1038,14 @@ msgstr "Schlüssel gesetzt"
 msgid "no key"
 msgstr "kein Schlüssel"
 
+#: web/src/pages/Voices.svelte:23 web/src/pages/voices/Presets.svelte:122
+msgid "Presets"
+msgstr "Voreinstellungen"
+
+#: web/src/pages/Voices.svelte:24
+msgid "Catalog"
+msgstr "Katalog"
+
 #: web/src/pages/voices/Catalog.svelte:47
 msgid "Catalog refreshed"
 msgstr "Katalog aktualisiert"
@@ -1214,10 +1222,6 @@ msgstr "Umgebung: %s"
 msgid "Environment: not configured"
 msgstr "Umgebung: nicht konfiguriert"
 
-#: web/src/pages/voices/Presets.svelte:122 web/src/pages/Voices.svelte:23
-msgid "Presets"
-msgstr "Voreinstellungen"
-
 #: web/src/pages/voices/Presets.svelte:122
 msgid "Saved voice settings you can switch between"
 msgstr "Gespeicherte Stimmeneinstellungen zum Umschalten"
@@ -1288,10 +1292,6 @@ msgstr "Abspielen"
 #, javascript-format
 msgid "First audio after %s ms"
 msgstr "Erstes Audio nach %s ms"
-
-#: web/src/pages/Voices.svelte:24
-msgid "Catalog"
-msgstr "Katalog"
 
 #~ msgid "Add"
 #~ msgstr "Hinzufügen"

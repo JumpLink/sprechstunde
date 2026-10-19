@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-20 01:00+0200\n"
+"POT-Creation-Date: 2026-10-20 01:02+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -998,6 +998,14 @@ msgstr ""
 msgid "no key"
 msgstr ""
 
+#: web/src/pages/Voices.svelte:23 web/src/pages/voices/Presets.svelte:122
+msgid "Presets"
+msgstr ""
+
+#: web/src/pages/Voices.svelte:24
+msgid "Catalog"
+msgstr ""
+
 #: web/src/pages/voices/Catalog.svelte:47
 msgid "Catalog refreshed"
 msgstr ""
@@ -1174,10 +1182,6 @@ msgstr ""
 msgid "Environment: not configured"
 msgstr ""
 
-#: web/src/pages/voices/Presets.svelte:122 web/src/pages/Voices.svelte:23
-msgid "Presets"
-msgstr ""
-
 #: web/src/pages/voices/Presets.svelte:122
 msgid "Saved voice settings you can switch between"
 msgstr ""
@@ -1245,8 +1249,4 @@ msgstr ""
 #: web/src/pages/voices/Preview.svelte:78
 #, javascript-format
 msgid "First audio after %s ms"
-msgstr ""
-
-#: web/src/pages/Voices.svelte:24
-msgid "Catalog"
 msgstr ""

@@ -65,8 +65,8 @@ web/src/pages/Calls.svelte
 web/src/pages/Knowledge.svelte
 web/src/pages/Llm.svelte
 web/src/pages/Overview.svelte
+web/src/pages/Voices.svelte
 web/src/pages/voices/Catalog.svelte
 web/src/pages/voices/PresetForm.svelte
 web/src/pages/voices/Presets.svelte
 web/src/pages/voices/Preview.svelte
-web/src/pages/Voices.svelte
