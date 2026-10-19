@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-19 17:06+0200\n"
+"POT-Creation-Date: 2026-10-19 17:21+0200\n"
 "PO-Revision-Date: 2026-10-16 10:36+0200\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -17,15 +17,15 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: src/agent/assistant.ts:70
+#: src/agent/assistant.ts:72
 msgid "CPU profile written to"
 msgstr "CPU-Profil geschrieben nach"
 
-#: src/agent/assistant.ts:140
+#: src/agent/assistant.ts:143
 msgid "transfer failed"
 msgstr "Weiterleitung fehlgeschlagen"
 
-#: src/agent/assistant.ts:183
+#: src/agent/assistant.ts:187
 msgid "CPU profile failed"
 msgstr "CPU-Profil fehlgeschlagen"
 
@@ -61,10 +61,12 @@ msgstr ""
 
 #: src/agent/watchdog.ts:46
 msgid "worker is unhealthy; exiting so the container restarts"
-msgstr "Worker ist nicht funktionsfähig; beende, damit der Container neu startet"
+msgstr ""
+"Worker ist nicht funktionsfähig; beende, damit der Container neu startet"
 
 #: src/cli/fallback.ts:23 src/cli/provision.ts:10 src/cli/sip-contacts.ts:18
-#: src/cli/stt-try.ts:99 src/cli/tts-try.ts:82 src/cli/voice.ts:12
+#: src/cli/stt-try.ts:100 src/cli/tts-try.ts:83 src/cli/voice.ts:12
+#: src/mistral.ts:21
 #, javascript-format
 msgid "%s must be set"
 msgstr "%s muss gesetzt sein"
@@ -217,47 +219,47 @@ msgstr "Angemeldete Kontakte:"
 msgid "no audio received"
 msgstr "kein Audio empfangen"
 
-#: src/cli/stt-try.ts:59
+#: src/cli/stt-try.ts:60
 msgid "connection closed before the transcript was done"
 msgstr "Verbindung geschlossen, bevor das Transkript fertig war"
 
-#: src/cli/stt-try.ts:97
+#: src/cli/stt-try.ts:98
 msgid "usage: stt-try <audio file> [--delay ms]... [--repeat n]"
 msgstr "Aufruf: stt-try <Audiodatei> [--delay ms]... [--repeat n]"
 
-#: src/cli/stt-try.ts:108
+#: src/cli/stt-try.ts:109
 msgid "target delay"
 msgstr "Zielverzögerung"
 
-#: src/cli/stt-try.ts:108
+#: src/cli/stt-try.ts:109
 msgid "final ms (median)"
 msgstr "final ms (Median)"
 
-#: src/cli/stt-try.ts:108 src/cli/tts-try.ts:104
+#: src/cli/stt-try.ts:109 src/cli/tts-try.ts:105
 msgid "max ms"
 msgstr "max. ms"
 
-#: src/cli/stt-try.ts:108
+#: src/cli/stt-try.ts:109
 msgid "text"
 msgstr "Text"
 
-#: src/cli/stt-try.ts:116 src/cli/tts-try.ts:129
+#: src/cli/stt-try.ts:117 src/cli/tts-try.ts:130
 msgid "failed:"
 msgstr "fehlgeschlagen:"
 
-#: src/cli/tts-try.ts:104
+#: src/cli/tts-try.ts:105
 msgid "voice"
 msgstr "Stimme"
 
-#: src/cli/tts-try.ts:104
+#: src/cli/tts-try.ts:105
 msgid "first audio ms"
 msgstr "erstes Audio ms"
 
-#: src/cli/tts-try.ts:104
+#: src/cli/tts-try.ts:105
 msgid "total ms"
 msgstr "gesamt ms"
 
-#: src/cli/tts-try.ts:104
+#: src/cli/tts-try.ts:105
 msgid "file"
 msgstr "Datei"
 
@@ -286,3 +288,7 @@ msgstr ""
 #, javascript-format
 msgid "deleted voice %s"
 msgstr "Stimme %s gelöscht"
+
+#: src/mistral.ts:17
+msgid "SPRECHSTUNDE_MISTRAL_SERVER must be global, eu, us or a URL"
+msgstr "SPRECHSTUNDE_MISTRAL_SERVER muss global, eu, us oder eine URL sein"

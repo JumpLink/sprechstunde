@@ -1,8 +1,9 @@
 import { execFileSync } from 'node:child_process';
 import { parseArgs } from 'node:util';
-import { Mistral } from '@mistralai/mistralai';
+import type { Mistral } from '@mistralai/mistralai';
 import { type RealtimeConnection, RealtimeTranscription } from '@mistralai/mistralai/extra/realtime';
 import { _ } from '../i18n.js';
+import { mistralClient } from '../mistral.js';
 
 const SAMPLE_RATE = 16000;
 const CHUNK_MS = 20;
@@ -98,7 +99,7 @@ async function main(): Promise<void> {
   const apiKey = process.env.MISTRAL_API_KEY;
   if (!apiKey) throw new Error(_('%s must be set').replace('%s', 'MISTRAL_API_KEY'));
 
-  const client = new Mistral({ apiKey });
+  const client = mistralClient(apiKey);
   const model = values.model ?? DEFAULT_MODEL;
   const pcm = decode(file);
   const repeat = Math.max(1, Number.parseInt(values.repeat ?? '3', 10) || 3);

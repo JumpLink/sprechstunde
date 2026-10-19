@@ -91,6 +91,7 @@ could not reach PipeWire); that is an observation on one machine, not a general 
 | `SPRECHSTUNDE_TTS_REF_AUDIO` | path to an audio file to clone; overrides every other voice setting |
 | `SPRECHSTUNDE_TRUNK_NUMBERS` | comma-separated numbers for the inbound trunk; empty accepts any |
 | `SPRECHSTUNDE_METRICS_DIR` | where latency metrics are written, default `var/metrics` |
+| `SPRECHSTUNDE_MISTRAL_SERVER` | empty: Mistral's global endpoint, which does not say where a request runs. `eu` or `us`: [regional inference](https://docs.mistral.ai/inference/regional-inference), processing stays in that region, billed at 1.1× list price. A URL is used as is |
 | `SPRECHSTUNDE_TRANSCRIPT_DIR` | debug only, off when empty: writes what caller and agent said, plus turn events, to `<dir>/<date>/<job id>.jsonl`. In compose any non-empty value turns it on and writes to `var/transcripts` |
 | `SPRECHSTUNDE_ANSWER_TIMEOUT` | seconds Asterisk lets LiveKit ring before it plays the fallback, default `10` |
 | `SIP_PROVIDER_*`, `TRANSFER_TARGET_NUMBER`, `TRANSFER_SIP_HOST` | Asterisk's provider registration and the one number a call may be transferred to; it replaces the profile's `transfer.target` — see `.env.example` |

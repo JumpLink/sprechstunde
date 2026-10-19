@@ -23,4 +23,5 @@ src/core/prompt.ts
 src/core/stats.ts
 src/core/tools.ts
 src/i18n.ts
+src/mistral.ts
 src/sip/register.ts

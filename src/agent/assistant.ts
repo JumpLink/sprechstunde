@@ -3,12 +3,14 @@ import * as inspector from 'node:inspector';
 import { type JobContext, type JobProcess, llm, stt, tokenize, tts, voice } from '@livekit/agents';
 import * as livekit from '@livekit/agents-plugin-livekit';
 import * as mistral from '@livekit/agents-plugin-mistralai';
+import type { Mistral } from '@mistralai/mistralai';
 import * as silero from '@livekit/agents-plugin-silero';
 import { ParticipantKind } from '@livekit/rtc-node';
 import { buildInstructions } from '../core/prompt.js';
 import type { Profile } from '../core/profile.js';
 import { transferRequest } from '../core/tools.js';
 import { _ } from '../i18n.js';
+import { mistralClient } from '../mistral.js';
 import { recordMetrics } from './metrics.js';
 import { attachTranscript, transcriptDir } from './transcript.js';
 import { transferSipParticipant } from './transfer.js';
@@ -79,15 +81,15 @@ export async function prewarm(proc: JobProcess): Promise<void> {
  * Realtime STT first; Mistral's realtime queue overflows now and then (`TooManyRequestsError`,
  * `QueueOverflowError`), so fall back to the batch model, segmented by the VAD.
  */
-function buildStt(vad: silero.VAD, language: string): stt.STT {
+function buildStt(client: Mistral, vad: silero.VAD, language: string): stt.STT {
   // Two instances of the same batch model, not one shared: the guard's rescue and the fallback
   // slot have separate lifecycles (the adapter closes its own instances) and separate metrics.
-  const batch = () => new ContiguousSTT(new mistral.STT({ model: FALLBACK_STT_MODEL, language }));
+  const batch = () => new ContiguousSTT(new mistral.STT({ client, model: FALLBACK_STT_MODEL, language }));
   return new stt.FallbackAdapter({
     sttInstances: [
       new StallGuardSTT(
         // Without `vad` the plugin loads its own Silero per call, which blocks the event loop.
-        new mistral.STT({ model: process.env.SPRECHSTUNDE_STT_MODEL || DEFAULT_STT_MODEL, language, vad }),
+        new mistral.STT({ client, model: process.env.SPRECHSTUNDE_STT_MODEL || DEFAULT_STT_MODEL, language, vad }),
         STT_STALL_MS,
         batch(),
       ),
@@ -98,8 +100,9 @@ function buildStt(vad: silero.VAD, language: string): stt.STT {
   });
 }
 
-function buildTts(profile: Profile): tts.TTS {
+function buildTts(client: Mistral, profile: Profile): tts.TTS {
   const base = new mistral.TTS({
+    client,
     model: process.env.SPRECHSTUNDE_TTS_MODEL || DEFAULT_TTS_MODEL,
     ...resolveTtsVoice(profile),
   });
@@ -146,11 +149,12 @@ export async function runAssistant(ctx: JobContext, profile: Profile): Promise<v
   };
 
   const vad = ctx.proc.userData.vad as silero.VAD;
+  const client = mistralClient();
   const session = new voice.AgentSession({
     vad,
-    stt: buildStt(vad, profile.locale.split('-')[0]!),
-    llm: new mistral.LLM({ model: process.env.SPRECHSTUNDE_LLM_MODEL || DEFAULT_LLM_MODEL }),
-    tts: buildTts(profile),
+    stt: buildStt(client, vad, profile.locale.split('-')[0]!),
+    llm: new mistral.LLM({ client, model: process.env.SPRECHSTUNDE_LLM_MODEL || DEFAULT_LLM_MODEL }),
+    tts: buildTts(client, profile),
     turnHandling: {
       turnDetection: new livekit.turnDetector.MultilingualModel(),
       // The LLM already starts on the interim transcript; also start the voice, which saves the
