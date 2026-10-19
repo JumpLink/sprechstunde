@@ -177,6 +177,7 @@ export function createAdminServer(options: AdminOptions): Server {
         mistral: Boolean(env.MISTRAL_API_KEY),
         cartesia: Boolean(env.CARTESIA_API_KEY),
         openrouter: Boolean(env.OPENROUTER_API_KEY),
+        kugel: Boolean(env.KUGELAUDIO_API_KEY),
       },
       strings: uiStrings(),
     };
