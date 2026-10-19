@@ -133,7 +133,7 @@ export function ttsFallbackChoice(env: NodeJS.ProcessEnv = process.env): TtsChoi
 }
 
 export function pocketUrl(env: NodeJS.ProcessEnv = process.env): string {
-  return (env.POCKET_TTS_URL || DEFAULT_POCKET_URL).replace(/\/+$/, '');
+  return (env.POCKET_TTS_URL || DEFAULT_POCKET_URL).replace(new RegExp('/+$'), '');
 }
 
 /** KugelAudio names its voices by number; a name or another vendor's id is not one. */

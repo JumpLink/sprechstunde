@@ -5,7 +5,8 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { loadProfile, parseProfile, withAssistantName } from './profile.js';
 import { buildInstructions } from './prompt.js';
-import { transferRequest } from './tools.js';
+import { describeKnowledge } from './knowledge.js';
+import { maskTransferTarget, TRANSFER_TOOL, toolDescriptors, transferOverride, transferRequest } from './tools.js';
 
 const example = loadProfile('profiles/example/profile.de.json');
 
@@ -127,4 +128,50 @@ test('withAssistantName renames whole-word mentions only', () => {
   assert.equal(renamed.assistantName, 'Jürgen');
   assert.equal(renamed.greeting, 'Sie sprechen mit Jürgen. Miami? Jürgen!');
   assert.equal(withAssistantName(profile, undefined), profile);
+});
+
+test('the tool descriptors are what the prompt and the agent refer to', () => {
+  const tools = toolDescriptors();
+  assert.deepEqual(
+    tools.map((tool) => tool.name),
+    [TRANSFER_TOOL.name],
+  );
+  for (const tool of tools) {
+    assert.ok(tool.description.length > 0);
+    assert.equal(tool.parameters.type, 'object');
+    assert.ok(tool.availableWhen.length > 0);
+  }
+  assert.ok(buildInstructions(example, new Date()).includes(TRANSFER_TOOL.name));
+});
+
+test('transferOverride reads the deployment, with a default SIP host', () => {
+  assert.deepEqual(transferOverride({}), { number: undefined, sipHost: '127.0.0.1:5070' });
+  assert.deepEqual(transferOverride({ TRANSFER_TARGET_NUMBER: '+491', TRANSFER_SIP_HOST: 'pbx:5060' }), {
+    number: '+491',
+    sipHost: 'pbx:5060',
+  });
+});
+
+test('maskTransferTarget keeps the scheme and the last two digits only', () => {
+  assert.equal(maskTransferTarget('tel:+4930123456'), 'tel:+••••••••56');
+  assert.equal(maskTransferTarget('sip:+4930123456@10.0.0.1:5070'), 'sip:+••••••••56');
+  assert.equal(maskTransferTarget('tel:7'), 'tel:7');
+  assert.equal(maskTransferTarget('garbage'), '•••');
+});
+
+test('describeKnowledge masks the transfer target and uses the real prompt', () => {
+  const now = new Date('2026-10-20T10:00:00Z');
+  const knowledge = describeKnowledge(example, now);
+  assert.equal(knowledge.systemPrompt, buildInstructions(example, now));
+  assert.equal(knowledge.facts.length, example.facts.length);
+  assert.equal(knowledge.transfer?.announce, example.transfer?.announce);
+  assert.doesNotMatch(JSON.stringify(knowledge), /\+4900000000/);
+  assert.match(knowledge.transfer?.targetMasked ?? '', /^tel:\+•+00$/);
+
+  const override = describeKnowledge(example, now, { number: '+4915112345678', sipHost: 'pbx:5060' });
+  assert.equal(override.transfer?.targetMasked, 'sip:+•••••••••••78');
+  assert.doesNotMatch(JSON.stringify(override), /12345678|pbx/);
+
+  const { transfer: _transfer, ...withoutTransfer } = example;
+  assert.equal(describeKnowledge(withoutTransfer, now).transfer, null);
 });

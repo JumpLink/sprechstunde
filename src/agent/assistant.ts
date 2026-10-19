@@ -9,7 +9,7 @@ import { ParticipantKind } from '@livekit/rtc-node';
 import { buildInstructions } from '../core/prompt.js';
 import { type Profile, withAssistantName } from '../core/profile.js';
 import type { Settings } from '../core/settings.js';
-import { transferRequest } from '../core/tools.js';
+import { TRANSFER_TOOL, transferOverride, transferRequest } from '../core/tools.js';
 import { _ } from '../i18n.js';
 import { mistralClient } from '../mistral.js';
 import { buildLlm, llmFallbackModel, llmModel } from './llm.js';
@@ -171,13 +171,10 @@ export async function runAssistant(ctx: JobContext, startProfile: Profile): Prom
   // No fact lookup tool: the facts are in the instructions, and a tool call costs a second LLM
   // round (0.4–0.9 s measured 2026-10-16).
   const tools = {
-    transfer_to_human: llm.tool({
-      description: 'Transfer the call to a person. Only call this after the caller agreed.',
+    [TRANSFER_TOOL.name]: llm.tool({
+      description: TRANSFER_TOOL.description,
       execute: async (_args, opts) => {
-        const request = transferRequest(profile, {
-          number: process.env.TRANSFER_TARGET_NUMBER || undefined,
-          sipHost: process.env.TRANSFER_SIP_HOST || '127.0.0.1:5070',
-        });
+        const request = transferRequest(profile, transferOverride());
         if (!request) return 'Transfer is not available.';
         if (participant?.kind !== ParticipantKind.SIP) {
           return 'Transfer is only available for phone calls. Say that you cannot connect the caller now and offer nothing else instead.';

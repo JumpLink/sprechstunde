@@ -160,7 +160,8 @@ services:
     volumes:
       - ./var/settings:/app/var/settings:z
       - ./var/voices:/app/var/voices:ro,z
-      - ./var/profiles:/app/var/profiles:ro,z
+      # Writable: the settings UI edits profiles and keeps their history in .history/. The agent mount stays read-only.
+      - ./var/profiles:/app/var/profiles:z
       # Read-only: the UI reports the measurements, the agent is the one that writes them.
       - ./var/metrics:/app/var/metrics:ro,z
     restart: unless-stopped

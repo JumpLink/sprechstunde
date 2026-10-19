@@ -58,7 +58,7 @@ export function buildRegister(request: RegisterRequest): string {
 
 export function parseResponse(raw: string): SipResponse {
   const [statusLine = '', ...rest] = raw.split('\r\n');
-  const match = /^SIP\/2\.0 (\d{3}) ?(.*)$/.exec(statusLine);
+  const match = new RegExp('^SIP/2\\.0 (\\d{3}) ?(.*)$').exec(statusLine);
   if (!match) throw new Error(`not a SIP response: ${statusLine.slice(0, 40)}`);
   const headers: Array<[string, string]> = [];
   for (const line of rest) {

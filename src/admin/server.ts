@@ -8,6 +8,8 @@
  * state-changing request from another origin means a page the operator did not open.
  */
 
+import { readFileSync } from 'node:fs';
+import { basename, dirname, resolve } from 'node:path';
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
 import {
   type ActiveSlot,
@@ -21,12 +23,25 @@ import {
   profileFilePath,
   profilesDir,
 } from '../core/settings.js';
-import { listProfiles, loadProfile } from '../core/profile.js';
-import { choiceFromPreset, type TtsChoice, ttsChoice, ttsFallbackChoice } from '../agent/tts-provider.js';
+import { describeKnowledge } from '../core/knowledge.js';
+import {
+  DEFAULT_PROFILE_PATH,
+  listProfiles,
+  loadProfile,
+  type Profile,
+  tryParseJson,
+  withAssistantName,
+} from '../core/profile.js';
+import { buildInstructions } from '../core/prompt.js';
+import { transferOverride } from '../core/tools.js';
+import { profileForCall } from '../agent/settings.js';
+import { choiceFromPreset, type TtsChoice, ttsChoice, ttsChoices, ttsFallbackChoice } from '../agent/tts-provider.js';
 import { _ } from '../i18n.js';
 import { CATALOG_TARGETS, type CatalogService, type CatalogTarget, createCatalog } from './catalog.js';
 import { byPreset, callsFrom, METRIC_NAMES, readMetrics, summarizeCall } from './latency.js';
-import { appJs, pageHtml, uiStrings } from './page.js';
+import { HttpError } from './http-error.js';
+import { applyDraft, createProfileStore, draftView, parseDraft } from './profile-store.js';
+import { findWebDir, serveStatic } from './static.js';
 import { previewWav, type Synthesizer } from './preview.js';
 
 export const DEFAULT_PORT = 8091;
@@ -37,6 +52,15 @@ const MAX_BODY_BYTES = 256 * 1024;
 /** Calls shown in the latency table. More would be a log, not an overview. */
 const RECENT_CALLS = 25;
 const CATALOG_PREFIX = '/api/catalog/';
+const PRESET_PREFIX = '/api/presets/';
+const PROFILE_PREFIX = '/api/profiles/';
+
+/** A preview is a sentence or two; more is credit spent on a vendor for nothing. */
+const MAX_PREVIEW_CHARS = 1000;
+const MAX_VOICE_FIELD_CHARS = 100;
+/** A vendor sample is a few seconds of audio; anything bigger is not one. */
+const MAX_SAMPLE_BYTES = 5 * 1024 * 1024;
+const SAMPLE_TIMEOUT_MS = 10_000;
 
 export interface AdminOptions {
   settingsPath: string;
@@ -46,18 +70,17 @@ export interface AdminOptions {
   sampleText: string;
   /** The profile the worker starts with: what a call uses while no other one is picked. */
   startProfile?: { id: string; name?: string; locale?: string };
+  /** Loads the start profile in full, for the knowledge view; the default profile when absent. */
+  loadStartProfile?: () => Profile;
+  /** The start profile's file, which "duplicate" copies; `SPRECHSTUNDE_PROFILE` or the example when absent. */
+  startProfileFile?: string;
   /** Vendor models and voices; the real vendors unless a test hands in a fake. */
   catalog?: CatalogService;
   env?: NodeJS.ProcessEnv;
-}
-
-class HttpError extends Error {
-  constructor(
-    readonly status: number,
-    message: string,
-  ) {
-    super(message);
-  }
+  /** Fetches vendor samples; the global `fetch` unless a test hands in a fake. */
+  fetch?: typeof fetch;
+  /** The built settings app; found next to this build when absent, `null` for none (tests). */
+  webDir?: string | null;
 }
 
 function loopbackHost(header: string | undefined): boolean {
@@ -102,19 +125,41 @@ function body(raw: unknown): Record<string, unknown> {
   return raw;
 }
 
-function send(response: ServerResponse, status: number, type: string, payload: string | Uint8Array): void {
+function send(
+  response: ServerResponse,
+  status: number,
+  type: string,
+  payload: string | Uint8Array,
+  headers: Record<string, string> = {},
+): void {
   response.writeHead(status, {
     'content-type': type,
     'content-length': typeof payload === 'string' ? Buffer.byteLength(payload) : payload.byteLength,
     // Nothing here is for another page to read, and the answers change with every call.
     'cache-control': 'no-store',
     'x-content-type-options': 'nosniff',
+    ...headers,
   });
   response.end(payload);
 }
 
 function json(response: ServerResponse, status: number, payload: unknown): void {
   send(response, status, 'application/json; charset=utf-8', JSON.stringify(payload));
+}
+
+/** A short plain string: no control characters, so nothing in it can break a header, a log or a URL. */
+function plainField(value: unknown, name: string): string | undefined {
+  if (value === undefined || value === null || value === '') return undefined;
+  if (typeof value !== 'string' || value.length > MAX_VOICE_FIELD_CHARS) {
+    throw new HttpError(400, _('"%s" must be a short plain string').replace('%s', name));
+  }
+  for (const char of value) {
+    const code = char.charCodeAt(0);
+    if (code < 32 || code === 127) {
+      throw new HttpError(400, _('"%s" must be a short plain string').replace('%s', name));
+    }
+  }
+  return value;
 }
 
 function slot(value: unknown): string | undefined {
@@ -127,10 +172,75 @@ function maybeNumber(value: unknown): number | undefined {
   return typeof value === 'number' ? value : Number(value);
 }
 
+/** The sample as bytes with the vendor's audio type; refuses anything else or anything too big. */
+async function fetchSample(fetcher: typeof fetch, address: string): Promise<{ type: string; body: Uint8Array }> {
+  const bad = () => new HttpError(502, _('the vendor sample could not be fetched'));
+  if (!address.startsWith('https://')) throw bad();
+  let upstream: Response;
+  try {
+    upstream = await fetcher(address, { signal: AbortSignal.timeout(SAMPLE_TIMEOUT_MS), redirect: 'manual' });
+  } catch {
+    throw bad();
+  }
+  const type = upstream.headers.get('content-type')?.split(';')[0]?.trim().toLowerCase() ?? '';
+  // A redirect could lead anywhere, loopback included; a catalog sample address does not redirect.
+  if (upstream.status >= 300 || !upstream.ok || !type.startsWith('audio/') || !upstream.body) throw bad();
+  const declared = Number(upstream.headers.get('content-length'));
+  if (declared > MAX_SAMPLE_BYTES) throw bad();
+  const chunks: Uint8Array[] = [];
+  let size = 0;
+  try {
+    for await (const chunk of upstream.body) {
+      size += chunk.byteLength;
+      if (size > MAX_SAMPLE_BYTES) throw bad();
+      chunks.push(chunk);
+    }
+  } catch {
+    throw bad();
+  }
+  return { type, body: Buffer.concat(chunks) };
+}
+
 export function createAdminServer(options: AdminOptions): Server {
   const env = options.env ?? process.env;
 
   const catalog = options.catalog ?? createCatalog({ env });
+
+  const store = createProfileStore(env);
+
+  /** The page's view of a profile file it may edit: the raw values (no voice renaming) and the revision. */
+  const editing = (file: string | null | undefined) => {
+    if (!file) return { editable: false as const };
+    const path = profileFilePath(file, env);
+    if (!path) return { editable: false as const };
+    try {
+      const { revision } = store.readRaw(file);
+      return { editable: true as const, revision, draft: draftView(loadProfile(path)) };
+    } catch {
+      return { editable: false as const };
+    }
+  };
+
+  /** A call greets by the name of its voice, and the prompt follows (see `runAssistant`). */
+  const voiceName = (settings: Settings): string | undefined => {
+    try {
+      return ttsChoices(settings, env).primary.name;
+    } catch {
+      return undefined; // no voice configured: the profile's own name stands
+    }
+  };
+
+  const startRaw = (): { raw: Record<string, unknown>; dir: string } => {
+    const path = resolve(options.startProfileFile ?? (env.SPRECHSTUNDE_PROFILE || DEFAULT_PROFILE_PATH));
+    try {
+      const raw = tryParseJson(readFileSync(path, 'utf8'));
+      if (raw === undefined) throw new Error(_('%s is not valid JSON').replace('%s', basename(path)));
+      if (!isRecord(raw)) throw new Error(_('top level must be an object'));
+      return { raw, dir: dirname(path) };
+    } catch (error) {
+      throw new HttpError(400, (error as Error).message);
+    }
+  };
 
   const read = (): Settings => readSettings(options.settingsPath) ?? emptySettings();
 
@@ -190,8 +300,27 @@ export function createAdminServer(options: AdminOptions): Server {
         openrouter: Boolean(env.OPENROUTER_API_KEY),
         kugel: Boolean(env.KUGELAUDIO_API_KEY),
       },
-      strings: uiStrings(),
     };
+  };
+
+  /** A voice that is not saved as a preset (a catalog entry being tried): same validation as a preset. */
+  const choiceFromInline = (inline: Record<string, unknown>): TtsChoice => {
+    if (!(TTS_PROVIDERS as readonly unknown[]).includes(inline.provider)) {
+      throw new HttpError(400, _('"provider" must be one of: %s').replace('%s', TTS_PROVIDERS.join(', ')));
+    }
+    const model = plainField(inline.model, 'model');
+    const voice = plainField(inline.voice, 'voice');
+    try {
+      const { presets } = parseSettings(
+        {
+          presets: [{ id: 'preview', label: 'preview', provider: inline.provider, model, voice }],
+        },
+        options.settingsPath,
+      );
+      return choiceFromPreset(presets[0]!);
+    } catch (error) {
+      throw new HttpError(400, (error as Error).message);
+    }
   };
 
   const choiceFor = (settings: Settings, preset: string | undefined): TtsChoice => {
@@ -217,7 +346,10 @@ export function createAdminServer(options: AdminOptions): Server {
     }
     const url = new URL(request.url ?? '/', `http://${request.headers.host}`);
     const path = url.pathname;
-    const rawPresetId = /^\/api\/presets\/(.+)$/.exec(path)?.[1];
+    const rawPresetId =
+      path.startsWith(PRESET_PREFIX) && path.length > PRESET_PREFIX.length
+        ? path.slice(PRESET_PREFIX.length)
+        : undefined;
     let presetId: string | undefined;
     if (rawPresetId !== undefined) {
       try {
@@ -228,10 +360,6 @@ export function createAdminServer(options: AdminOptions): Server {
       if (presetId === undefined || !PRESET_ID.test(presetId)) throw new HttpError(400, _('invalid preset id'));
     }
 
-    if (method === 'GET' && path === '/') return send(response, 200, 'text/html; charset=utf-8', pageHtml());
-    if (method === 'GET' && path === '/app.js') {
-      return send(response, 200, 'text/javascript; charset=utf-8', appJs());
-    }
     if (method === 'GET' && path === '/api/state') return json(response, 200, state());
 
     if (method === 'GET' && path === '/api/latency') {
@@ -274,6 +402,20 @@ export function createAdminServer(options: AdminOptions): Server {
       );
     }
 
+    if (method === 'GET' && path === '/api/sample') {
+      const provider = url.searchParams.get('provider') ?? '';
+      if (!(TTS_PROVIDERS as readonly string[]).includes(provider)) throw new HttpError(400, _('unknown provider'));
+      const id = url.searchParams.get('voice') ?? '';
+      const model = url.searchParams.get('model') || undefined;
+      // The address comes from the catalog the vendor answered with, never from the request.
+      const voice = (await catalog.get(provider as CatalogTarget)).voices.find(
+        (entry) => entry.id === id && (!model || entry.model === model),
+      );
+      if (!voice?.sampleUrl) throw new HttpError(404, _('no sample for this voice'));
+      const sample = await fetchSample(options.fetch ?? fetch, voice.sampleUrl);
+      return send(response, 200, sample.type, sample.body);
+    }
+
     if (method === 'GET' && path === '/api/profiles') {
       let profiles: ReturnType<typeof listProfiles> = [];
       let error: string | undefined;
@@ -294,6 +436,77 @@ export function createAdminServer(options: AdminOptions): Server {
         default: options.startProfile ?? null,
         ...(error && { error }),
       });
+    }
+
+    if (method === 'GET' && path === '/api/knowledge') {
+      const settings = current();
+      const file = url.searchParams.get('file') || undefined;
+      const start = options.loadStartProfile ?? (() => loadProfile());
+      let profile: Profile;
+      let source: 'selected' | 'active' | 'start';
+      try {
+        if (file) {
+          const target = profileFilePath(file, env);
+          if (!target) throw new Error(_('"file" must be the name of a .json file in the profiles directory'));
+          profile = loadProfile(target);
+          source = 'selected';
+        } else {
+          // The profile the next call gets, falling back exactly as the agent does.
+          profile = profileForCall(start(), settings, env);
+          source = settings.profile ? 'active' : 'start';
+        }
+      } catch (error) {
+        throw new HttpError(400, (error as Error).message);
+      }
+      const shown = file ?? (source === 'active' ? settings.profile : null) ?? null;
+      return json(response, 200, {
+        ...describeKnowledge(withAssistantName(profile, voiceName(settings)), new Date(), transferOverride(env)),
+        file: shown,
+        source,
+        ...editing(shown),
+      });
+    }
+
+    if (method === 'POST' && path === '/api/knowledge/preview') {
+      const wanted = body(await readBody(request));
+      if (typeof wanted.file !== 'string') throw new HttpError(400, _('"file" must be a file name'));
+      const { raw } = store.readRaw(wanted.file);
+      const { profile } = applyDraft(raw, parseDraft(wanted.draft), wanted.file);
+      return json(response, 200, {
+        systemPrompt: buildInstructions(withAssistantName(profile, voiceName(current())), new Date()),
+      });
+    }
+
+    if (method === 'POST' && path === '/api/profiles') {
+      const wanted = body(await readBody(request));
+      if (typeof wanted.file !== 'string') throw new HttpError(400, _('"file" must be a file name'));
+      if (wanted.from !== null && typeof wanted.from !== 'string') {
+        throw new HttpError(400, _('"from" must be a file name or null'));
+      }
+      const source = wanted.from === null ? startRaw() : { raw: store.readRaw(wanted.from).raw, dir: profilesDir(env) };
+      store.create(wanted.file, source.raw, source.dir);
+      return json(response, 201, { file: wanted.file });
+    }
+
+    if (path.startsWith(PROFILE_PREFIX) && path.length > PROFILE_PREFIX.length) {
+      let parts: string[];
+      try {
+        parts = path.slice(PROFILE_PREFIX.length).split('/').map(decodeURIComponent);
+      } catch {
+        throw new HttpError(400, _('"file" must be the name of a .json file in the profiles directory'));
+      }
+      const [file = '', action, ...extra] = parts;
+      if (extra.length === 0 && action === undefined && method === 'PUT') {
+        const wanted = body(await readBody(request));
+        return json(response, 200, store.save(file, wanted.revision, wanted.draft));
+      }
+      if (extra.length === 0 && action === 'history' && method === 'GET') {
+        return json(response, 200, { versions: store.history(file) });
+      }
+      if (extra.length === 0 && action === 'restore' && method === 'POST') {
+        const wanted = body(await readBody(request));
+        return json(response, 200, store.restore(file, wanted.version, wanted.revision));
+      }
     }
 
     if (method === 'PUT' && path === '/api/profile') {
@@ -410,7 +623,12 @@ export function createAdminServer(options: AdminOptions): Server {
     if (method === 'POST' && path === '/api/preview') {
       const wanted = body(await readBody(request));
       const text = slot(wanted.text) ?? options.sampleText;
-      const choice = choiceFor(current(), slot(wanted.preset));
+      if (text.length > MAX_PREVIEW_CHARS) {
+        throw new HttpError(400, _('the text may have at most %s characters').replace('%s', String(MAX_PREVIEW_CHARS)));
+      }
+      const choice = isRecord(wanted.voice)
+        ? choiceFromInline(wanted.voice)
+        : choiceFor(current(), slot(wanted.preset));
       const audio = await options.synthesize(choice, text);
       const { wav, sampleRate } = previewWav(audio, Boolean(wanted.phone));
       response.writeHead(200, {
@@ -423,6 +641,22 @@ export function createAdminServer(options: AdminOptions): Server {
       });
       response.end(wav);
       return;
+    }
+
+    // Anything else that is not the API is the settings app: its files, or index.html for a page path.
+    if ((method === 'GET' || method === 'HEAD') && !path.startsWith('/api/')) {
+      const served = serveStatic(options.webDir === undefined ? findWebDir() : (options.webDir ?? undefined), path);
+      if (served === 'not-built') {
+        return send(
+          response,
+          503,
+          'text/plain; charset=utf-8',
+          _('the settings app is not built: run `npm run web:build`'),
+        );
+      }
+      if (served !== 'not-found') {
+        return send(response, served.status, served.type, served.body, served.headers);
+      }
     }
 
     throw new HttpError(404, _('unknown route'));

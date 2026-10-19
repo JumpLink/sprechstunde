@@ -91,10 +91,7 @@ function germanOrdinal(n: number, ending: 'te' | 'ten'): string {
 
 /** Digit by digit, with a short pause between the groups the text already has. */
 function spellDigits(raw: string): string {
-  const groups = raw
-    .trim()
-    .split(/[\s/-]+/)
-    .filter(Boolean);
+  const groups = raw.trim().split(new RegExp('[\\s/-]+')).filter(Boolean);
   return groups
     .map((group) =>
       group
@@ -120,7 +117,7 @@ export function spellOutNumbersDe(text: string): string {
   let out = text;
 
   // Phone numbers first, before the parts of them look like anything else: 6+ digits in groups.
-  out = out.replace(/(?<![\d,.:])\+?\d[\d /-]{4,}\d(?![\d,.:])/g, (match) => {
+  out = out.replace(new RegExp('(?<![\\d,.:])\\+?\\d[\\d /-]{4,}\\d(?![\\d,.:])', 'g'), (match) => {
     const digits = match.replace(/\D/g, '');
     if (digits.length < 6) return match;
     // A plain number written with spaces as thousands separators ("12 500") is not a phone number.

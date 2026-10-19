@@ -2,6 +2,18 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { PROFILE_FILE } from './settings.js';
 
+/**
+ * JSON.parse, but `undefined` instead of V8's SyntaxError: its message quotes a snippet of the
+ * input, and a profile holds a phone number that must not travel into an error text.
+ */
+export function tryParseJson(text: string): unknown {
+  try {
+    return JSON.parse(text);
+  } catch {
+    return undefined;
+  }
+}
+
 export interface Fact {
   topic: string;
   answer: string;
@@ -123,12 +135,8 @@ export function loadProfile(path?: string): Profile {
   } catch (error) {
     throw new Error(`Cannot read profile ${file}: ${(error as Error).message}`);
   }
-  let json: unknown;
-  try {
-    json = JSON.parse(text);
-  } catch (error) {
-    throw new Error(`Profile ${file} is not valid JSON: ${(error as Error).message}`);
-  }
+  const json = tryParseJson(text);
+  if (json === undefined) throw new Error(`Profile ${file} is not valid JSON`);
   const profile = parseProfile(json, file);
   if (profile.voice?.refAudio) profile.voice.refAudio = resolve(dirname(file), profile.voice.refAudio);
   return profile;

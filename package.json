@@ -9,8 +9,12 @@
     "node": ">=22"
   },
   "scripts": {
-    "build": "tsc",
-    "typecheck": "tsc --noEmit",
+    "build": "tsc && npm run web:build",
+    "web:install": "npm ci --prefix web",
+    "web:build": "npm --prefix web run build && bash dev/i18n.sh web-locale",
+    "web:dev": "npm --prefix web run dev",
+    "web:check": "npm --prefix web run check",
+    "typecheck": "tsc --noEmit && npm run web:check",
     "lint": "oxlint",
     "format": "oxfmt",
     "format:check": "oxfmt --check",

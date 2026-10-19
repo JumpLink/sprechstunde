@@ -18,6 +18,7 @@
     ]
   },
   "ignorePatterns": [
+    "web/**/*.svelte",
     "**/node_modules",
     "**/dist",
     "**/coverage"
