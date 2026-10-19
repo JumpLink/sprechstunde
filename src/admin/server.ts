@@ -8,6 +8,8 @@
  * state-changing request from another origin means a page the operator did not open.
  */
 
+import { readFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
 import {
   type ActiveSlot,
@@ -22,13 +24,16 @@ import {
   profilesDir,
 } from '../core/settings.js';
 import { describeKnowledge } from '../core/knowledge.js';
-import { listProfiles, loadProfile, type Profile, withAssistantName } from '../core/profile.js';
+import { DEFAULT_PROFILE_PATH, listProfiles, loadProfile, type Profile, withAssistantName } from '../core/profile.js';
+import { buildInstructions } from '../core/prompt.js';
 import { transferOverride } from '../core/tools.js';
 import { profileForCall } from '../agent/settings.js';
 import { choiceFromPreset, type TtsChoice, ttsChoice, ttsChoices, ttsFallbackChoice } from '../agent/tts-provider.js';
 import { _ } from '../i18n.js';
 import { CATALOG_TARGETS, type CatalogService, type CatalogTarget, createCatalog } from './catalog.js';
 import { byPreset, callsFrom, METRIC_NAMES, readMetrics, summarizeCall } from './latency.js';
+import { HttpError } from './http-error.js';
+import { applyDraft, createProfileStore, draftView, parseDraft } from './profile-store.js';
 import { findWebDir, serveStatic } from './static.js';
 import { previewWav, type Synthesizer } from './preview.js';
 
@@ -41,6 +46,7 @@ const MAX_BODY_BYTES = 256 * 1024;
 const RECENT_CALLS = 25;
 const CATALOG_PREFIX = '/api/catalog/';
 const PRESET_PREFIX = '/api/presets/';
+const PROFILE_PREFIX = '/api/profiles/';
 
 /** A preview is a sentence or two; more is credit spent on a vendor for nothing. */
 const MAX_PREVIEW_CHARS = 1000;
@@ -59,6 +65,8 @@ export interface AdminOptions {
   startProfile?: { id: string; name?: string; locale?: string };
   /** Loads the start profile in full, for the knowledge view; the default profile when absent. */
   loadStartProfile?: () => Profile;
+  /** The start profile's file, which "duplicate" copies; `SPRECHSTUNDE_PROFILE` or the example when absent. */
+  startProfileFile?: string;
   /** Vendor models and voices; the real vendors unless a test hands in a fake. */
   catalog?: CatalogService;
   env?: NodeJS.ProcessEnv;
@@ -66,15 +74,6 @@ export interface AdminOptions {
   fetch?: typeof fetch;
   /** The built settings app; found next to this build when absent, `null` for none (tests). */
   webDir?: string | null;
-}
-
-class HttpError extends Error {
-  constructor(
-    readonly status: number,
-    message: string,
-  ) {
-    super(message);
-  }
 }
 
 function loopbackHost(header: string | undefined): boolean {
@@ -198,6 +197,41 @@ export function createAdminServer(options: AdminOptions): Server {
   const env = options.env ?? process.env;
 
   const catalog = options.catalog ?? createCatalog({ env });
+
+  const store = createProfileStore(env);
+
+  /** The page's view of a profile file it may edit: the raw values (no voice renaming) and the revision. */
+  const editing = (file: string | null | undefined) => {
+    if (!file) return { editable: false as const };
+    const path = profileFilePath(file, env);
+    if (!path) return { editable: false as const };
+    try {
+      const { revision } = store.readRaw(file);
+      return { editable: true as const, revision, draft: draftView(loadProfile(path)) };
+    } catch {
+      return { editable: false as const };
+    }
+  };
+
+  /** A call greets by the name of its voice, and the prompt follows (see `runAssistant`). */
+  const voiceName = (settings: Settings): string | undefined => {
+    try {
+      return ttsChoices(settings, env).primary.name;
+    } catch {
+      return undefined; // no voice configured: the profile's own name stands
+    }
+  };
+
+  const startRaw = (): { raw: Record<string, unknown>; dir: string } => {
+    const path = resolve(options.startProfileFile ?? (env.SPRECHSTUNDE_PROFILE || DEFAULT_PROFILE_PATH));
+    try {
+      const raw: unknown = JSON.parse(readFileSync(path, 'utf8'));
+      if (!isRecord(raw)) throw new Error(_('top level must be an object'));
+      return { raw, dir: dirname(path) };
+    } catch (error) {
+      throw new HttpError(400, (error as Error).message);
+    }
+  };
 
   const read = (): Settings => readSettings(options.settingsPath) ?? emptySettings();
 
@@ -415,18 +449,55 @@ export function createAdminServer(options: AdminOptions): Server {
       } catch (error) {
         throw new HttpError(400, (error as Error).message);
       }
-      // A call greets by the name of its voice, and the prompt follows (see `runAssistant`).
-      let voiceName: string | undefined;
-      try {
-        voiceName = ttsChoices(settings, env).primary.name;
-      } catch {
-        // no voice configured: the profile's own name stands
-      }
+      const shown = file ?? (source === 'active' ? settings.profile : null) ?? null;
       return json(response, 200, {
-        ...describeKnowledge(withAssistantName(profile, voiceName), new Date(), transferOverride(env)),
-        file: file ?? (source === 'active' ? settings.profile : null) ?? null,
+        ...describeKnowledge(withAssistantName(profile, voiceName(settings)), new Date(), transferOverride(env)),
+        file: shown,
         source,
+        ...editing(shown),
       });
+    }
+
+    if (method === 'POST' && path === '/api/knowledge/preview') {
+      const wanted = body(await readBody(request));
+      if (typeof wanted.file !== 'string') throw new HttpError(400, _('"file" must be a file name'));
+      const { raw } = store.readRaw(wanted.file);
+      const { profile } = applyDraft(raw, parseDraft(wanted.draft), wanted.file);
+      return json(response, 200, {
+        systemPrompt: buildInstructions(withAssistantName(profile, voiceName(current())), new Date()),
+      });
+    }
+
+    if (method === 'POST' && path === '/api/profiles') {
+      const wanted = body(await readBody(request));
+      if (typeof wanted.file !== 'string') throw new HttpError(400, _('"file" must be a file name'));
+      if (wanted.from !== null && typeof wanted.from !== 'string') {
+        throw new HttpError(400, _('"from" must be a file name or null'));
+      }
+      const source = wanted.from === null ? startRaw() : { raw: store.readRaw(wanted.from).raw, dir: profilesDir(env) };
+      store.create(wanted.file, source.raw, source.dir);
+      return json(response, 201, { file: wanted.file });
+    }
+
+    if (path.startsWith(PROFILE_PREFIX) && path.length > PROFILE_PREFIX.length) {
+      let parts: string[];
+      try {
+        parts = path.slice(PROFILE_PREFIX.length).split('/').map(decodeURIComponent);
+      } catch {
+        throw new HttpError(400, _('"file" must be the name of a .json file in the profiles directory'));
+      }
+      const [file = '', action, ...extra] = parts;
+      if (extra.length === 0 && action === undefined && method === 'PUT') {
+        const wanted = body(await readBody(request));
+        return json(response, 200, store.save(file, wanted.revision, wanted.draft));
+      }
+      if (extra.length === 0 && action === 'history' && method === 'GET') {
+        return json(response, 200, { versions: store.history(file) });
+      }
+      if (extra.length === 0 && action === 'restore' && method === 'POST') {
+        const wanted = body(await readBody(request));
+        return json(response, 200, store.restore(file, wanted.version));
+      }
     }
 
     if (method === 'PUT' && path === '/api/profile') {

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-20 00:48+0200\n"
+"POT-Creation-Date: 2026-10-20 00:52+0200\n"
 "PO-Revision-Date: 2026-10-19 23:10+0200\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -45,83 +45,158 @@ msgstr "Einstellungsdatei: %s"
 msgid "no audio received"
 msgstr "kein Audio empfangen"
 
-#: src/admin/server.ts:102
+#: src/admin/profile-store.ts:77
+#, javascript-format
+msgid "\"%s\" must be a string"
+msgstr "„%s“ muss ein Text sein"
+
+#: src/admin/profile-store.ts:78
+#, javascript-format
+msgid "\"%s\" is too long"
+msgstr "„%s“ ist zu lang"
+
+#: src/admin/profile-store.ts:99
+msgid "the transfer target must be a phone number, tel:+… or sip:user@host"
+msgstr "das Weiterleitungsziel muss eine Telefonnummer, tel:+… oder sip:nutzer@host sein"
+
+#: src/admin/profile-store.ts:102
+msgid "\"draft\" must be an object"
+msgstr "„draft“ muss ein Objekt sein"
+
+#: src/admin/profile-store.ts:104
+#, javascript-format
+msgid "\"facts\" must be a list of at most %s entries"
+msgstr "„facts“ muss eine Liste mit höchstens %s Einträgen sein"
+
+#: src/admin/profile-store.ts:107
+msgid "\"facts\" must be a list of topic and answer"
+msgstr "„facts“ muss eine Liste aus Thema und Antwort sein"
+
+#: src/admin/profile-store.ts:112
+msgid "\"transfer\" must be an object or null"
+msgstr "„transfer“ muss ein Objekt oder null sein"
+
+#: src/admin/profile-store.ts:138 src/admin/profile-store.ts:318
+#, javascript-format
+msgid "no profile %s"
+msgstr "kein Profil %s"
+
+#: src/admin/profile-store.ts:146 src/admin/server.ts:229
+msgid "top level must be an object"
+msgstr "die oberste Ebene muss ein Objekt sein"
+
+#: src/admin/profile-store.ts:167
+msgid "a transfer needs a target: enter a phone number"
+msgstr "eine Weiterleitung braucht ein Ziel: Telefonnummer eingeben"
+
+#: src/admin/profile-store.ts:202 src/admin/server.ts:441
+#: src/admin/server.ts:487 src/admin/server.ts:511
+msgid "\"file\" must be the name of a .json file in the profiles directory"
+msgstr "\"file\" muss der Name einer .json-Datei im Profilverzeichnis sein"
+
+#: src/admin/profile-store.ts:207 src/admin/profile-store.ts:211
+#: src/admin/profile-store.ts:303
+msgid "invalid version"
+msgstr "ungültige Version"
+
+#: src/admin/profile-store.ts:278
+msgid "\"revision\" must be the revision the page loaded"
+msgstr "„revision“ muss die Revision sein, die die Seite geladen hat"
+
+#: src/admin/profile-store.ts:283
+msgid ""
+"the profile changed since you loaded it: reload it and make the change again"
+msgstr "das Profil hat sich geändert, seit du es geladen hast: neu laden und die Änderung noch einmal machen"
+
+#: src/admin/profile-store.ts:309
+msgid "no such version"
+msgstr "diese Version gibt es nicht"
+
+#: src/admin/profile-store.ts:327
+msgid "a profile with this name already exists"
+msgstr "ein Profil mit diesem Namen gibt es schon"
+
+#: src/admin/server.ts:101
 msgid "the request body is too large"
 msgstr "der Anfragekörper ist zu groß"
 
-#: src/admin/server.ts:118
+#: src/admin/server.ts:117
 msgid "the request body must be a JSON object"
 msgstr "der Anfragekörper muss ein JSON-Objekt sein"
 
-#: src/admin/server.ts:148 src/admin/server.ts:153
+#: src/admin/server.ts:147 src/admin/server.ts:152
 #, javascript-format
 msgid "\"%s\" must be a short plain string"
 msgstr "„%s“ muss ein kurzer Text ohne Steuerzeichen sein"
 
-#: src/admin/server.ts:171
+#: src/admin/server.ts:170
 msgid "the vendor sample could not be fetched"
 msgstr "die Hörprobe des Anbieters konnte nicht geladen werden"
 
-#: src/admin/server.ts:266
+#: src/admin/server.ts:300
 #, javascript-format
 msgid "\"provider\" must be one of: %s"
 msgstr "„provider“ muss einer dieser Werte sein: %s"
 
-#: src/admin/server.ts:286
+#: src/admin/server.ts:320
 msgid "no voice is configured"
 msgstr "es ist keine Stimme konfiguriert"
 
-#: src/admin/server.ts:290 src/admin/server.ts:473
+#: src/admin/server.ts:324 src/admin/server.ts:544
 #, javascript-format
 msgid "no preset with id %s"
 msgstr "keine Voreinstellung mit der Id %s"
 
-#: src/admin/server.ts:300
+#: src/admin/server.ts:334
 msgid "this server answers on 127.0.0.1 only"
 msgstr "dieser Server antwortet nur auf 127.0.0.1"
 
-#: src/admin/server.ts:302
+#: src/admin/server.ts:336
 msgid "a change must come from the page this server serves"
 msgstr "eine Änderung muss von der Seite kommen, die dieser Server ausliefert"
 
-#: src/admin/server.ts:317
+#: src/admin/server.ts:351
 msgid "invalid preset id"
 msgstr "ungültige Preset-ID"
 
-#: src/admin/server.ts:345
+#: src/admin/server.ts:379
 msgid "unknown catalog"
 msgstr "unbekannter Katalog"
 
-#: src/admin/server.ts:349
+#: src/admin/server.ts:383
 msgid "\"language\" must be a BCP-47 tag"
 msgstr "„language“ muss ein BCP-47-Tag sein"
 
-#: src/admin/server.ts:364
+#: src/admin/server.ts:398
 msgid "unknown provider"
 msgstr "unbekannter Anbieter"
 
-#: src/admin/server.ts:371
+#: src/admin/server.ts:405
 msgid "no sample for this voice"
 msgstr "keine Hörprobe für diese Stimme"
 
-#: src/admin/server.ts:407 src/admin/server.ts:440
-msgid "\"file\" must be the name of a .json file in the profiles directory"
-msgstr "\"file\" muss der Name einer .json-Datei im Profilverzeichnis sein"
+#: src/admin/server.ts:463 src/admin/server.ts:473
+msgid "\"file\" must be a file name"
+msgstr "„file“ muss ein Dateiname sein"
 
-#: src/admin/server.ts:436
+#: src/admin/server.ts:475
+msgid "\"from\" must be a file name or null"
+msgstr "„from“ muss ein Dateiname oder null sein"
+
+#: src/admin/server.ts:507
 msgid "\"file\" must be a file name or null"
 msgstr "\"file\" muss ein Dateiname oder null sein"
 
-#: src/admin/server.ts:547
+#: src/admin/server.ts:618
 #, javascript-format
 msgid "the text may have at most %s characters"
 msgstr "der Text darf höchstens %s Zeichen haben"
 
-#: src/admin/server.ts:574
+#: src/admin/server.ts:645
 msgid "the settings app is not built: run `npm run web:build`"
 msgstr "Die Einstellungs-App ist nicht gebaut: `npm run web:build` ausführen"
 
-#: src/admin/server.ts:582
+#: src/admin/server.ts:653
 msgid "unknown route"
 msgstr "unbekannte Route"
 
@@ -1096,10 +1171,6 @@ msgstr "Katalog"
 
 #~ msgid "calls"
 #~ msgstr "Anrufe"
-
-#, javascript-format
-#~ msgid "start profile: %s"
-#~ msgstr "Startprofil: %s"
 
 #~ msgid "does not load"
 #~ msgstr "lässt sich nicht laden"

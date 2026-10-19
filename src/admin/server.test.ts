@@ -1,9 +1,20 @@
 import assert from 'node:assert/strict';
-import { mkdirSync, mkdtempSync, rmSync, readFileSync, symlinkSync, writeFileSync } from 'node:fs';
+import {
+  chmodSync,
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  statSync,
+  symlinkSync,
+  writeFileSync,
+} from 'node:fs';
 import { request as httpRequest } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { tmpdir } from 'node:os';
-import { dirname, join } from 'node:path';
+import { dirname, isAbsolute, join } from 'node:path';
 import { after, test } from 'node:test';
 import { parseProfile } from '../core/profile.js';
 import { readSettings, type Settings } from '../core/settings.js';
@@ -74,6 +85,8 @@ async function start(
       writeFileSync(join(webDir, name), content);
     }
   }
+  const startProfileFile = join(dir, 'start-profile.json');
+  writeFileSync(startProfileFile, venue('start', { voice: { refAudio: 'clip.wav' } }));
   // Outside the web directory: what a traversal would have to reach.
   writeFileSync(join(dir, 'secret.txt'), KEY);
 
@@ -86,6 +99,7 @@ async function start(
     ...(options.catalog && { catalog: options.catalog }),
     ...(options.fetch && { fetch: options.fetch }),
     startProfile: { id: 'start', name: 'Test', locale: 'de-DE' },
+    startProfileFile,
     loadStartProfile: () => parseProfile(JSON.parse(venue('start'))),
     env: { ...(options.env ?? ENV), SPRECHSTUNDE_PROFILES_DIR: profilesDir },
     // 240 samples of silence at 24 kHz; no vendor is involved.
@@ -737,4 +751,370 @@ test('a symlink inside the web directory cannot serve a file from outside it', a
   const response = await fetch(`${harness.url}/assets/leak.txt`);
   assert.equal(response.status, 404);
   assert.doesNotMatch(await response.text(), new RegExp(KEY));
+});
+
+const TARGET = 'tel:+4930123456';
+const EDITABLE = venue('beta', {
+  voice: { ttsVoice: 'jane' },
+  futureKey: { keep: ['me'] },
+  transfer: { target: TARGET, announce: 'One moment.', futureTransferKey: 1 },
+  fallback: 'Call later.',
+  facts: [{ topic: 'Hours', answer: 'Nine to five.' }],
+});
+
+interface Edit {
+  editable: boolean;
+  revision?: string;
+  file: string | null;
+  draft?: { greeting: string; transfer: { announce: string; targetMasked: string } | null };
+}
+
+const edit = async (harness: Harness, file: string): Promise<Edit> =>
+  (await (await fetch(`${harness.url}/api/knowledge?file=${file}`)).json()) as Edit;
+
+const draftOf = (extra: Record<string, unknown> = {}) => ({
+  assistantName: 'Test',
+  greeting: 'Hallo, ich bin eine KI.',
+  instructions: 'Be brief.',
+  facts: [{ topic: 'Hours', answer: 'Nine to five.' }],
+  transfer: { announce: 'One moment.' },
+  fallback: 'Call later.',
+  ...extra,
+});
+
+const save = (harness: Harness, file: string, revision: string | undefined, draft: unknown) =>
+  call(harness, 'PUT', `/api/profiles/${file}`, { revision, draft });
+
+const profileJson = (harness: Harness, file: string) =>
+  JSON.parse(readFileSync(join(harness.profilesDir, file), 'utf8')) as Record<string, unknown>;
+
+const versions = async (harness: Harness, file: string) =>
+  (
+    (await (await fetch(`${harness.url}/api/profiles/${file}/history`)).json()) as {
+      versions: Array<{ version: string; at: string; size: number }>;
+    }
+  ).versions;
+
+test('knowledge: a profiles-directory file is editable, never with the full target; the start profile is not', async () => {
+  const harness = await start({ profiles: { 'b.json': EDITABLE } });
+  const response = await fetch(`${harness.url}/api/knowledge?file=b.json`);
+  const raw = await response.text();
+  assert.doesNotMatch(raw, /4930123456|30123456/);
+  const data = JSON.parse(raw) as Edit;
+  assert.equal(data.editable, true);
+  assert.match(data.revision ?? '', /^[0-9a-f]{16}$/);
+  assert.equal(data.draft?.transfer?.targetMasked, 'tel:+••••••••56');
+  const startView = await (await fetch(`${harness.url}/api/knowledge`)).json();
+  assert.equal((startView as Edit).editable, false);
+  assert.equal('draft' in (startView as object), false);
+});
+
+test('profile save: edits land, everything else stays, the target is kept, the old file goes to history', async () => {
+  const harness = await start({ profiles: { 'b.json': EDITABLE } });
+  const path = join(harness.profilesDir, 'b.json');
+  chmodSync(path, 0o640);
+  const before = readFileSync(path, 'utf8');
+  const { revision } = await edit(harness, 'b.json');
+
+  const response = await save(
+    harness,
+    'b.json',
+    revision,
+    draftOf({
+      greeting: 'Guten Tag, hier spricht eine KI.',
+      facts: [
+        { topic: 'Parking', answer: 'Behind the house.' },
+        { topic: 'Hours', answer: 'Nine to five.' },
+      ],
+      transfer: { announce: 'Please hold.' },
+      fallback: null,
+    }),
+  );
+  assert.equal(response.status, 200);
+  const saved = profileJson(harness, 'b.json');
+  assert.equal(saved.greeting, 'Guten Tag, hier spricht eine KI.');
+  assert.deepEqual(
+    (saved.facts as Array<{ topic: string }>).map((fact) => fact.topic),
+    ['Parking', 'Hours'],
+  );
+  assert.deepEqual(saved.transfer, { target: TARGET, announce: 'Please hold.', futureTransferKey: 1 });
+  assert.equal('fallback' in saved, false);
+  // Untouched fields, including one this code has never heard of.
+  assert.deepEqual(saved.voice, { ttsVoice: 'jane' });
+  assert.deepEqual(saved.futureKey, { keep: ['me'] });
+  assert.equal(saved.id, 'beta');
+  assert.equal(saved.timeZone, 'Europe/Berlin');
+  assert.equal(saved.locale, 'de-DE');
+  assert.equal(statSync(path).mode & 0o777, 0o640);
+  assert.deepEqual(
+    readdirSync(harness.profilesDir).filter((name) => name.endsWith('.tmp')),
+    [],
+  );
+
+  const list = await versions(harness, 'b.json');
+  assert.equal(list.length, 1);
+  assert.equal(readFileSync(join(harness.profilesDir, '.history', `b.json.${list[0]!.version}.json`), 'utf8'), before);
+  assert.equal(list[0]!.size, Buffer.byteLength(before));
+  assert.equal(Number.isNaN(Date.parse(list[0]!.at)), false);
+  // The answer's revision is the one the next load reports.
+  const next = await edit(harness, 'b.json');
+  assert.equal(((await response.json()) as { revision: string }).revision, next.revision);
+  assert.notEqual(next.revision, revision);
+});
+
+test('profile save: a new target is validated, normalised and replaces the old one', async () => {
+  const harness = await start({ profiles: { 'b.json': EDITABLE } });
+  let revision = (await edit(harness, 'b.json')).revision;
+  const ok = await save(harness, 'b.json', revision, draftOf({ transferTarget: '+49 30 99-88' }));
+  assert.equal(ok.status, 200);
+  assert.equal((profileJson(harness, 'b.json').transfer as { target: string }).target, 'tel:+49309988');
+  assert.doesNotMatch(await (await fetch(`${harness.url}/api/knowledge?file=b.json`)).text(), /49309988/);
+
+  revision = (await edit(harness, 'b.json')).revision;
+  const sip = await save(harness, 'b.json', revision, draftOf({ transferTarget: 'sip:desk@pbx.example' }));
+  assert.equal(sip.status, 200);
+  assert.equal((profileJson(harness, 'b.json').transfer as { target: string }).target, 'sip:desk@pbx.example');
+
+  revision = (await edit(harness, 'b.json')).revision;
+  for (const transferTarget of ['http://evil.example', 'tel:abc', 'sip:a b', 'x'.repeat(300), 'sip:', 42]) {
+    assert.equal(
+      (await save(harness, 'b.json', revision, draftOf({ transferTarget }))).status,
+      400,
+      String(transferTarget),
+    );
+  }
+});
+
+test('profile save: a stale revision is a 409 and changes nothing', async () => {
+  const harness = await start({ profiles: { 'b.json': EDITABLE } });
+  const { revision } = await edit(harness, 'b.json');
+  writeFileSync(join(harness.profilesDir, 'b.json'), EDITABLE.replace('Test', 'Changed elsewhere'));
+  const changed = readFileSync(join(harness.profilesDir, 'b.json'), 'utf8');
+  const response = await save(harness, 'b.json', revision, draftOf({ greeting: 'Mine.' }));
+  assert.equal(response.status, 409);
+  assert.match(((await response.json()) as { error: string }).error, /\S+/);
+  assert.equal(readFileSync(join(harness.profilesDir, 'b.json'), 'utf8'), changed);
+  assert.deepEqual(await versions(harness, 'b.json'), []);
+  assert.equal((await save(harness, 'b.json', undefined, draftOf())).status, 400);
+});
+
+test('profile save: what the loader would refuse is a 400 with the parser message, nothing is written', async () => {
+  const harness = await start({ profiles: { 'b.json': EDITABLE } });
+  const before = readFileSync(join(harness.profilesDir, 'b.json'), 'utf8');
+  const { revision } = await edit(harness, 'b.json');
+  const empty = await save(harness, 'b.json', revision, draftOf({ greeting: '   ' }));
+  assert.equal(empty.status, 400);
+  assert.match(((await empty.json()) as { error: string }).error, /"greeting" must be a non-empty string/);
+  const bad = [
+    draftOf({ assistantName: '' }),
+    draftOf({ facts: [{ topic: 'x', answer: '' }] }),
+    draftOf({ facts: 'no' }),
+    draftOf({ facts: [1] }),
+    draftOf({ greeting: 5 }),
+    draftOf({ transfer: 'yes' }),
+    draftOf({ instructions: 'x'.repeat(20_001) }),
+    'nope',
+    null,
+  ];
+  for (const draft of bad) {
+    assert.equal((await save(harness, 'b.json', revision, draft)).status, 400, JSON.stringify(draft)?.slice(0, 40));
+  }
+  assert.equal(readFileSync(join(harness.profilesDir, 'b.json'), 'utf8'), before);
+  assert.deepEqual(await versions(harness, 'b.json'), []);
+
+  // No target anywhere: a transfer cannot be switched on by an announcement alone.
+  const plain = await start({ profiles: { 'c.json': venue('c') } });
+  const rev = (await edit(plain, 'c.json')).revision;
+  assert.equal((await save(plain, 'c.json', rev, draftOf({ fallback: null }))).status, 400);
+  assert.equal((await save(plain, 'c.json', rev, draftOf({ fallback: null, transfer: null }))).status, 200);
+});
+
+test('profile save: removing the transfer drops the block, and the file is read again by the loader', async () => {
+  const harness = await start({ profiles: { 'b.json': EDITABLE } });
+  const { revision } = await edit(harness, 'b.json');
+  assert.equal((await save(harness, 'b.json', revision, draftOf({ transfer: null }))).status, 200);
+  assert.equal('transfer' in profileJson(harness, 'b.json'), false);
+  assert.equal((await edit(harness, 'b.json')).draft?.transfer, null);
+});
+
+test('profile files and versions: names cannot leave the profiles directory', async () => {
+  const harness = await start({ profiles: { 'b.json': EDITABLE } });
+  writeFileSync(join(harness.profilesDir, '..', 'outside.json'), EDITABLE);
+  const { revision } = await edit(harness, 'b.json');
+  const files = ['..%2Foutside.json', '%2e%2e%2foutside.json', 'sub%2Fb.json', 'b.txt', '..', '.history', '%00.json'];
+  for (const file of files) {
+    assert.ok([400, 404].includes((await save(harness, file, revision, draftOf())).status), file);
+    assert.ok([400, 404].includes((await fetch(`${harness.url}/api/profiles/${file}/history`)).status), file);
+    assert.ok(
+      [400, 404].includes((await call(harness, 'POST', `/api/profiles/${file}/restore`, { version: 'x' })).status),
+      file,
+    );
+  }
+  assert.equal(readFileSync(join(harness.profilesDir, '..', 'outside.json'), 'utf8'), EDITABLE);
+  assert.equal((await save(harness, 'missing.json', revision, draftOf())).status, 404);
+
+  await save(harness, 'b.json', revision, draftOf({ greeting: 'Changed.' }));
+  const [entry] = await versions(harness, 'b.json');
+  const versionsToTry = [
+    '../b.json',
+    '..%2Foutside',
+    `${entry!.version}/../../outside`,
+    'b.json.' + entry!.version,
+    '2026-10-20',
+    '',
+    7,
+    null,
+  ];
+  for (const version of versionsToTry) {
+    const response = await call(harness, 'POST', '/api/profiles/b.json/restore', { version });
+    assert.equal(response.status, 400, String(version));
+  }
+  assert.equal(
+    (await call(harness, 'POST', '/api/profiles/b.json/restore', { version: '2020-01-01T00-00-00.000Z' })).status,
+    404,
+  );
+  // Another profile's history is not reachable by this file's name.
+  writeFileSync(join(harness.profilesDir, 'b.json.x'), 'noise');
+  assert.equal((await versions(harness, 'b.json')).length, 1);
+});
+
+test('profile history: the newest 20 versions are kept', async () => {
+  const harness = await start({ profiles: { 'b.json': EDITABLE } });
+  for (let index = 0; index < 23; index += 1) {
+    const { revision } = await edit(harness, 'b.json');
+    const response = await save(harness, 'b.json', revision, draftOf({ greeting: `Hallo ${index}, KI.` }));
+    assert.equal(response.status, 200);
+  }
+  const list = await versions(harness, 'b.json');
+  assert.equal(list.length, 20);
+  // Newest first, and the oldest three (the original and two edits) are gone.
+  assert.deepEqual(
+    [...list]
+      .map((entry) => entry.version)
+      .sort()
+      .reverse(),
+    list.map((entry) => entry.version),
+  );
+  const oldest = readFileSync(join(harness.profilesDir, '.history', `b.json.${list.at(-1)!.version}.json`), 'utf8');
+  assert.match(oldest, /Hallo 2, KI\./);
+  assert.equal(readdirSync(join(harness.profilesDir, '.history')).length, 20);
+});
+
+test('profile restore: brings a version back and versions what it replaces; .history is not a profile', async () => {
+  const harness = await start({ profiles: { 'b.json': EDITABLE } });
+  const original = readFileSync(join(harness.profilesDir, 'b.json'), 'utf8');
+  const { revision } = await edit(harness, 'b.json');
+  await save(harness, 'b.json', revision, draftOf({ greeting: 'Second, KI.' }));
+  const edited = readFileSync(join(harness.profilesDir, 'b.json'), 'utf8');
+  const [entry] = await versions(harness, 'b.json');
+
+  const response = await call(harness, 'POST', '/api/profiles/b.json/restore', { version: entry!.version });
+  assert.equal(response.status, 200);
+  assert.equal(readFileSync(join(harness.profilesDir, 'b.json'), 'utf8'), original);
+  assert.equal(((await response.json()) as { revision: string }).revision, (await edit(harness, 'b.json')).revision);
+  const after = await versions(harness, 'b.json');
+  assert.equal(after.length, 2);
+  const newest = readFileSync(join(harness.profilesDir, '.history', `b.json.${after[0]!.version}.json`), 'utf8');
+  assert.equal(newest, edited);
+
+  const listed = (await (await fetch(`${harness.url}/api/profiles`)).json()) as { profiles: Array<{ file: string }> };
+  assert.deepEqual(
+    listed.profiles.map((profile) => profile.file),
+    ['b.json'],
+  );
+
+  // A version that is no longer a profile is refused, not written over a good file.
+  writeFileSync(join(harness.profilesDir, '.history', `b.json.${after[0]!.version}.json`), '{}');
+  assert.equal(
+    (await call(harness, 'POST', '/api/profiles/b.json/restore', { version: after[0]!.version })).status,
+    400,
+  );
+  assert.equal(readFileSync(join(harness.profilesDir, 'b.json'), 'utf8'), original);
+});
+
+test('duplicate: a copy of a profile or of the read-only start profile, never over an existing name', async () => {
+  const harness = await start({ profiles: { 'b.json': EDITABLE } });
+  const fromFile = await call(harness, 'POST', '/api/profiles', { from: 'b.json', file: 'copy.json' });
+  assert.equal(fromFile.status, 201);
+  assert.deepEqual(profileJson(harness, 'copy.json'), profileJson(harness, 'b.json'));
+
+  const fromStart = await call(harness, 'POST', '/api/profiles', { from: null, file: 'mine.json' });
+  assert.equal(fromStart.status, 201);
+  const mine = profileJson(harness, 'mine.json');
+  assert.equal(mine.id, 'start');
+  // The clip was relative to the start profile's file; the copy points at it absolutely.
+  assert.match((mine.voice as { refAudio: string }).refAudio, /clip\.wav$/);
+  assert.equal(isAbsolute((mine.voice as { refAudio: string }).refAudio), true);
+  assert.equal((await edit(harness, 'mine.json')).editable, true);
+
+  const before = readFileSync(join(harness.profilesDir, 'b.json'), 'utf8');
+  assert.equal((await call(harness, 'POST', '/api/profiles', { from: null, file: 'b.json' })).status, 409);
+  assert.equal(readFileSync(join(harness.profilesDir, 'b.json'), 'utf8'), before);
+
+  for (const body of [
+    { from: null, file: '../x.json' },
+    { from: null, file: 'sub/x.json' },
+    { from: null, file: 'x.txt' },
+    { from: null, file: '.history' },
+    { from: null },
+    { from: 5, file: 'y.json' },
+    { from: '../b.json', file: 'y.json' },
+    { from: 'missing.json', file: 'y.json' },
+  ]) {
+    assert.ok([400, 404].includes((await call(harness, 'POST', '/api/profiles', body)).status), JSON.stringify(body));
+  }
+  assert.equal(existsSync(join(harness.profilesDir, '..', 'x.json')), false);
+  // The start profile itself cannot be saved over: it is not in the profiles directory.
+  assert.equal((await save(harness, 'start-profile.json', 'abc', draftOf())).status, 404);
+});
+
+test('knowledge preview: the prompt of an edited draft, nothing written', async () => {
+  const harness = await start({ profiles: { 'b.json': EDITABLE } });
+  const before = readFileSync(join(harness.profilesDir, 'b.json'), 'utf8');
+  const response = await call(harness, 'POST', '/api/knowledge/preview', {
+    file: 'b.json',
+    draft: draftOf({ facts: [{ topic: 'Dogs', answer: 'On the terrace.' }] }),
+  });
+  assert.equal(response.status, 200);
+  const { systemPrompt } = (await response.json()) as { systemPrompt: string };
+  assert.match(systemPrompt, /- Dogs: On the terrace\./);
+  assert.doesNotMatch(systemPrompt, /Nine to five/);
+  assert.doesNotMatch(systemPrompt, /4930123456/);
+  assert.equal(readFileSync(join(harness.profilesDir, 'b.json'), 'utf8'), before);
+  assert.deepEqual(await versions(harness, 'b.json'), []);
+  assert.equal(
+    (await call(harness, 'POST', '/api/knowledge/preview', { file: 'b.json', draft: draftOf({ greeting: '' }) }))
+      .status,
+    400,
+  );
+  assert.equal(
+    (await call(harness, 'POST', '/api/knowledge/preview', { file: '../b.json', draft: draftOf() })).status,
+    400,
+  );
+  assert.equal((await call(harness, 'POST', '/api/knowledge/preview', { draft: draftOf() })).status, 400);
+});
+
+test('every profile write needs the page as its origin', async () => {
+  const harness = await start({ profiles: { 'b.json': EDITABLE } });
+  const before = readFileSync(join(harness.profilesDir, 'b.json'), 'utf8');
+  const { revision } = await edit(harness, 'b.json');
+  const writes: Array<[string, string, unknown]> = [
+    ['PUT', '/api/profiles/b.json', { revision, draft: draftOf({ greeting: 'Hijacked, KI.' }) }],
+    ['POST', '/api/profiles', { from: null, file: 'z.json' }],
+    ['POST', '/api/profiles/b.json/restore', { version: '2020-01-01T00-00-00.000Z' }],
+    ['POST', '/api/knowledge/preview', { file: 'b.json', draft: draftOf() }],
+  ];
+  for (const [method, path, payload] of writes) {
+    for (const origin of [undefined, 'http://evil.example']) {
+      const response = await fetch(`${harness.url}${path}`, {
+        method,
+        headers: { 'content-type': 'application/json', ...(origin && { origin }) },
+        body: JSON.stringify(payload),
+      });
+      assert.equal(response.status, 403, `${method} ${path} ${origin}`);
+    }
+  }
+  assert.equal(readFileSync(join(harness.profilesDir, 'b.json'), 'utf8'), before);
+  assert.equal(existsSync(join(harness.profilesDir, 'z.json')), false);
+  assert.deepEqual(await versions(harness, 'b.json'), []);
 });
