@@ -4,6 +4,7 @@ import { loadProfile } from '../core/profile.js';
 import { _ } from '../i18n.js';
 import { prewarm, runAssistant } from './assistant.js';
 import { runEcho } from './echo.js';
+import { exitUnhealthy, httpProbe, startWatchdog } from './watchdog.js';
 
 export default defineAgent({
   prewarm: async (proc: JobProcess) => {
@@ -22,6 +23,15 @@ export default defineAgent({
 });
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  // `start` runs under a restart policy (the container); in a `dev` terminal an exit only stops it.
+  if (process.argv[2] === 'start') {
+    startWatchdog({
+      probe: httpProbe('http://127.0.0.1:8081/', 5_000),
+      onDead: exitUnhealthy,
+      intervalMs: 15_000,
+      failures: 4,
+    });
+  }
   cli.runApp(
     new ServerOptions({
       agent: fileURLToPath(import.meta.url),

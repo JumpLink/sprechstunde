@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-17 20:20+0200\n"
+"POT-Creation-Date: 2026-10-19 17:06+0200\n"
 "PO-Revision-Date: 2026-10-16 10:36+0200\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -17,15 +17,15 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: src/agent/assistant.ts:69
+#: src/agent/assistant.ts:70
 msgid "CPU profile written to"
 msgstr "CPU-Profil geschrieben nach"
 
-#: src/agent/assistant.ts:139
+#: src/agent/assistant.ts:140
 msgid "transfer failed"
 msgstr "Weiterleitung fehlgeschlagen"
 
-#: src/agent/assistant.ts:177
+#: src/agent/assistant.ts:183
 msgid "CPU profile failed"
 msgstr "CPU-Profil fehlgeschlagen"
 
@@ -37,7 +37,7 @@ msgstr "Echo-Modus: warte auf Audio vom Anrufer"
 msgid "echo mode: forwarding stopped"
 msgstr "Echo-Modus: Weiterleitung abgebrochen"
 
-#: src/agent/main.ts:19
+#: src/agent/main.ts:20
 msgid "starting assistant with profile"
 msgstr "Assistent startet mit Profil"
 
@@ -46,10 +46,22 @@ msgstr "Assistent startet mit Profil"
 msgid "cannot write metrics to %s"
 msgstr "Metriken können nicht nach %s geschrieben werden"
 
+#: src/agent/transcript.ts:54
+msgid "cannot write transcript"
+msgstr "Gesprächsprotokoll kann nicht geschrieben werden"
+
+#: src/agent/transcript.ts:64
+msgid "debug transcripts are on; this stores what callers say"
+msgstr "Debug-Gesprächsprotokolle sind an; das speichert, was Anrufer sagen"
+
 #: src/agent/transfer.ts:14
 msgid "LIVEKIT_URL, LIVEKIT_API_KEY and LIVEKIT_API_SECRET must be set"
 msgstr ""
 "LIVEKIT_URL, LIVEKIT_API_KEY und LIVEKIT_API_SECRET müssen gesetzt sein"
+
+#: src/agent/watchdog.ts:46
+msgid "worker is unhealthy; exiting so the container restarts"
+msgstr "Worker ist nicht funktionsfähig; beende, damit der Container neu startet"
 
 #: src/cli/fallback.ts:23 src/cli/provision.ts:10 src/cli/sip-contacts.ts:18
 #: src/cli/stt-try.ts:99 src/cli/tts-try.ts:82 src/cli/voice.ts:12
@@ -59,7 +71,9 @@ msgstr "%s muss gesetzt sein"
 
 #: src/cli/fallback.ts:27
 msgid "the profile has no \"fallback\" text; add one or pass --text"
-msgstr "Das Profil hat keinen „fallback“-Text; ergänzen Sie einen oder übergeben Sie --text"
+msgstr ""
+"Das Profil hat keinen „fallback“-Text; ergänzen Sie einen oder übergeben Sie "
+"--text"
 
 #: src/cli/fallback.ts:38
 msgid "fallback announcement written to"

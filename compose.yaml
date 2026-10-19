@@ -78,5 +78,16 @@ services:
       SPRECHSTUNDE_STT_MODEL: "${SPRECHSTUNDE_STT_MODEL:-}"
       SPRECHSTUNDE_TTS_MODEL: "${SPRECHSTUNDE_TTS_MODEL:-}"
       SPRECHSTUNDE_TTS_VOICE: "${SPRECHSTUNDE_TTS_VOICE:-}"
+      # Debug only: stores what callers say. Leave empty in production.
+      SPRECHSTUNDE_TRANSCRIPT_DIR: "${SPRECHSTUNDE_TRANSCRIPT_DIR:+/app/var/transcripts}"
+    # Host uid = the image's `node` user, so the host dirs below stay writable for both sides.
+    userns_mode: keep-id
+    volumes:
+      - ./var/metrics:/app/var/metrics:z
+      - ./var/transcripts:/app/var/transcripts:z
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8081/').then((r) => process.exit(r.ok ? 0 : 1), () => process.exit(1))"]
+      interval: 30s
+      start_period: 30s
     depends_on: [livekit]
     restart: unless-stopped
