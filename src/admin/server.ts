@@ -21,8 +21,11 @@ import {
   profileFilePath,
   profilesDir,
 } from '../core/settings.js';
-import { listProfiles, loadProfile } from '../core/profile.js';
-import { choiceFromPreset, type TtsChoice, ttsChoice, ttsFallbackChoice } from '../agent/tts-provider.js';
+import { describeKnowledge } from '../core/knowledge.js';
+import { listProfiles, loadProfile, type Profile, withAssistantName } from '../core/profile.js';
+import { transferOverride } from '../core/tools.js';
+import { profileForCall } from '../agent/settings.js';
+import { choiceFromPreset, type TtsChoice, ttsChoice, ttsChoices, ttsFallbackChoice } from '../agent/tts-provider.js';
 import { _ } from '../i18n.js';
 import { CATALOG_TARGETS, type CatalogService, type CatalogTarget, createCatalog } from './catalog.js';
 import { byPreset, callsFrom, METRIC_NAMES, readMetrics, summarizeCall } from './latency.js';
@@ -46,6 +49,8 @@ export interface AdminOptions {
   sampleText: string;
   /** The profile the worker starts with: what a call uses while no other one is picked. */
   startProfile?: { id: string; name?: string; locale?: string };
+  /** Loads the start profile in full, for the knowledge view; the default profile when absent. */
+  loadStartProfile?: () => Profile;
   /** Vendor models and voices; the real vendors unless a test hands in a fake. */
   catalog?: CatalogService;
   env?: NodeJS.ProcessEnv;
@@ -293,6 +298,40 @@ export function createAdminServer(options: AdminOptions): Server {
         active,
         default: options.startProfile ?? null,
         ...(error && { error }),
+      });
+    }
+
+    if (method === 'GET' && path === '/api/knowledge') {
+      const settings = current();
+      const file = url.searchParams.get('file') || undefined;
+      const start = options.loadStartProfile ?? (() => loadProfile());
+      let profile: Profile;
+      let source: 'selected' | 'active' | 'start';
+      try {
+        if (file) {
+          const target = profileFilePath(file, env);
+          if (!target) throw new Error(_('"file" must be the name of a .json file in the profiles directory'));
+          profile = loadProfile(target);
+          source = 'selected';
+        } else {
+          // The profile the next call gets, falling back exactly as the agent does.
+          profile = profileForCall(start(), settings, env);
+          source = settings.profile ? 'active' : 'start';
+        }
+      } catch (error) {
+        throw new HttpError(400, (error as Error).message);
+      }
+      // A call greets by the name of its voice, and the prompt follows (see `runAssistant`).
+      let voiceName: string | undefined;
+      try {
+        voiceName = ttsChoices(settings, env).primary.name;
+      } catch {
+        // no voice configured: the profile's own name stands
+      }
+      return json(response, 200, {
+        ...describeKnowledge(withAssistantName(profile, voiceName), new Date(), transferOverride(env)),
+        file: file ?? (source === 'active' ? settings.profile : null) ?? null,
+        source,
       });
     }
 

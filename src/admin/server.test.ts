@@ -5,6 +5,7 @@ import type { AddressInfo } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { after, test } from 'node:test';
+import { parseProfile } from '../core/profile.js';
 import { readSettings, type Settings } from '../core/settings.js';
 import type { TtsChoice } from '../agent/tts-provider.js';
 import type { CatalogService } from './catalog.js';
@@ -69,6 +70,7 @@ async function start(
     sampleText: 'Guten Tag.',
     ...(options.catalog && { catalog: options.catalog }),
     startProfile: { id: 'start', name: 'Test', locale: 'de-DE' },
+    loadStartProfile: () => parseProfile(JSON.parse(venue('start'))),
     env: { ...(options.env ?? ENV), SPRECHSTUNDE_PROFILES_DIR: profilesDir },
     // 240 samples of silence at 24 kHz; no vendor is involved.
     synthesize: async (choice, text): Promise<Synthesized> => {
@@ -325,7 +327,7 @@ test('a preset id in the URL is decoded and must match the id pattern', async ()
   assert.equal(ok.status, 200);
 });
 
-const venue = (id: string) =>
+const venue = (id: string, extra: Record<string, unknown> = {}) =>
   JSON.stringify({
     id,
     locale: 'de-DE',
@@ -334,6 +336,7 @@ const venue = (id: string) =>
     greeting: 'Hallo, ich bin eine KI.',
     instructions: 'Be brief.',
     facts: [],
+    ...extra,
   });
 
 test('GET /api/profiles lists every json file, broken ones with an error', async () => {
@@ -421,4 +424,94 @@ test('GET /api/catalog never throws out of the endpoint and never serves a key',
   const text = await response.text();
   assert.equal((JSON.parse(text) as { available: boolean }).available, false);
   assert.equal(text.includes(KEY), false);
+});
+
+interface KnowledgeAnswer {
+  profile: { id: string; assistantName: string };
+  source: string;
+  file: string | null;
+  greeting: string;
+  facts: Array<{ topic: string; answer: string }>;
+  transfer: { announce: string; targetMasked: string } | null;
+  systemPrompt: string;
+  tools: Array<{ name: string; description: string; parameters: { type: string }; availableWhen: string }>;
+}
+
+const WITH_TRANSFER = {
+  facts: [{ topic: 'Hours', answer: 'Open daily.' }],
+  transfer: { target: 'tel:+4930123456', announce: 'One moment.' },
+};
+
+test('GET /api/knowledge answers for the start profile: prompt, facts and the real tool list', async () => {
+  const harness = await start();
+  const response = await fetch(`${harness.url}/api/knowledge`);
+  assert.equal(response.status, 200);
+  const data = (await response.json()) as KnowledgeAnswer;
+  assert.equal(data.profile.id, 'start');
+  assert.equal(data.source, 'start');
+  assert.equal(data.file, null);
+  assert.equal(data.transfer, null);
+  assert.match(data.systemPrompt, /You are Test, a voice assistant/);
+  assert.deepEqual(
+    data.tools.map((tool) => tool.name),
+    ['transfer_to_human'],
+  );
+  assert.equal(data.tools[0]!.parameters.type, 'object');
+  assert.ok(data.tools[0]!.availableWhen);
+});
+
+test('GET /api/knowledge masks the transfer target, also when the deployment overrides it', async () => {
+  const profiles = { 'b.json': venue('beta', WITH_TRANSFER) };
+  const harness = await start({ profiles });
+  const picked = await fetch(`${harness.url}/api/knowledge?file=b.json`);
+  const text = await picked.text();
+  const data = JSON.parse(text) as KnowledgeAnswer;
+  assert.equal(data.source, 'selected');
+  assert.equal(data.file, 'b.json');
+  assert.equal(data.facts[0]!.topic, 'Hours');
+  assert.equal(data.transfer?.announce, 'One moment.');
+  assert.equal(data.transfer?.targetMasked, 'tel:+••••••••56');
+  assert.doesNotMatch(text, /4930123456|30123456/);
+
+  const overridden = await start({
+    profiles,
+    env: { ...ENV, TRANSFER_TARGET_NUMBER: '+4915112345678', TRANSFER_SIP_HOST: 'pbx.example:5060' },
+  });
+  const overriddenText = await (await fetch(`${overridden.url}/api/knowledge?file=b.json`)).text();
+  assert.equal((JSON.parse(overriddenText) as KnowledgeAnswer).transfer?.targetMasked, 'sip:+•••••••••••78');
+  assert.doesNotMatch(overriddenText, /15112345678|pbx\.example/);
+});
+
+test('GET /api/knowledge without a file follows the active profile, as a call does', async () => {
+  const harness = await start({
+    profiles: { 'b.json': venue('beta'), 'bad.json': '{}' },
+    settings: { presets: [], active: {}, profile: 'b.json' },
+  });
+  const active = (await (await fetch(`${harness.url}/api/knowledge`)).json()) as KnowledgeAnswer;
+  assert.equal(active.profile.id, 'beta');
+  assert.equal(active.source, 'active');
+  assert.equal(active.file, 'b.json');
+
+  // An active profile that no longer loads: the call falls back to the start profile, so does the view.
+  await call(harness, 'PUT', '/api/profile', { file: null });
+  writeFileSync(harness.settingsPath, JSON.stringify({ presets: [], active: {}, profile: 'bad.json' }));
+  const fallback = (await (await fetch(`${harness.url}/api/knowledge`)).json()) as KnowledgeAnswer;
+  assert.equal(fallback.profile.id, 'start');
+});
+
+test('GET /api/knowledge speaks with the name of the active voice', async () => {
+  const harness = await start({
+    settings: { presets: [{ ...PRESET, name: 'Lena' }], active: { primary: 'jane' } },
+  });
+  const data = (await (await fetch(`${harness.url}/api/knowledge`)).json()) as KnowledgeAnswer;
+  assert.equal(data.profile.assistantName, 'Lena');
+  assert.match(data.systemPrompt, /You are Lena,/);
+});
+
+test('GET /api/knowledge refuses paths, missing and broken files', async () => {
+  const harness = await start({ profiles: { 'bad.json': '{}' } });
+  for (const file of ['../etc.json', 'sub/x.json', 'bad.json', 'missing.json', 'x.txt']) {
+    const response = await fetch(`${harness.url}/api/knowledge?file=${encodeURIComponent(file)}`);
+    assert.equal(response.status, 400, file);
+  }
 });

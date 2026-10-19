@@ -37,6 +37,7 @@ function main(): void {
     metricsDir: process.env.SPRECHSTUNDE_METRICS_DIR || join('var', 'metrics'),
     sampleText: profile.greeting,
     startProfile: { id: profile.id, name: profile.assistantName, locale: profile.locale },
+    loadStartProfile: () => loadProfile(process.env.SPRECHSTUNDE_PROFILE),
     // Built per preview: a key that is missing only matters for the vendor that needs it, and
     // the UI must still start and show everything else.
     synthesize: ttsSynthesizer(() => mistralClient(), profile),
