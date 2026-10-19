@@ -89,8 +89,9 @@ could not reach PipeWire); that is an observation on one machine, not a general 
 | `SPRECHSTUNDE_STT_MODEL` / `_LLM_MODEL` / `_TTS_MODEL` | override the Mistral models |
 | `SPRECHSTUNDE_LLM_FALLBACK_MODEL` | optional second LLM, asked when the first is too slow or fails. Empty (the default) leaves the single model in place |
 | `SPRECHSTUNDE_LLM_ATTEMPT_TIMEOUT` | seconds one LLM gets before the fallback is asked, default `3`. Only used with a fallback model |
-| `SPRECHSTUNDE_TTS_PROVIDER` | `mistral` (default), `cartesia` (needs `CARTESIA_API_KEY`, model default `sonic-3.6`), `openrouter` (needs `OPENROUTER_API_KEY` and `SPRECHSTUNDE_TTS_MODEL`, e.g. `elevenlabs/eleven-flash-v2.5`) or `pocket` (Kyutai Pocket TTS on this machine, see [Local voice](#local-voice-kyutai-pocket-tts)). OpenRouter is for comparing voices: it routes to vendors outside the EU |
-| `SPRECHSTUNDE_TTS_VOICE` | override the profile's TTS voice. A voice id belongs to one vendor, so for `cartesia` and `openrouter` it is required and the profile's voice is ignored; `pocket` defaults to the server's voice |
+| `SPRECHSTUNDE_TTS_PROVIDER` | `mistral` (default), `cartesia` (needs `CARTESIA_API_KEY`, model default `sonic-3.6`), `openrouter` (needs `OPENROUTER_API_KEY` and `SPRECHSTUNDE_TTS_MODEL`, e.g. `elevenlabs/eleven-flash-v2.5`), `pocket` (Kyutai Pocket TTS on this machine, see [Local voice](#local-voice-kyutai-pocket-tts)) or `kugel` (KugelAudio, needs `KUGELAUDIO_API_KEY`, model default `kugel-3.5`). OpenRouter is for comparing voices: it routes to vendors outside the EU |
+| `SPRECHSTUNDE_TTS_VOICE` | override the profile's TTS voice. A voice id belongs to one vendor, so for `cartesia`, `openrouter` and `kugel` it is required and the profile's voice is ignored; `pocket` defaults to the server's voice. A `kugel` voice id is a number from that vendor's library |
+| `KUGELAUDIO_API_KEY` / `SPRECHSTUNDE_KUGEL_REGION` | the KugelAudio key, and which endpoint it is used against: `eu` (default) sends the key with the `eu-` prefix that selects the EU endpoint, `global` leaves the vendor's geo-routing in charge. A key that already carries a region prefix keeps it. The call's language comes from the profile locale (`de-DE` → `de`), which is what makes the vendor read numbers, times and dates as German — so, unlike Pocket, this provider gets the text unchanged |
 | `SPRECHSTUNDE_TTS_NAME` | the name the assistant uses with this voice. Every whole-word mention of the profile's `assistantName` in the greeting, the instructions and the transfer announcement becomes this name |
 | `SPRECHSTUNDE_TTS_FALLBACK_PROVIDER` / `_MODEL` / `_VOICE` / `_REF_AUDIO` / `_NAME` | optional second voice, same meaning as above. It steps in when the first voice fails mid-call and takes whole calls when the Pocket server has no free session |
 | `POCKET_TTS_URL` | the Pocket server, default `http://127.0.0.1:8090` |
@@ -299,6 +300,11 @@ interface. Write requests need a same-origin `Origin` header, so a plain `curl` 
   the WAV it returns and the two guards. Previews against the real vendors, the latency view on
   grown metrics files and a call that picks up a voice changed mid-shift are unverified, as is the
   `admin` container.
+- KugelAudio (`kugel`) has been heard once, outside a call: one German sentence through the
+  provider build path over the EU endpoint, `kugel-3.5`, first audio after about a fifth of a
+  second. Never used in a call, never with the fallback voice, and the text normalization that
+  replaces our own number spell-out is unchecked beyond that sentence. Its licence terms and
+  whether a data processing agreement (AVV) is on file are **not verified**.
 - Pocket TTS on a phone call, the session limit and the switch to the fallback voice under load:
   covered by unit tests with a fake server and by hand against the real server, not in a call.
   A mid-call failure switches to the fallback voice while the assistant keeps the first voice's
