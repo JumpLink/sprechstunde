@@ -1118,3 +1118,85 @@ test('every profile write needs the page as its origin', async () => {
   assert.equal(existsSync(join(harness.profilesDir, 'z.json')), false);
   assert.deepEqual(await versions(harness, 'b.json'), []);
 });
+
+test('a broken profile file never puts its content into a response', async () => {
+  const broken = '{"transfer": {"target": "tel:+4930123456"} oops';
+  const harness = await start({ profiles: { 'b.json': EDITABLE, 'bad.json': broken } });
+  mkdirSync(join(harness.profilesDir, '.history'), { recursive: true });
+  const stamp = '2026-01-01T00-00-00.000Z';
+  writeFileSync(join(harness.profilesDir, '.history', `b.json.${stamp}.json`), broken);
+  const { revision } = await edit(harness, 'b.json');
+  const bodies = [
+    await (await fetch(`${harness.url}/api/knowledge?file=bad.json`)).text(),
+    await (await fetch(`${harness.url}/api/profiles`)).text(),
+    await (await save(harness, 'bad.json', 'x', draftOf())).text(),
+    await (await call(harness, 'POST', '/api/profiles/b.json/restore', { version: stamp })).text(),
+    await (await call(harness, 'POST', '/api/profiles', { from: 'bad.json', file: 'n.json' })).text(),
+    await (await call(harness, 'POST', '/api/knowledge/preview', { file: 'bad.json', draft: draftOf() })).text(),
+    await (await call(harness, 'POST', '/api/profiles/bad.json/restore', { version: stamp })).text(),
+  ];
+  for (const text of bodies) assert.doesNotMatch(text, /4930123456|30123456|oops/);
+  assert.match(bodies[0]!, /not valid JSON/);
+  assert.equal(readFileSync(join(harness.profilesDir, 'b.json'), 'utf8'), EDITABLE);
+  assert.ok(revision);
+});
+
+test('profile save: keys of a fact the page does not edit survive a reorder', async () => {
+  const withKeys = venue('beta', {
+    facts: [
+      { topic: 'A', answer: 'a', note: 'keep-a' },
+      { topic: 'B', answer: 'b', note: 'keep-b' },
+    ],
+  });
+  const harness = await start({ profiles: { 'b.json': withKeys } });
+  const view = await (await fetch(`${harness.url}/api/knowledge?file=b.json`)).json();
+  const { revision, draft } = view as { revision: string; draft: { facts: Array<Record<string, unknown>> } };
+  const [first, second] = draft.facts;
+  const response = await save(harness, 'b.json', revision, {
+    ...draftOf(),
+    transfer: null,
+    fallback: null,
+    facts: [second, { ...first, answer: 'changed' }, { topic: 'New', answer: 'n' }],
+  });
+  assert.equal(response.status, 200);
+  assert.deepEqual(profileJson(harness, 'b.json').facts, [
+    { topic: 'B', answer: 'b', note: 'keep-b' },
+    { topic: 'A', answer: 'changed', note: 'keep-a' },
+    { topic: 'New', answer: 'n' },
+  ]);
+});
+
+test('profile restore: a stale revision is a 409', async () => {
+  const harness = await start({ profiles: { 'b.json': EDITABLE } });
+  const { revision } = await edit(harness, 'b.json');
+  await save(harness, 'b.json', revision, draftOf({ greeting: 'Second, KI.' }));
+  const [entry] = await versions(harness, 'b.json');
+  const stale = await call(harness, 'POST', '/api/profiles/b.json/restore', { version: entry!.version, revision });
+  assert.equal(stale.status, 409);
+  const fresh = (await edit(harness, 'b.json')).revision;
+  const ok = await call(harness, 'POST', '/api/profiles/b.json/restore', { version: entry!.version, revision: fresh });
+  assert.equal(ok.status, 200);
+});
+
+test('GET /api/sample refuses a redirect and enforces the size cap while streaming', async () => {
+  const redirect = (async () =>
+    new Response(null, {
+      status: 302,
+      headers: { location: 'http://127.0.0.1:1/x', 'content-type': 'audio/mpeg' },
+    })) as unknown as typeof fetch;
+  const seen: unknown[] = [];
+  const spy = (async (address: string, init?: RequestInit) => {
+    seen.push(init?.redirect);
+    return redirect(address, init as never);
+  }) as unknown as typeof fetch;
+  const one = await start({ catalog: SAMPLE_CATALOG, fetch: spy });
+  assert.equal((await fetch(`${one.url}/api/sample?provider=kugel&voice=a`)).status, 502);
+  assert.deepEqual(seen, ['manual']);
+
+  const lying = (async () =>
+    new Response(new Uint8Array(5 * 1024 * 1024 + 10), {
+      headers: { 'content-type': 'audio/mpeg', 'content-length': '10' },
+    })) as unknown as typeof fetch;
+  const two = await start({ catalog: SAMPLE_CATALOG, fetch: lying });
+  assert.equal((await fetch(`${two.url}/api/sample?provider=kugel&voice=a`)).status, 502);
+});

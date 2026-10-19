@@ -170,7 +170,10 @@
     if (!knowledge?.file) return;
     if (dirty && !confirm(_('You have unsaved changes. Leave and discard them?'))) return;
     try {
-      await api('POST', `/api/profiles/${encodeURIComponent(knowledge.file)}/restore`, { version });
+      await api('POST', `/api/profiles/${encodeURIComponent(knowledge.file)}/restore`, {
+        version,
+        revision: knowledge.revision,
+      });
       historyOpen = false;
       toast.success(_('Version restored'));
       await Promise.all([load(knowledge.file), reload()]);

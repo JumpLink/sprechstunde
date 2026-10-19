@@ -9,7 +9,7 @@
  */
 
 import { readFileSync } from 'node:fs';
-import { dirname, resolve } from 'node:path';
+import { basename, dirname, resolve } from 'node:path';
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
 import {
   type ActiveSlot,
@@ -24,7 +24,14 @@ import {
   profilesDir,
 } from '../core/settings.js';
 import { describeKnowledge } from '../core/knowledge.js';
-import { DEFAULT_PROFILE_PATH, listProfiles, loadProfile, type Profile, withAssistantName } from '../core/profile.js';
+import {
+  DEFAULT_PROFILE_PATH,
+  listProfiles,
+  loadProfile,
+  type Profile,
+  tryParseJson,
+  withAssistantName,
+} from '../core/profile.js';
 import { buildInstructions } from '../core/prompt.js';
 import { transferOverride } from '../core/tools.js';
 import { profileForCall } from '../agent/settings.js';
@@ -171,12 +178,13 @@ async function fetchSample(fetcher: typeof fetch, address: string): Promise<{ ty
   if (!address.startsWith('https://')) throw bad();
   let upstream: Response;
   try {
-    upstream = await fetcher(address, { signal: AbortSignal.timeout(SAMPLE_TIMEOUT_MS) });
+    upstream = await fetcher(address, { signal: AbortSignal.timeout(SAMPLE_TIMEOUT_MS), redirect: 'manual' });
   } catch {
     throw bad();
   }
   const type = upstream.headers.get('content-type')?.split(';')[0]?.trim().toLowerCase() ?? '';
-  if (!upstream.ok || !type.startsWith('audio/') || !upstream.body) throw bad();
+  // A redirect could lead anywhere, loopback included; a catalog sample address does not redirect.
+  if (upstream.status >= 300 || !upstream.ok || !type.startsWith('audio/') || !upstream.body) throw bad();
   const declared = Number(upstream.headers.get('content-length'));
   if (declared > MAX_SAMPLE_BYTES) throw bad();
   const chunks: Uint8Array[] = [];
@@ -225,7 +233,8 @@ export function createAdminServer(options: AdminOptions): Server {
   const startRaw = (): { raw: Record<string, unknown>; dir: string } => {
     const path = resolve(options.startProfileFile ?? (env.SPRECHSTUNDE_PROFILE || DEFAULT_PROFILE_PATH));
     try {
-      const raw: unknown = JSON.parse(readFileSync(path, 'utf8'));
+      const raw = tryParseJson(readFileSync(path, 'utf8'));
+      if (raw === undefined) throw new Error(_('%s is not valid JSON').replace('%s', basename(path)));
       if (!isRecord(raw)) throw new Error(_('top level must be an object'));
       return { raw, dir: dirname(path) };
     } catch (error) {
@@ -496,7 +505,7 @@ export function createAdminServer(options: AdminOptions): Server {
       }
       if (extra.length === 0 && action === 'restore' && method === 'POST') {
         const wanted = body(await readBody(request));
-        return json(response, 200, store.restore(file, wanted.version));
+        return json(response, 200, store.restore(file, wanted.version, wanted.revision));
       }
     }
 

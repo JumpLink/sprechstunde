@@ -10,7 +10,7 @@
  * - the write is a rename of a temp file, and the old version is copied to `.history/` first.
  */
 
-import { createHash, randomBytes } from 'node:crypto';
+import { createHmac, randomBytes } from 'node:crypto';
 import {
   chmodSync,
   copyFileSync,
@@ -24,7 +24,7 @@ import {
   writeFileSync,
 } from 'node:fs';
 import { basename, dirname, join, resolve } from 'node:path';
-import { type Fact, parseProfile, type Profile } from '../core/profile.js';
+import { type Fact, parseProfile, type Profile, tryParseJson } from '../core/profile.js';
 import { profileFilePath, profilesDir } from '../core/settings.js';
 import { maskTransferTarget } from '../core/tools.js';
 import { _ } from '../i18n.js';
@@ -37,13 +37,19 @@ const MAX_TEXT_CHARS = 20_000;
 const MAX_FACTS = 200;
 const STAMP = /^\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}\.\d{3}Z$/;
 
+/** A fact; `origin` is its index in the file as read, so keys the page does not edit survive a reorder. */
+export interface DraftFact extends Fact {
+  origin?: number;
+}
+
 /** What the page edits. `transferTarget` is write-only: absent or empty keeps the one in the file. */
 export interface ProfileDraft {
   assistantName: string;
   greeting: string;
   instructions: string;
-  facts: Fact[];
+  facts: DraftFact[];
   transfer: { announce: string } | null;
+
   transferTarget?: string;
   fallback: string | null;
 }
@@ -53,7 +59,7 @@ export interface DraftView {
   assistantName: string;
   greeting: string;
   instructions: string;
-  facts: Fact[];
+  facts: DraftFact[];
   transfer: { announce: string; targetMasked: string } | null;
   fallback: string | null;
 }
@@ -70,8 +76,10 @@ type Raw = Record<string, unknown>;
 
 const isRecord = (value: unknown): value is Raw => typeof value === 'object' && value !== null && !Array.isArray(value);
 
+/** Keyed per process: a revision is a stable label within one admin run, not a hash of a file holding a phone number. */
+const REVISION_KEY = randomBytes(32);
 export const revisionOf = (bytes: Buffer | string): string =>
-  createHash('sha256').update(bytes).digest('hex').slice(0, 16);
+  createHmac('sha256', REVISION_KEY).update(bytes).digest('hex').slice(0, 16);
 
 function text(value: unknown, name: string): string {
   if (typeof value !== 'string') throw new HttpError(400, _('"%s" must be a string').replace('%s', name));
@@ -103,9 +111,15 @@ export function parseDraft(raw: unknown): ProfileDraft {
   if (!Array.isArray(raw.facts) || raw.facts.length > MAX_FACTS) {
     throw new HttpError(400, _('"facts" must be a list of at most %s entries').replace('%s', String(MAX_FACTS)));
   }
-  const facts = raw.facts.map((entry, index): Fact => {
+  const facts = raw.facts.map((entry, index): DraftFact => {
     if (!isRecord(entry)) throw new HttpError(400, _('"facts" must be a list of topic and answer'));
-    return { topic: text(entry.topic, `facts[${index}].topic`), answer: text(entry.answer, `facts[${index}].answer`) };
+    const origin =
+      Number.isInteger(entry.origin) && (entry.origin as number) >= 0 ? (entry.origin as number) : undefined;
+    return {
+      topic: text(entry.topic, `facts[${index}].topic`),
+      answer: text(entry.answer, `facts[${index}].answer`),
+      ...(origin !== undefined && { origin }),
+    };
   });
   let transfer: ProfileDraft['transfer'] = null;
   if (raw.transfer !== null && raw.transfer !== undefined) {
@@ -137,12 +151,8 @@ function readRaw(path: string, name: string): { raw: Raw; revision: string } {
   } catch {
     throw new HttpError(404, _('no profile %s').replace('%s', name));
   }
-  let raw: unknown;
-  try {
-    raw = JSON.parse(bytes.toString('utf8'));
-  } catch (error) {
-    throw new HttpError(400, (error as Error).message);
-  }
+  const raw = tryParseJson(bytes.toString('utf8'));
+  if (raw === undefined) throw new HttpError(400, _('%s is not valid JSON').replace('%s', name));
   if (!isRecord(raw)) throw new HttpError(400, _('top level must be an object'));
   return { raw, revision: revisionOf(bytes) };
 }
@@ -157,7 +167,11 @@ export function applyDraft(raw: Raw, draft: ProfileDraft, name: string): { json:
   next.assistantName = draft.assistantName;
   next.greeting = draft.greeting;
   next.instructions = draft.instructions;
-  next.facts = draft.facts.map((fact) => ({ topic: fact.topic, answer: fact.answer }));
+  const oldFacts = Array.isArray(raw.facts) ? raw.facts : [];
+  next.facts = draft.facts.map((fact) => {
+    const old = fact.origin === undefined ? undefined : oldFacts[fact.origin];
+    return { ...(isRecord(old) ? old : {}), topic: fact.topic, answer: fact.answer };
+  });
   if (draft.transfer === null) {
     delete next.transfer;
   } else {
@@ -182,7 +196,7 @@ export function draftView(profile: Profile): DraftView {
     assistantName: profile.assistantName,
     greeting: profile.greeting,
     instructions: profile.instructions,
-    facts: profile.facts,
+    facts: profile.facts.map((fact, origin) => ({ ...fact, origin })),
     transfer: profile.transfer
       ? { announce: profile.transfer.announce, targetMasked: maskTransferTarget(profile.transfer.target) }
       : null,
@@ -246,7 +260,7 @@ export function createProfileStore(env: NodeJS.ProcessEnv, now: () => Date = () 
   };
 
   /** Temp file next to the target, then a rename: a reader sees the old file or the new one. */
-  const writeAtomic = (path: string, content: string): void => {
+  const writeAtomic = (path: string, content: string | Buffer): void => {
     const mode = statSync(path).mode & 0o777;
     const temp = join(dirname(path), `.${basename(path)}.${randomBytes(6).toString('hex')}.tmp`);
     try {
@@ -298,7 +312,7 @@ export function createProfileStore(env: NodeJS.ProcessEnv, now: () => Date = () 
       }));
     },
 
-    restore(file: string, version: unknown): { revision: string } {
+    restore(file: string, version: unknown, revision?: unknown): { revision: string } {
       const path = pathOf(file);
       if (typeof version !== 'string') throw new HttpError(400, _('invalid version'));
       const source = versionPath(file, version);
@@ -308,16 +322,19 @@ export function createProfileStore(env: NodeJS.ProcessEnv, now: () => Date = () 
       } catch {
         throw new HttpError(404, _('no such version'));
       }
-      let json: unknown;
+      const json = tryParseJson(bytes.toString('utf8'));
+      if (json === undefined) throw new HttpError(400, _('%s is not valid JSON').replace('%s', file));
       try {
-        json = JSON.parse(bytes.toString('utf8'));
         parseProfile(json, file);
       } catch (error) {
         throw new HttpError(400, (error as Error).message);
       }
       if (!existsSync(path)) throw new HttpError(404, _('no profile %s').replace('%s', file));
+      if (typeof revision === 'string' && revision !== revisionOf(readFileSync(path))) {
+        throw new HttpError(409, _('the profile changed since you loaded it: reload it and make the change again'));
+      }
       snapshot(file, path);
-      writeAtomic(path, bytes.toString('utf8'));
+      writeAtomic(path, bytes);
       return { revision: revisionOf(bytes) };
     },
 

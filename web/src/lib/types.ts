@@ -94,6 +94,8 @@ export interface Catalog {
 export interface Fact {
   topic: string;
   answer: string;
+  /** Index in the saved file; a new fact has none. */
+  origin?: number;
 }
 
 /** What the page edits; the transfer target arrives masked and is sent only when changed. */
