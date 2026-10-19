@@ -102,7 +102,8 @@ function buildStt(client: Mistral, vad: silero.VAD, language: string): stt.STT {
 function buildTts(client: Mistral, profile: Profile): tts.TTS {
   const base = buildBaseTts(client, profile);
   // A vendor that streams text in over a socket (Cartesia) chunks and paces itself; the hedge and
-  // the chunking below exist for request-per-chunk vendors.
+  // the chunking below exist for request-per-chunk vendors. Cartesia must stay on its socket: its
+  // `synthesize()` plays a 400 error body as audio (plugin 1.9.3, issue #24).
   if (base.capabilities.streaming) return base;
   return new tts.StreamAdapter(
     new HedgedTTS(base, TTS_HEDGE_MS),
