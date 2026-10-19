@@ -1,4 +1,5 @@
 import type { Profile } from './profile.js';
+import { TRANSFER_TOOL } from './tools.js';
 
 /** Build the system prompt. Pure: same profile and time, same text. */
 export function buildInstructions(profile: Profile, now: Date): string {
@@ -10,7 +11,7 @@ export function buildInstructions(profile: Profile, now: Date): string {
   }).format(now);
   const facts = profile.facts.map((fact) => `- ${fact.topic}: ${fact.answer}`).join('\n');
   const transfer = profile.transfer
-    ? 'If you cannot answer or the caller asks for a person, offer to transfer the call and use the transfer_to_human tool once the caller agrees.'
+    ? `If you cannot answer or the caller asks for a person, offer to transfer the call and use the ${TRANSFER_TOOL.name} tool once the caller agrees.`
     : 'No transfer to a person is possible. If you cannot answer, say so and suggest calling again later.';
 
   return [

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-20 00:17+0200\n"
+"POT-Creation-Date: 2026-10-20 00:22+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -320,11 +320,11 @@ msgstr ""
 msgid "Pocket TTS has no free session, this call uses the fallback voice"
 msgstr ""
 
-#: src/agent/assistant.ts:189
+#: src/agent/assistant.ts:186
 msgid "transfer failed"
 msgstr ""
 
-#: src/agent/assistant.ts:242
+#: src/agent/assistant.ts:239
 msgid "CPU profile failed"
 msgstr ""
 
@@ -591,6 +591,10 @@ msgstr ""
 #: src/cli/voice.ts:44
 #, javascript-format
 msgid "deleted voice %s"
+msgstr ""
+
+#: src/core/tools.ts:51
+msgid "Phone calls only, and only when the profile has a transfer target."
 msgstr ""
 
 #: src/mistral.ts:17

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-20 00:17+0200\n"
+"POT-Creation-Date: 2026-10-20 00:21+0200\n"
 "PO-Revision-Date: 2026-10-19 23:10+0200\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -330,11 +330,11 @@ msgid "Pocket TTS has no free session, this call uses the fallback voice"
 msgstr ""
 "Pocket TTS hat keine freie Sitzung, dieser Anruf nutzt die Ersatzstimme"
 
-#: src/agent/assistant.ts:189
+#: src/agent/assistant.ts:186
 msgid "transfer failed"
 msgstr "Weiterleitung fehlgeschlagen"
 
-#: src/agent/assistant.ts:242
+#: src/agent/assistant.ts:239
 msgid "CPU profile failed"
 msgstr "CPU-Profil fehlgeschlagen"
 
@@ -625,6 +625,10 @@ msgstr ""
 #, javascript-format
 msgid "deleted voice %s"
 msgstr "Stimme %s gelöscht"
+
+#: src/core/tools.ts:51
+msgid "Phone calls only, and only when the profile has a transfer target."
+msgstr "Nur bei Telefonanrufen und nur, wenn das Profil ein Weiterleitungsziel hat."
 
 #: src/mistral.ts:17
 msgid "SPRECHSTUNDE_MISTRAL_SERVER must be global, eu, us or a URL"
