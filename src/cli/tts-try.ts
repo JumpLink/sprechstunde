@@ -1,10 +1,11 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { basename, extname } from 'node:path';
 import { parseArgs } from 'node:util';
-import { Mistral } from '@mistralai/mistralai';
+import type { Mistral } from '@mistralai/mistralai';
 import { downsampleS16le, encodeWav, silenceS16le } from '../core/audio.js';
 import { refAudioFromFile, type TtsVoice } from '../agent/tts-voice.js';
 import { _ } from '../i18n.js';
+import { mistralClient } from '../mistral.js';
 import { synthesize } from './speech.js';
 
 const SAMPLE_RATE = 24000;
@@ -94,7 +95,7 @@ async function main(): Promise<void> {
     targets.push(...DEFAULT_VOICES.map((voiceId): Target => ({ label: voiceId, voiceId })));
   }
 
-  const client = new Mistral({ apiKey });
+  const client = mistralClient(apiKey);
   const model = values.model ?? DEFAULT_MODEL;
   const text = values.text ?? DEFAULT_TEXT;
   mkdirSync(OUT_DIR, { recursive: true });
