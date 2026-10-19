@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { loadProfile, parseProfile } from './profile.js';
+import { loadProfile, parseProfile, withAssistantName } from './profile.js';
 import { buildInstructions } from './prompt.js';
 import { transferRequest } from './tools.js';
 
@@ -114,4 +114,12 @@ test('transferRequest: a configured number replaces the profile target', () => {
   assert.equal(transferRequest(profile, { number: '+4930123' })?.announce, profile.transfer?.announce);
   assert.throws(() => transferRequest(profile, { number: 'sip:x@y' }));
   assert.equal(transferRequest({ ...profile, transfer: undefined }, { number: '+4930123' }), null);
+});
+
+test('withAssistantName renames whole-word mentions only', () => {
+  const profile = { ...example, assistantName: 'Mia', greeting: 'Sie sprechen mit Mia. Miami? Mia!' };
+  const renamed = withAssistantName(profile, 'Jürgen');
+  assert.equal(renamed.assistantName, 'Jürgen');
+  assert.equal(renamed.greeting, 'Sie sprechen mit Jürgen. Miami? Jürgen!');
+  assert.equal(withAssistantName(profile, undefined), profile);
 });

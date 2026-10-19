@@ -131,3 +131,22 @@ export function loadProfile(path?: string): Profile {
   if (profile.voice?.refAudio) profile.voice.refAudio = resolve(dirname(file), profile.voice.refAudio);
   return profile;
 }
+
+/**
+ * The profile as spoken by an assistant called `name`: every whole-word mention of the profile's
+ * `assistantName` in the greeting, the instructions and the transfer announcement becomes `name`.
+ * Lets each voice carry its own name, so a caller is never greeted by one name in another voice.
+ */
+export function withAssistantName(profile: Profile, name: string | undefined): Profile {
+  if (!name || name === profile.assistantName) return profile;
+  const escaped = profile.assistantName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const mention = new RegExp(`(?<![\\p{L}\\p{N}])${escaped}(?![\\p{L}\\p{N}])`, 'gu');
+  const rename = (text: string) => text.replace(mention, name);
+  return {
+    ...profile,
+    assistantName: name,
+    greeting: rename(profile.greeting),
+    instructions: rename(profile.instructions),
+    ...(profile.transfer && { transfer: { ...profile.transfer, announce: rename(profile.transfer.announce) } }),
+  };
+}
