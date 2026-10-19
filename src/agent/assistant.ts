@@ -12,6 +12,7 @@ import type { Settings } from '../core/settings.js';
 import { transferRequest } from '../core/tools.js';
 import { _ } from '../i18n.js';
 import { mistralClient } from '../mistral.js';
+import { buildLlm, llmModel } from './llm.js';
 import { recordCallConfig, recordMetrics } from './metrics.js';
 import { currentSettings } from './settings.js';
 import { attachTranscript, transcriptDir } from './transcript.js';
@@ -23,7 +24,6 @@ import { HedgedTTS } from './tts-hedge.js';
 import { buildBaseTts, pocketUrl, type TtsChoice, ttsChoices } from './tts-provider.js';
 
 const DEFAULT_STT_MODEL = 'voxtral-mini-transcribe-realtime-2602';
-const DEFAULT_LLM_MODEL = 'mistral-small-latest';
 const FALLBACK_STT_MODEL = 'voxtral-mini-latest';
 
 // Mistral's realtime STT only finalises when the VAD reports end of speech, so the silence the
@@ -119,11 +119,6 @@ function buildTts(client: Mistral, profile: Profile, choice: TtsChoice): tts.TTS
   );
 }
 
-/** The LLM for this call: the settings file first, then the environment, then the default. */
-function llmModel(settings: Settings | undefined): string {
-  return settings?.llm.model || process.env.SPRECHSTUNDE_LLM_MODEL || DEFAULT_LLM_MODEL;
-}
-
 /**
  * The voice for this call, decided once at its start from the settings file or the environment
  * (see `ttsChoices`). With a fallback configured, a Pocket call
@@ -200,7 +195,7 @@ export async function runAssistant(ctx: JobContext, venue: Profile): Promise<voi
   const session = new voice.AgentSession({
     vad,
     stt: buildStt(client, vad, profile.locale.split('-')[0]!),
-    llm: new mistral.LLM({ client, model: llmModel(settings) }),
+    llm: buildLlm(client, settings),
     tts: speech.tts,
     turnHandling: {
       turnDetection: new livekit.turnDetector.MultilingualModel(),

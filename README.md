@@ -87,6 +87,8 @@ could not reach PipeWire); that is an observation on one machine, not a general 
 | `SPRECHSTUNDE_MODE` | `assistant` or `echo` |
 | `SPRECHSTUNDE_AGENT_NAME` | name used for explicit dispatch, default `sprechstunde` |
 | `SPRECHSTUNDE_STT_MODEL` / `_LLM_MODEL` / `_TTS_MODEL` | override the Mistral models |
+| `SPRECHSTUNDE_LLM_FALLBACK_MODEL` | optional second LLM, asked when the first is too slow or fails. Empty (the default) leaves the single model in place |
+| `SPRECHSTUNDE_LLM_ATTEMPT_TIMEOUT` | seconds one LLM gets before the fallback is asked, default `3`. Only used with a fallback model |
 | `SPRECHSTUNDE_TTS_PROVIDER` | `mistral` (default), `cartesia` (needs `CARTESIA_API_KEY`, model default `sonic-3.6`), `openrouter` (needs `OPENROUTER_API_KEY` and `SPRECHSTUNDE_TTS_MODEL`, e.g. `elevenlabs/eleven-flash-v2.5`) or `pocket` (Kyutai Pocket TTS on this machine, see [Local voice](#local-voice-kyutai-pocket-tts)). OpenRouter is for comparing voices: it routes to vendors outside the EU |
 | `SPRECHSTUNDE_TTS_VOICE` | override the profile's TTS voice. A voice id belongs to one vendor, so for `cartesia` and `openrouter` it is required and the profile's voice is ignored; `pocket` defaults to the server's voice |
 | `SPRECHSTUNDE_TTS_NAME` | the name the assistant uses with this voice. Every whole-word mention of the profile's `assistantName` in the greeting, the instructions and the transfer announcement becomes this name |
@@ -202,6 +204,12 @@ What the agent does beyond the defaults, and why:
   before it fails over. A final transcript that arrives late still gets a reply. The rescue owns
   the utterance from the moment it starts: a transcript the realtime stream delivers afterwards is
   dropped, because it is the same words a second time.
+- **LLM fallback** (off by default): with `SPRECHSTUNDE_LLM_FALLBACK_MODEL` set, both models go
+  behind `llm.FallbackAdapter` and the second is asked when the first has not answered within
+  `SPRECHSTUNDE_LLM_ATTEMPT_TIMEOUT` seconds (default 3) or fails. On 2026-10-19 Mistral answered
+  single requests only after 10 s and returned 503s mid-call, which leaves the caller in silence.
+  Three seconds is already a long pause on the phone, and the second model needs its own time on
+  top. Not seen firing in a real call yet.
 - **One contiguous frame for batch STT** (`ContiguousSTT`, `src/agent/stt-merge.ts`):
   `mergeFrames` in `@livekit/agents` 1.9.3 is quadratic. On 2026-10-16 it blocked the event loop
   for 12.3 s on about 12 s of audio (`npm run bench:merge-frames`). The wrapper hands the batch
