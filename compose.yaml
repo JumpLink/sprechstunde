@@ -1,7 +1,7 @@
 # Local telephony stack: provider <-TLS-> Asterisk <-UDP-> LiveKit SIP <-> LiveKit server <-> agent.
 # Everything runs with host networking and binds to 127.0.0.1 (except Asterisk's provider leg).
 # Ports: livekit 7880/7881 + udp 50000-50100, sip 5060 + rtp 10000-10100,
-#        asterisk 5070 + rtp 12000-12100, redis 6379.
+#        asterisk 5070 + rtp 12000-12100, redis 6379, pocket-tts 8090.
 services:
   redis:
     image: docker.io/valkey/valkey:8.1.10-trixie
@@ -56,6 +56,27 @@ services:
     depends_on: [sip]
     restart: unless-stopped
 
+  # Optional: Kyutai Pocket TTS on this machine's CPU (SPRECHSTUNDE_TTS_PROVIDER=pocket).
+  # One worker = one answer being spoken at a time; 2 threads each. Measured on an i9-10900K:
+  # 4 workers speaking at once kept up (1.3x real time), 6 did not. Measure on the real server.
+  pocket-tts:
+    profiles: ["pocket"]
+    build:
+      context: ./deploy/pocket-tts
+      dockerfile: Containerfile
+    image: localhost/sprechstunde-pocket-tts:3.3.0
+    network_mode: host
+    environment:
+      POCKET_WORKERS: "${POCKET_WORKERS:-4}"
+      POCKET_THREADS: "${POCKET_THREADS:-2}"
+      POCKET_MAX_SESSIONS: "${POCKET_MAX_SESSIONS:-}"
+      POCKET_VOICE: "${POCKET_VOICE:-juergen}"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8090/health')"]
+      interval: 30s
+      start_period: 60s
+    restart: unless-stopped
+
   # Optional: run the agent in a container instead of `npm run agent:dev` on the host.
   agent:
     profiles: ["agent"]
@@ -82,6 +103,12 @@ services:
       CARTESIA_API_KEY: "${CARTESIA_API_KEY:-}"
       OPENROUTER_API_KEY: "${OPENROUTER_API_KEY:-}"
       SPRECHSTUNDE_TTS_VOICE: "${SPRECHSTUNDE_TTS_VOICE:-}"
+      SPRECHSTUNDE_TTS_NAME: "${SPRECHSTUNDE_TTS_NAME:-}"
+      SPRECHSTUNDE_TTS_FALLBACK_PROVIDER: "${SPRECHSTUNDE_TTS_FALLBACK_PROVIDER:-}"
+      SPRECHSTUNDE_TTS_FALLBACK_MODEL: "${SPRECHSTUNDE_TTS_FALLBACK_MODEL:-}"
+      SPRECHSTUNDE_TTS_FALLBACK_VOICE: "${SPRECHSTUNDE_TTS_FALLBACK_VOICE:-}"
+      SPRECHSTUNDE_TTS_FALLBACK_NAME: "${SPRECHSTUNDE_TTS_FALLBACK_NAME:-}"
+      POCKET_TTS_URL: "${POCKET_TTS_URL:-}"
       # Debug only: stores what callers say. Leave empty in production.
       SPRECHSTUNDE_TRANSCRIPT_DIR: "${SPRECHSTUNDE_TRANSCRIPT_DIR:+/app/var/transcripts}"
     # Host uid = the image's `node` user, so the host dirs below stay writable for both sides.

@@ -7,7 +7,7 @@ import type { Mistral } from '@mistralai/mistralai';
 import * as silero from '@livekit/agents-plugin-silero';
 import { ParticipantKind } from '@livekit/rtc-node';
 import { buildInstructions } from '../core/prompt.js';
-import type { Profile } from '../core/profile.js';
+import { type Profile, withAssistantName } from '../core/profile.js';
 import { transferRequest } from '../core/tools.js';
 import { _ } from '../i18n.js';
 import { mistralClient } from '../mistral.js';
@@ -16,8 +16,9 @@ import { attachTranscript, transcriptDir } from './transcript.js';
 import { transferSipParticipant } from './transfer.js';
 import { StallGuardSTT } from './stt-guard.js';
 import { ContiguousSTT } from './stt-merge.js';
+import { openPocketSession } from './pocket-tts.js';
 import { HedgedTTS } from './tts-hedge.js';
-import { buildBaseTts } from './tts-provider.js';
+import { buildBaseTts, pocketUrl, type TtsChoice, ttsChoice, ttsFallbackChoice } from './tts-provider.js';
 
 const DEFAULT_STT_MODEL = 'voxtral-mini-transcribe-realtime-2602';
 const DEFAULT_LLM_MODEL = 'mistral-small-latest';
@@ -99,14 +100,15 @@ function buildStt(client: Mistral, vad: silero.VAD, language: string): stt.STT {
   });
 }
 
-function buildTts(client: Mistral, profile: Profile): tts.TTS {
-  const base = buildBaseTts(client, profile);
+function buildTts(client: Mistral, profile: Profile, choice: TtsChoice): tts.TTS {
+  const base = buildBaseTts(client, profile, choice);
   // A vendor that streams text in over a socket (Cartesia) chunks and paces itself; the hedge and
   // the chunking below exist for request-per-chunk vendors. Cartesia must stay on its socket: its
   // `synthesize()` plays a 400 error body as audio (plugin 1.9.3, issue #24).
   if (base.capabilities.streaming) return base;
   return new tts.StreamAdapter(
-    new HedgedTTS(base, TTS_HEDGE_MS),
+    // Pocket answers in ~0.1 s or with a 503 when busy; a second request would only add load.
+    choice.provider === 'pocket' ? base : new HedgedTTS(base, TTS_HEDGE_MS),
     new tokenize.basic.SentenceTokenizer({
       firstTokenLength: TTS_FIRST_CHUNK_CHARS,
       minTokenLength: TTS_CHUNK_CHARS,
@@ -115,11 +117,48 @@ function buildTts(client: Mistral, profile: Profile): tts.TTS {
   );
 }
 
-export async function runAssistant(ctx: JobContext, profile: Profile): Promise<void> {
+/**
+ * The voice for this call, decided once at its start. With a fallback configured, a Pocket call
+ * first reserves a session on the Pocket server; when all are taken the whole call speaks with the
+ * fallback voice and its name, so a busy server never changes the voice mid-call. The fallback
+ * still stands behind the primary for real failures (server down, errors).
+ */
+async function voiceForCall(
+  client: Mistral,
+  profile: Profile,
+): Promise<{ tts: tts.TTS; choice: TtsChoice; release?: () => Promise<void> }> {
+  const primary = ttsChoice();
+  const fallback = ttsFallbackChoice();
+  if (!fallback) return { tts: buildTts(client, profile, primary), choice: primary };
+
+  let release: (() => Promise<void>) | undefined;
+  if (primary.provider === 'pocket') {
+    release = await openPocketSession(pocketUrl());
+    if (!release) {
+      console.log(_('Pocket TTS has no free session, this call uses the fallback voice'));
+      return { tts: buildTts(client, profile, fallback), choice: fallback };
+    }
+  }
+  return {
+    tts: new tts.FallbackAdapter({
+      ttsInstances: [buildTts(client, profile, primary), buildTts(client, profile, fallback)],
+      maxRetryPerTTS: 0,
+    }),
+    choice: primary,
+    release,
+  };
+}
+
+export async function runAssistant(ctx: JobContext, venue: Profile): Promise<void> {
   const stopCpuProfile = startCpuProfile(ctx.job?.id || 'job');
 
   // `lk agent console` runs a fake job without a room: there is no participant to wait for.
   const participant = ctx.isFakeJob ? undefined : await ctx.waitForParticipant();
+
+  const client = mistralClient();
+  const speech = await voiceForCall(client, venue);
+  // Each voice may carry its own name; greeting, prompt and announcements follow the voice.
+  const profile = withAssistantName(venue, speech.choice.name);
 
   // No fact lookup tool: the facts are in the instructions, and a tool call costs a second LLM
   // round (0.4–0.9 s measured 2026-10-16).
@@ -148,12 +187,11 @@ export async function runAssistant(ctx: JobContext, profile: Profile): Promise<v
   };
 
   const vad = ctx.proc.userData.vad as silero.VAD;
-  const client = mistralClient();
   const session = new voice.AgentSession({
     vad,
     stt: buildStt(client, vad, profile.locale.split('-')[0]!),
     llm: new mistral.LLM({ client, model: process.env.SPRECHSTUNDE_LLM_MODEL || DEFAULT_LLM_MODEL }),
-    tts: buildTts(client, profile),
+    tts: speech.tts,
     turnHandling: {
       turnDetection: new livekit.turnDetector.MultilingualModel(),
       // The LLM already starts on the interim transcript; also start the voice, which saves the
@@ -182,6 +220,7 @@ export async function runAssistant(ctx: JobContext, profile: Profile): Promise<v
       publication.resolveFirstSubscription();
     }
     void (async () => {
+      await speech.release?.();
       // The profile has to be on disk before the shutdown tears the process down.
       await stopCpuProfile?.().catch((error) => console.error(_('CPU profile failed'), error));
       ctx.shutdown('session closed');

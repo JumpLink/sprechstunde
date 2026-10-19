@@ -2,6 +2,7 @@ src/agent/assistant.ts
 src/agent/echo.ts
 src/agent/main.ts
 src/agent/metrics.ts
+src/agent/pocket-tts.ts
 src/agent/stt-guard.ts
 src/agent/stt-merge.ts
 src/agent/transcript.ts
@@ -21,6 +22,7 @@ src/cli/voice.ts
 src/core/audio.ts
 src/core/profile.ts
 src/core/prompt.ts
+src/core/spoken-numbers.ts
 src/core/stats.ts
 src/core/tools.ts
 src/i18n.ts

@@ -87,8 +87,11 @@ could not reach PipeWire); that is an observation on one machine, not a general 
 | `SPRECHSTUNDE_MODE` | `assistant` or `echo` |
 | `SPRECHSTUNDE_AGENT_NAME` | name used for explicit dispatch, default `sprechstunde` |
 | `SPRECHSTUNDE_STT_MODEL` / `_LLM_MODEL` / `_TTS_MODEL` | override the Mistral models |
-| `SPRECHSTUNDE_TTS_PROVIDER` | `mistral` (default), `cartesia` (needs `CARTESIA_API_KEY`, model default `sonic-3.6`) or `openrouter` (needs `OPENROUTER_API_KEY` and `SPRECHSTUNDE_TTS_MODEL`, e.g. `elevenlabs/eleven-flash-v2.5`). OpenRouter is for comparing voices: it routes to vendors outside the EU |
-| `SPRECHSTUNDE_TTS_VOICE` | override the profile's TTS voice. A voice id belongs to one vendor, so for `cartesia` and `openrouter` it is required and the profile's voice is ignored |
+| `SPRECHSTUNDE_TTS_PROVIDER` | `mistral` (default), `cartesia` (needs `CARTESIA_API_KEY`, model default `sonic-3.6`), `openrouter` (needs `OPENROUTER_API_KEY` and `SPRECHSTUNDE_TTS_MODEL`, e.g. `elevenlabs/eleven-flash-v2.5`) or `pocket` (Kyutai Pocket TTS on this machine, see [Local voice](#local-voice-kyutai-pocket-tts)). OpenRouter is for comparing voices: it routes to vendors outside the EU |
+| `SPRECHSTUNDE_TTS_VOICE` | override the profile's TTS voice. A voice id belongs to one vendor, so for `cartesia` and `openrouter` it is required and the profile's voice is ignored; `pocket` defaults to the server's voice |
+| `SPRECHSTUNDE_TTS_NAME` | the name the assistant uses with this voice. Every whole-word mention of the profile's `assistantName` in the greeting, the instructions and the transfer announcement becomes this name |
+| `SPRECHSTUNDE_TTS_FALLBACK_PROVIDER` / `_MODEL` / `_VOICE` / `_REF_AUDIO` / `_NAME` | optional second voice, same meaning as above. It steps in when the first voice fails mid-call and takes whole calls when the Pocket server has no free session |
+| `POCKET_TTS_URL` | the Pocket server, default `http://127.0.0.1:8090` |
 | `SPRECHSTUNDE_TTS_REF_AUDIO` | path to an audio file to clone; overrides every other voice setting |
 | `SPRECHSTUNDE_TRUNK_NUMBERS` | comma-separated numbers for the inbound trunk; empty accepts any |
 | `SPRECHSTUNDE_METRICS_DIR` | where latency metrics are written, default `var/metrics` |
@@ -132,11 +135,45 @@ ones). Options:
    Saved voices (`npm run voice -- create <name> <file> [lang] | list | delete <id>`) avoid the
    upload but need pay-as-you-go enabled in Mistral's admin panel (Free mode answers 403); in
    one measurement they were not faster than a 4 s reference clip. `tts:try --repeat N` reports the median and maximum.
-3. **Later: self-hosted** Thorsten-Voice/Kokoro (Apache-2.0, CPU, probably 1–2 concurrent calls).
+3. **Self-hosted:** Kyutai Pocket TTS, see [Local voice](#local-voice-kyutai-pocket-tts).
    Avoid the popular Piper `thorsten` models for commercial use: they are fine-tuned from the
    research-only Lessac voice
    ([model card](https://huggingface.co/rhasspy/piper-voices/raw/main/de/de_DE/thorsten/high/MODEL_CARD),
    [licence](https://www.cstr.ed.ac.uk/projects/blizzard/2013/lessac_blizzard2013/license.html)).
+
+### Local voice: Kyutai Pocket TTS
+
+[Pocket TTS](https://github.com/kyutai-labs/pocket-tts) runs on the CPU, with German among its
+official languages and a German preset voice, `juergen`. Code MIT; weights and voices
+[CC-BY-4.0](https://huggingface.co/kyutai/pocket-tts-without-voice-cloning): credit Kyutai where
+the voice is used. Voice cloning needs separately gated weights with their own terms; the preset
+voices do not.
+
+```sh
+podman compose --profile pocket up -d pocket-tts   # builds deploy/pocket-tts, downloads the weights
+SPRECHSTUNDE_TTS_PROVIDER=pocket SPRECHSTUNDE_TTS_NAME=Jürgen \
+SPRECHSTUNDE_TTS_FALLBACK_PROVIDER=mistral SPRECHSTUNDE_TTS_FALLBACK_VOICE=<voice id> npm run agent:dev
+```
+
+- `deploy/pocket-tts/server.py` keeps one model per worker process (`POCKET_WORKERS`, default 4,
+  `POCKET_THREADS` each, default 2): generation is not thread-safe, so `pocket-tts serve` with its
+  single model cannot speak two answers at once. A request waits at most 1 s for a free worker,
+  then gets 503 and the fallback voice speaks that chunk.
+- **Capacity per call:** with a fallback voice configured, every call first reserves one of
+  `POCKET_MAX_SESSIONS` (default twice the workers). A call that gets none speaks with the
+  fallback voice and name from start to end, so the caller never hears the voice change because
+  the server is busy. Sessions free themselves after an hour if the agent never released them.
+- **Numbers as words:** Pocket TTS dropped digits ("19:00 Uhr", "4 Personen") in almost every run
+  on 2026-10-19; written out, the sentences came through whole. The agent therefore spells out
+  times, dates, prices, percentages, ranges, phone numbers and counts before a German text goes
+  to Pocket (`src/core/spoken-numbers.ts`). Transcripts keep the digits.
+- **One measurement, 2026-10-19** (i9-10900K, `german` model, `juergen`, 2 threads per process):
+  first audio 73–126 ms for one answer at a time, ~3.5x real time. In parallel: 2 → 138 ms /
+  2.5x, 4 → 208 ms / 1.4x, 6 → 285 ms / 0.95x (falls behind). A caller mostly listens, so 4
+  workers should carry more than 4 calls; that is an estimate, not measured. Measure on the
+  target server before relying on it.
+- Memory: ~0.75 GB per worker (4 workers ≈ 3 GB); the image is ~1.5 GB with weights and voice.
+- Reference audio: a cloned voice from an 8–10 s clip worked; a 19 s clip broke sentences off.
 
 If you use Mistral's API, check the training opt-out in the admin panel (Privacy → "Anonymous
 improvement data").
@@ -213,6 +250,10 @@ de-duplicated. Malformed lines are skipped and counted.
 
 ## Not tested yet
 
+- Pocket TTS on a phone call, the session limit and the switch to the fallback voice under load:
+  covered by unit tests with a fake server and by hand against the real server, not in a call.
+  A mid-call failure switches to the fallback voice while the assistant keeps the first voice's
+  name.
 - Only one provider so far: 1&1 works with TLS registration, SDES-SRTP (`AES_CM_128_HMAC_SHA1_80`)
   and inbound calls, over IPv6 from behind a FRITZ!Box (`SIP_PROVIDER_IPV6=yes`). Over IPv4 the
   router rewrote the RTP source port even for forwarded ports and 1&1 sent no audio; IPv4 behind
