@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-19 23:12+0200\n"
+"POT-Creation-Date: 2026-10-19 23:13+0200\n"
 "PO-Revision-Date: 2026-10-19 23:10+0200\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -181,8 +181,8 @@ msgid "Reference audio"
 msgstr "Referenzaufnahme"
 
 #: src/admin/page.ts:119
-msgid "path, Mistral only"
-msgstr "Pfad, nur Mistral"
+msgid "file in the voices directory, Mistral only"
+msgstr "Datei im Stimmenverzeichnis, nur Mistral"
 
 #: src/admin/page.ts:125
 msgid "Preview"
@@ -562,6 +562,9 @@ msgstr "Stimme %s gelöscht"
 #: src/mistral.ts:17
 msgid "SPRECHSTUNDE_MISTRAL_SERVER must be global, eu, us or a URL"
 msgstr "SPRECHSTUNDE_MISTRAL_SERVER muss global, eu, us oder eine URL sein"
+
+#~ msgid "path, Mistral only"
+#~ msgstr "Pfad, nur Mistral"
 
 #, javascript-format
 #~ msgid "SPRECHSTUNDE_TTS_PROVIDER must be one of: %s"

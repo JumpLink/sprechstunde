@@ -4,7 +4,7 @@ import * as mistral from '@livekit/agents-plugin-mistralai';
 import * as openai from '@livekit/agents-plugin-openai';
 import type { Mistral } from '@mistralai/mistralai';
 import type { Profile } from '../core/profile.js';
-import { activePreset, type Settings, type VoicePreset } from '../core/settings.js';
+import { activePreset, presetRefAudioPath, type Settings, type VoicePreset } from '../core/settings.js';
 import { spellOutNumbers } from '../core/spoken-numbers.js';
 import { _ } from '../i18n.js';
 import { DEFAULT_POCKET_URL, PocketTTS } from './pocket-tts.js';
@@ -80,7 +80,7 @@ export function choiceFromPreset(preset: VoicePreset): TtsChoice {
     provider: preset.provider,
     model,
     voice: preset.voice,
-    refAudio: preset.refAudio,
+    refAudio: preset.refAudio && (presetRefAudioPath(preset.refAudio) ?? undefined),
     name: preset.name,
     preset: preset.id,
   };

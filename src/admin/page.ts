@@ -116,7 +116,7 @@ export function pageHtml(): string {
   <label>${_h('Vendor')}<select name="provider" id="preset-provider"></select></label>
   <label>${_h('Model')}<input name="model" size="18" placeholder="${_h("the vendor's default")}"></label>
   <label>${_h('Voice')}<input name="voice" size="18"></label>
-  <label>${_h('Reference audio')}<input name="refAudio" size="18" placeholder="${_h('path, Mistral only')}"></label>
+  <label>${_h('Reference audio')}<input name="refAudio" size="18" placeholder="${_h('file in the voices directory, Mistral only')}"></label>
   <label>${_h('Assistant name')}<input name="name" size="12"></label>
   <button class="primary" type="submit" id="preset-submit">${_h('Add')}</button>
   <button type="button" id="preset-cancel" hidden>${_h('Cancel')}</button>

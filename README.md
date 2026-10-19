@@ -98,6 +98,7 @@ could not reach PipeWire); that is an observation on one machine, not a general 
 | `SPRECHSTUNDE_TRUNK_NUMBERS` | comma-separated numbers for the inbound trunk; empty accepts any |
 | `SPRECHSTUNDE_METRICS_DIR` | where latency metrics are written, default `var/metrics` |
 | `SPRECHSTUNDE_SETTINGS_FILE` | the voices and models picked in the [settings UI](#settings-ui), default `var/settings/voice.json`. As soon as it names an active voice, it wins over the `SPRECHSTUNDE_TTS_*` and `SPRECHSTUNDE_LLM_*` variables above; a missing or unreadable file leaves them in charge |
+| `SPRECHSTUNDE_VOICES_DIR` | where a preset's `refAudio` clip lives, default `var/voices` (mounted read-only into the containers). A preset may only name a relative path inside it; `SPRECHSTUNDE_TTS_REF_AUDIO` stays unrestricted |
 | `SPRECHSTUNDE_ADMIN_PORT` | port of the settings UI on `127.0.0.1`, default `8091` |
 | `SPRECHSTUNDE_MISTRAL_SERVER` | empty: Mistral's global endpoint, which does not say where a request runs. `eu` or `us`: [regional inference](https://docs.mistral.ai/inference/regional-inference), processing stays in that region, billed at 1.1× list price. A URL is used as is |
 | `SPRECHSTUNDE_TRANSCRIPT_DIR` | debug only, off when empty: writes what caller and agent said, plus turn events, to `<dir>/<date>/<job id>.jsonl`. In compose any non-empty value turns it on and writes to `var/transcripts` |

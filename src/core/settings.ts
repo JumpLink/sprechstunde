@@ -8,7 +8,7 @@
  */
 
 import { mkdirSync, readFileSync, renameSync, unlinkSync, writeFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
+import { dirname, isAbsolute, join, resolve, sep } from 'node:path';
 
 export const TTS_PROVIDERS = ['mistral', 'cartesia', 'openrouter', 'pocket'] as const;
 export type TtsProvider = (typeof TTS_PROVIDERS)[number];
@@ -58,6 +58,20 @@ export function emptySettings(): Settings {
 export const PRESET_ID = /^[A-Za-z0-9][A-Za-z0-9._-]*$/;
 const MAX_ATTEMPT_TIMEOUT_S = 120;
 
+export const DEFAULT_VOICES_DIR = join('var', 'voices');
+
+export function voicesDir(env: NodeJS.ProcessEnv = process.env): string {
+  return resolve(env.SPRECHSTUNDE_VOICES_DIR || DEFAULT_VOICES_DIR);
+}
+
+/** The file a preset's `refAudio` names, or null when it is absolute or leaves the voices directory. */
+export function presetRefAudioPath(refAudio: string, env: NodeJS.ProcessEnv = process.env): string | null {
+  if (isAbsolute(refAudio)) return null;
+  const base = voicesDir(env);
+  const file = resolve(base, refAudio);
+  return file.startsWith(base + sep) ? file : null;
+}
+
 function fail(path: string, message: string): never {
   throw new Error(`Invalid settings ${path}: ${message}`);
 }
@@ -92,6 +106,9 @@ function parsePreset(raw: unknown, index: number, path: string): VoicePreset {
 
   const voice = optionalStr(raw, 'voice', where, path);
   const refAudio = optionalStr(raw, 'refAudio', where, path);
+  if (refAudio && presetRefAudioPath(refAudio) === null) {
+    fail(path, `${where}"refAudio" must be a file inside the voices directory (SPRECHSTUNDE_VOICES_DIR)`);
+  }
   if (voice && refAudio) fail(path, `${where}"voice" and "refAudio" are mutually exclusive`);
   // Only Mistral takes a reference clip; silently ignoring it on another vendor would look like
   // the clone worked.

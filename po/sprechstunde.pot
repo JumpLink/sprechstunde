@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-19 23:12+0200\n"
+"POT-Creation-Date: 2026-10-19 23:13+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -180,7 +180,7 @@ msgid "Reference audio"
 msgstr ""
 
 #: src/admin/page.ts:119
-msgid "path, Mistral only"
+msgid "file in the voices directory, Mistral only"
 msgstr ""
 
 #: src/admin/page.ts:125

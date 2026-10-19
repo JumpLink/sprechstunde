@@ -121,3 +121,15 @@ test('ttsChoices: an active primary without a fallback leaves the env fallback o
   const choices = ttsChoices(settings, { SPRECHSTUNDE_TTS_FALLBACK_PROVIDER: 'mistral' });
   assert.equal(choices.fallback, undefined);
 });
+
+test('choiceFromPreset: a preset clip resolves into the voices directory', () => {
+  const before = process.env.SPRECHSTUNDE_VOICES_DIR;
+  process.env.SPRECHSTUNDE_VOICES_DIR = '/srv/voices';
+  try {
+    const choice = choiceFromPreset({ id: 'a', label: 'A', provider: 'mistral', refAudio: 'clip.wav' });
+    assert.equal(choice.refAudio, '/srv/voices/clip.wav');
+  } finally {
+    if (before === undefined) delete process.env.SPRECHSTUNDE_VOICES_DIR;
+    else process.env.SPRECHSTUNDE_VOICES_DIR = before;
+  }
+});

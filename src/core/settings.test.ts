@@ -7,6 +7,7 @@ import {
   activePreset,
   emptySettings,
   parseSettings,
+  presetRefAudioPath,
   readSettings,
   settingsFile,
   type Settings,
@@ -131,4 +132,24 @@ test('writeSettings: creates the directory, writes atomically and reads back', (
 
   writeSettings(file, emptySettings());
   assert.deepEqual(readSettings(file), emptySettings());
+});
+
+test('parseSettings: refAudio must stay inside the voices directory', () => {
+  const env = process.env.SPRECHSTUNDE_VOICES_DIR;
+  delete process.env.SPRECHSTUNDE_VOICES_DIR;
+  try {
+    for (const bad of ['/etc/passwd', '../secret.wav', 'a/../../x.wav', '..']) {
+      assert.throws(() => parseSettings({ presets: [preset({ refAudio: bad })] }), /voices directory/, bad);
+    }
+    assert.equal(parseSettings({ presets: [preset({ refAudio: 'sub/a.wav' })] }).presets[0]!.refAudio, 'sub/a.wav');
+  } finally {
+    if (env !== undefined) process.env.SPRECHSTUNDE_VOICES_DIR = env;
+  }
+});
+
+test('presetRefAudioPath resolves against SPRECHSTUNDE_VOICES_DIR', () => {
+  const env = { SPRECHSTUNDE_VOICES_DIR: '/srv/voices' };
+  assert.equal(presetRefAudioPath('clip.wav', env), '/srv/voices/clip.wav');
+  assert.equal(presetRefAudioPath('../clip.wav', env), null);
+  assert.equal(presetRefAudioPath('/srv/voices/clip.wav', env), null);
 });
