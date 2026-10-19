@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-19 18:33+0200\n"
+"POT-Creation-Date: 2026-10-19 20:53+0200\n"
 "PO-Revision-Date: 2026-10-16 10:36+0200\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -17,15 +17,19 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: src/agent/assistant.ts:71
+#: src/agent/assistant.ts:72
 msgid "CPU profile written to"
 msgstr "CPU-Profil geschrieben nach"
 
-#: src/agent/assistant.ts:142
+#: src/agent/assistant.ts:138
+msgid "Pocket TTS has no free session, this call uses the fallback voice"
+msgstr "Pocket TTS hat keine freie Sitzung, dieser Anruf nutzt die Ersatzstimme"
+
+#: src/agent/assistant.ts:181
 msgid "transfer failed"
 msgstr "Weiterleitung fehlgeschlagen"
 
-#: src/agent/assistant.ts:186
+#: src/agent/assistant.ts:225
 msgid "CPU profile failed"
 msgstr "CPU-Profil fehlgeschlagen"
 
@@ -59,13 +63,12 @@ msgid "LIVEKIT_URL, LIVEKIT_API_KEY and LIVEKIT_API_SECRET must be set"
 msgstr ""
 "LIVEKIT_URL, LIVEKIT_API_KEY und LIVEKIT_API_SECRET müssen gesetzt sein"
 
-#: src/agent/tts-provider.ts:30
-#, javascript-format
-msgid "SPRECHSTUNDE_TTS_PROVIDER must be one of: %s"
-msgstr "SPRECHSTUNDE_TTS_PROVIDER muss einer dieser Werte sein: %s"
+#: src/agent/tts-provider.ts:47
+msgid "%1 must be one of: %2"
+msgstr "%1 muss einer dieser Werte sein: %2"
 
-#: src/agent/tts-provider.ts:33 src/agent/tts-provider.ts:35
-#: src/agent/tts-provider.ts:48 src/cli/fallback.ts:23 src/cli/provision.ts:10
+#: src/agent/tts-provider.ts:50 src/agent/tts-provider.ts:53
+#: src/agent/tts-provider.ts:89 src/cli/fallback.ts:23 src/cli/provision.ts:10
 #: src/cli/sip-contacts.ts:18 src/cli/stt-try.ts:100 src/cli/tts-try.ts:83
 #: src/cli/voice.ts:12 src/mistral.ts:21
 #, javascript-format
@@ -298,3 +301,7 @@ msgstr "Stimme %s gelöscht"
 #: src/mistral.ts:17
 msgid "SPRECHSTUNDE_MISTRAL_SERVER must be global, eu, us or a URL"
 msgstr "SPRECHSTUNDE_MISTRAL_SERVER muss global, eu, us oder eine URL sein"
+
+#, javascript-format
+#~ msgid "SPRECHSTUNDE_TTS_PROVIDER must be one of: %s"
+#~ msgstr "SPRECHSTUNDE_TTS_PROVIDER muss einer dieser Werte sein: %s"

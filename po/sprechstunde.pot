@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-19 18:33+0200\n"
+"POT-Creation-Date: 2026-10-19 20:53+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,15 +17,19 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src/agent/assistant.ts:71
+#: src/agent/assistant.ts:72
 msgid "CPU profile written to"
 msgstr ""
 
-#: src/agent/assistant.ts:142
+#: src/agent/assistant.ts:138
+msgid "Pocket TTS has no free session, this call uses the fallback voice"
+msgstr ""
+
+#: src/agent/assistant.ts:181
 msgid "transfer failed"
 msgstr ""
 
-#: src/agent/assistant.ts:186
+#: src/agent/assistant.ts:225
 msgid "CPU profile failed"
 msgstr ""
 
@@ -58,13 +62,12 @@ msgstr ""
 msgid "LIVEKIT_URL, LIVEKIT_API_KEY and LIVEKIT_API_SECRET must be set"
 msgstr ""
 
-#: src/agent/tts-provider.ts:30
-#, javascript-format
-msgid "SPRECHSTUNDE_TTS_PROVIDER must be one of: %s"
+#: src/agent/tts-provider.ts:47
+msgid "%1 must be one of: %2"
 msgstr ""
 
-#: src/agent/tts-provider.ts:33 src/agent/tts-provider.ts:35
-#: src/agent/tts-provider.ts:48 src/cli/fallback.ts:23 src/cli/provision.ts:10
+#: src/agent/tts-provider.ts:50 src/agent/tts-provider.ts:53
+#: src/agent/tts-provider.ts:89 src/cli/fallback.ts:23 src/cli/provision.ts:10
 #: src/cli/sip-contacts.ts:18 src/cli/stt-try.ts:100 src/cli/tts-try.ts:83
 #: src/cli/voice.ts:12 src/mistral.ts:21
 #, javascript-format
