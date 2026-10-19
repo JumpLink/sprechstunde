@@ -17,11 +17,10 @@ import { transferSipParticipant } from './transfer.js';
 import { StallGuardSTT } from './stt-guard.js';
 import { ContiguousSTT } from './stt-merge.js';
 import { HedgedTTS } from './tts-hedge.js';
-import { resolveTtsVoice } from './tts-voice.js';
+import { buildBaseTts } from './tts-provider.js';
 
 const DEFAULT_STT_MODEL = 'voxtral-mini-transcribe-realtime-2602';
 const DEFAULT_LLM_MODEL = 'mistral-small-latest';
-const DEFAULT_TTS_MODEL = 'voxtral-mini-tts-latest';
 const FALLBACK_STT_MODEL = 'voxtral-mini-latest';
 
 // Mistral's realtime STT only finalises when the VAD reports end of speech, so the silence the
@@ -101,11 +100,10 @@ function buildStt(client: Mistral, vad: silero.VAD, language: string): stt.STT {
 }
 
 function buildTts(client: Mistral, profile: Profile): tts.TTS {
-  const base = new mistral.TTS({
-    client,
-    model: process.env.SPRECHSTUNDE_TTS_MODEL || DEFAULT_TTS_MODEL,
-    ...resolveTtsVoice(profile),
-  });
+  const base = buildBaseTts(client, profile);
+  // A vendor that streams text in over a socket (Cartesia) chunks and paces itself; the hedge and
+  // the chunking below exist for request-per-chunk vendors.
+  if (base.capabilities.streaming) return base;
   return new tts.StreamAdapter(
     new HedgedTTS(base, TTS_HEDGE_MS),
     new tokenize.basic.SentenceTokenizer({

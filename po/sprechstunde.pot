@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-19 17:22+0200\n"
+"POT-Creation-Date: 2026-10-19 18:32+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,15 +17,15 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src/agent/assistant.ts:72
+#: src/agent/assistant.ts:71
 msgid "CPU profile written to"
 msgstr ""
 
-#: src/agent/assistant.ts:143
+#: src/agent/assistant.ts:141
 msgid "transfer failed"
 msgstr ""
 
-#: src/agent/assistant.ts:187
+#: src/agent/assistant.ts:185
 msgid "CPU profile failed"
 msgstr ""
 
@@ -58,15 +58,21 @@ msgstr ""
 msgid "LIVEKIT_URL, LIVEKIT_API_KEY and LIVEKIT_API_SECRET must be set"
 msgstr ""
 
-#: src/agent/watchdog.ts:46
-msgid "worker is unhealthy; exiting so the container restarts"
+#: src/agent/tts-provider.ts:30
+#, javascript-format
+msgid "SPRECHSTUNDE_TTS_PROVIDER must be one of: %s"
 msgstr ""
 
-#: src/cli/fallback.ts:23 src/cli/provision.ts:10 src/cli/sip-contacts.ts:18
-#: src/cli/stt-try.ts:100 src/cli/tts-try.ts:83 src/cli/voice.ts:12
-#: src/mistral.ts:21
+#: src/agent/tts-provider.ts:33 src/agent/tts-provider.ts:35
+#: src/agent/tts-provider.ts:48 src/cli/fallback.ts:23 src/cli/provision.ts:10
+#: src/cli/sip-contacts.ts:18 src/cli/stt-try.ts:100 src/cli/tts-try.ts:83
+#: src/cli/voice.ts:12 src/mistral.ts:21
 #, javascript-format
 msgid "%s must be set"
+msgstr ""
+
+#: src/agent/watchdog.ts:46
+msgid "worker is unhealthy; exiting so the container restarts"
 msgstr ""
 
 #: src/cli/fallback.ts:27
