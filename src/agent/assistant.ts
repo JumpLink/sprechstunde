@@ -12,7 +12,7 @@ import type { Settings } from '../core/settings.js';
 import { transferRequest } from '../core/tools.js';
 import { _ } from '../i18n.js';
 import { mistralClient } from '../mistral.js';
-import { buildLlm, llmModel } from './llm.js';
+import { buildLlm, llmFallbackModel, llmModel } from './llm.js';
 import { recordCallConfig, recordMetrics } from './metrics.js';
 import { currentSettings } from './settings.js';
 import { attachTranscript, transcriptDir } from './transcript.js';
@@ -218,6 +218,7 @@ export async function runAssistant(ctx: JobContext, venue: Profile): Promise<voi
     ttsPreset: speech.choice.preset,
     ttsProvider: speech.choice.provider,
     llmModel: llmModel(settings),
+    llmFallbackModel: llmFallbackModel(settings),
   });
   session.on(voice.AgentSessionEventTypes.MetricsCollected, (event) => recordMetrics(event.metrics));
   const debugTranscripts = transcriptDir();

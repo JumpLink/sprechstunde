@@ -78,7 +78,10 @@ test('metricsLine keeps only numbers, ids and timestamps', () => {
 });
 
 test('callConfigLine: ids and names only, no text', () => {
-  const line = callConfigLine({ jobId: 'job-1', ttsPreset: 'house', ttsProvider: 'pocket', llmModel: 'small' }, 42);
+  const line = callConfigLine(
+    { jobId: 'job-1', ttsPreset: 'house', ttsProvider: 'pocket', llmModel: 'small', llmFallbackModel: 'big' },
+    42,
+  );
   assert.deepEqual(line, {
     type: 'call_config',
     ts: 42,
@@ -86,5 +89,6 @@ test('callConfigLine: ids and names only, no text', () => {
     ttsPreset: 'house',
     ttsProvider: 'pocket',
     llmModel: 'small',
+    llmFallbackModel: 'big',
   });
 });

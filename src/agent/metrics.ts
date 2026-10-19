@@ -36,6 +36,7 @@ export interface CallConfig {
   ttsPreset?: string;
   ttsProvider?: string;
   llmModel?: string;
+  llmFallbackModel?: string;
 }
 
 /**
@@ -51,6 +52,7 @@ export function callConfigLine(config: CallConfig, now = Date.now()): Record<str
     ttsPreset: config.ttsPreset,
     ttsProvider: config.ttsProvider,
     llmModel: config.llmModel,
+    llmFallbackModel: config.llmFallbackModel,
   };
 }
 
