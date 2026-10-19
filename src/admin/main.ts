@@ -6,6 +6,7 @@
  */
 
 import { join } from 'node:path';
+import { initializeLogger } from '@livekit/agents';
 import { loadProfile } from '../core/profile.js';
 import { settingsFile } from '../core/settings.js';
 import { _ } from '../i18n.js';
@@ -24,6 +25,10 @@ function port(env: NodeJS.ProcessEnv): number {
 }
 
 function main(): void {
+  // A TTS plugin takes its logger when it is constructed, and every preview constructs one. In the
+  // agent the worker CLI does this; here nothing else would, and the first preview would fail with
+  // "logger not initialized". Warnings only: the UI says what it did on stdout itself.
+  initializeLogger({ pretty: true, level: 'warn' });
   const profile = loadProfile(process.env.SPRECHSTUNDE_PROFILE);
   // The greeting is the one sentence every caller hears, so it is the honest sample to compare
   // voices on.
