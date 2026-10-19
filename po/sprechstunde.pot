@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-19 23:25+0200\n"
+"POT-Creation-Date: 2026-10-19 23:30+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -266,19 +266,19 @@ msgstr ""
 msgid "unknown route"
 msgstr ""
 
-#: src/agent/assistant.ts:74
+#: src/agent/assistant.ts:75
 msgid "CPU profile written to"
 msgstr ""
 
-#: src/agent/assistant.ts:142
+#: src/agent/assistant.ts:143
 msgid "Pocket TTS has no free session, this call uses the fallback voice"
 msgstr ""
 
-#: src/agent/assistant.ts:187
+#: src/agent/assistant.ts:188
 msgid "transfer failed"
 msgstr ""
 
-#: src/agent/assistant.ts:239
+#: src/agent/assistant.ts:240
 msgid "CPU profile failed"
 msgstr ""
 
@@ -301,6 +301,10 @@ msgstr ""
 
 #: src/agent/settings.ts:16
 msgid "ignoring the settings file, using the environment instead:"
+msgstr ""
+
+#: src/agent/speech-close.ts:11
+msgid "Closing the TTS failed"
 msgstr ""
 
 #: src/agent/transcript.ts:54

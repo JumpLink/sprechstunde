@@ -20,6 +20,7 @@ import { transferSipParticipant } from './transfer.js';
 import { StallGuardSTT } from './stt-guard.js';
 import { ContiguousSTT } from './stt-merge.js';
 import { openPocketSession } from './pocket-tts.js';
+import { closeSpeech } from './speech-close.js';
 import { HedgedTTS } from './tts-hedge.js';
 import { buildBaseTts, pocketUrl, type TtsChoice, ttsChoices } from './tts-provider.js';
 
@@ -234,7 +235,7 @@ export async function runAssistant(ctx: JobContext, venue: Profile): Promise<voi
       publication.resolveFirstSubscription();
     }
     void (async () => {
-      await speech.release?.();
+      await closeSpeech(speech);
       // The profile has to be on disk before the shutdown tears the process down.
       await stopCpuProfile?.().catch((error) => console.error(_('CPU profile failed'), error));
       ctx.shutdown('session closed');

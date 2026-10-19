@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-19 23:25+0200\n"
+"POT-Creation-Date: 2026-10-19 23:30+0200\n"
 "PO-Revision-Date: 2026-10-19 23:10+0200\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -273,20 +273,20 @@ msgstr "ungültige Preset-ID"
 msgid "unknown route"
 msgstr "unbekannte Route"
 
-#: src/agent/assistant.ts:74
+#: src/agent/assistant.ts:75
 msgid "CPU profile written to"
 msgstr "CPU-Profil geschrieben nach"
 
-#: src/agent/assistant.ts:142
+#: src/agent/assistant.ts:143
 msgid "Pocket TTS has no free session, this call uses the fallback voice"
 msgstr ""
 "Pocket TTS hat keine freie Sitzung, dieser Anruf nutzt die Ersatzstimme"
 
-#: src/agent/assistant.ts:187
+#: src/agent/assistant.ts:188
 msgid "transfer failed"
 msgstr "Weiterleitung fehlgeschlagen"
 
-#: src/agent/assistant.ts:239
+#: src/agent/assistant.ts:240
 msgid "CPU profile failed"
 msgstr "CPU-Profil fehlgeschlagen"
 
@@ -310,6 +310,10 @@ msgstr "Metriken können nicht nach %s geschrieben werden"
 #: src/agent/settings.ts:16
 msgid "ignoring the settings file, using the environment instead:"
 msgstr "Einstellungsdatei wird ignoriert, stattdessen gilt die Umgebung:"
+
+#: src/agent/speech-close.ts:11
+msgid "Closing the TTS failed"
+msgstr "Schließen der Sprachausgabe fehlgeschlagen"
 
 #: src/agent/transcript.ts:54
 msgid "cannot write transcript"
