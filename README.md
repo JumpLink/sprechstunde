@@ -87,7 +87,8 @@ could not reach PipeWire); that is an observation on one machine, not a general 
 | `SPRECHSTUNDE_MODE` | `assistant` or `echo` |
 | `SPRECHSTUNDE_AGENT_NAME` | name used for explicit dispatch, default `sprechstunde` |
 | `SPRECHSTUNDE_STT_MODEL` / `_LLM_MODEL` / `_TTS_MODEL` | override the Mistral models |
-| `SPRECHSTUNDE_TTS_VOICE` | override the profile's TTS voice |
+| `SPRECHSTUNDE_TTS_PROVIDER` | `mistral` (default), `cartesia` (needs `CARTESIA_API_KEY`, model default `sonic-3.6`) or `openrouter` (needs `OPENROUTER_API_KEY` and `SPRECHSTUNDE_TTS_MODEL`, e.g. `elevenlabs/eleven-flash-v2.5`). OpenRouter is for comparing voices: it routes to vendors outside the EU |
+| `SPRECHSTUNDE_TTS_VOICE` | override the profile's TTS voice. A voice id belongs to one vendor, so for `cartesia` and `openrouter` it is required and the profile's voice is ignored |
 | `SPRECHSTUNDE_TTS_REF_AUDIO` | path to an audio file to clone; overrides every other voice setting |
 | `SPRECHSTUNDE_TRUNK_NUMBERS` | comma-separated numbers for the inbound trunk; empty accepts any |
 | `SPRECHSTUNDE_METRICS_DIR` | where latency metrics are written, default `var/metrics` |

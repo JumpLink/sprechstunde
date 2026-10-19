@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-19 17:21+0200\n"
+"POT-Creation-Date: 2026-10-19 18:33+0200\n"
 "PO-Revision-Date: 2026-10-16 10:36+0200\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -17,15 +17,15 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: src/agent/assistant.ts:72
+#: src/agent/assistant.ts:71
 msgid "CPU profile written to"
 msgstr "CPU-Profil geschrieben nach"
 
-#: src/agent/assistant.ts:143
+#: src/agent/assistant.ts:142
 msgid "transfer failed"
 msgstr "Weiterleitung fehlgeschlagen"
 
-#: src/agent/assistant.ts:187
+#: src/agent/assistant.ts:186
 msgid "CPU profile failed"
 msgstr "CPU-Profil fehlgeschlagen"
 
@@ -59,17 +59,23 @@ msgid "LIVEKIT_URL, LIVEKIT_API_KEY and LIVEKIT_API_SECRET must be set"
 msgstr ""
 "LIVEKIT_URL, LIVEKIT_API_KEY und LIVEKIT_API_SECRET müssen gesetzt sein"
 
+#: src/agent/tts-provider.ts:30
+#, javascript-format
+msgid "SPRECHSTUNDE_TTS_PROVIDER must be one of: %s"
+msgstr "SPRECHSTUNDE_TTS_PROVIDER muss einer dieser Werte sein: %s"
+
+#: src/agent/tts-provider.ts:33 src/agent/tts-provider.ts:35
+#: src/agent/tts-provider.ts:48 src/cli/fallback.ts:23 src/cli/provision.ts:10
+#: src/cli/sip-contacts.ts:18 src/cli/stt-try.ts:100 src/cli/tts-try.ts:83
+#: src/cli/voice.ts:12 src/mistral.ts:21
+#, javascript-format
+msgid "%s must be set"
+msgstr "%s muss gesetzt sein"
+
 #: src/agent/watchdog.ts:46
 msgid "worker is unhealthy; exiting so the container restarts"
 msgstr ""
 "Worker ist nicht funktionsfähig; beende, damit der Container neu startet"
-
-#: src/cli/fallback.ts:23 src/cli/provision.ts:10 src/cli/sip-contacts.ts:18
-#: src/cli/stt-try.ts:100 src/cli/tts-try.ts:83 src/cli/voice.ts:12
-#: src/mistral.ts:21
-#, javascript-format
-msgid "%s must be set"
-msgstr "%s muss gesetzt sein"
 
 #: src/cli/fallback.ts:27
 msgid "the profile has no \"fallback\" text; add one or pass --text"
