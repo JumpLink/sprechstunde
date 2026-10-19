@@ -41,6 +41,10 @@ test('ttsChoice: a kugel voice is a number, not a name', () => {
     () => ttsChoice({ SPRECHSTUNDE_TTS_PROVIDER: 'kugel', SPRECHSTUNDE_TTS_VOICE: 'ernst' }),
     /SPRECHSTUNDE_TTS_VOICE/,
   );
+  assert.throws(
+    () => ttsChoice({ SPRECHSTUNDE_TTS_PROVIDER: 'kugel', SPRECHSTUNDE_TTS_VOICE: '1234567890' }),
+    /numeric KugelAudio voice id/,
+  );
   assert.deepEqual(ttsChoice({ SPRECHSTUNDE_TTS_PROVIDER: 'kugel', SPRECHSTUNDE_TTS_VOICE: '7' }), {
     provider: 'kugel',
     model: 'kugel-3.5',

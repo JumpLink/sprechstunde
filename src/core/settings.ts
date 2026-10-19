@@ -57,7 +57,7 @@ export function emptySettings(): Settings {
 
 export const PRESET_ID = /^[A-Za-z0-9][A-Za-z0-9._-]*$/;
 /** A Kugel voice id as it appears in the vendor's library: digits, nothing else. */
-export const KUGEL_VOICE_ID = /^\d+$/;
+export const KUGEL_VOICE_ID = /^\d{1,9}$/;
 const MAX_ATTEMPT_TIMEOUT_S = 120;
 
 export const DEFAULT_VOICES_DIR = join('var', 'voices');
