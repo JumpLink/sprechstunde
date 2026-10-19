@@ -515,3 +515,21 @@ test('GET /api/knowledge refuses paths, missing and broken files', async () => {
     assert.equal(response.status, 400, file);
   }
 });
+
+test('preview: a voice that is not a preset is validated like one and synthesized as given', async () => {
+  const harness = await start();
+  const response = await call(harness, 'POST', '/api/preview', {
+    text: 'Hello.',
+    voice: { provider: 'mistral', model: 'm1', voice: 'v1' },
+  });
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get('x-ttfa-ms'), '123');
+  assert.equal(harness.asked[0]!.choice.provider, 'mistral');
+  assert.equal(harness.asked[0]!.choice.model, 'm1');
+  assert.equal(harness.asked[0]!.choice.voice, 'v1');
+
+  for (const voice of [{ provider: 'nope' }, { provider: 'kugel', voice: 'not-a-number' }, { provider: 'cartesia' }]) {
+    assert.equal((await call(harness, 'POST', '/api/preview', { voice })).status, 400, JSON.stringify(voice));
+  }
+  assert.equal(harness.asked.length, 1);
+});

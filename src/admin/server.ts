@@ -199,6 +199,23 @@ export function createAdminServer(options: AdminOptions): Server {
     };
   };
 
+  /** A voice that is not saved as a preset (a catalog entry being tried): same validation as a preset. */
+  const choiceFromInline = (inline: Record<string, unknown>): TtsChoice => {
+    try {
+      const { presets } = parseSettings(
+        {
+          presets: [
+            { id: 'preview', label: 'preview', provider: inline.provider, model: inline.model, voice: inline.voice },
+          ],
+        },
+        options.settingsPath,
+      );
+      return choiceFromPreset(presets[0]!);
+    } catch (error) {
+      throw new HttpError(400, (error as Error).message);
+    }
+  };
+
   const choiceFor = (settings: Settings, preset: string | undefined): TtsChoice => {
     if (!preset) {
       const voice = envVoice();
@@ -449,7 +466,9 @@ export function createAdminServer(options: AdminOptions): Server {
     if (method === 'POST' && path === '/api/preview') {
       const wanted = body(await readBody(request));
       const text = slot(wanted.text) ?? options.sampleText;
-      const choice = choiceFor(current(), slot(wanted.preset));
+      const choice = isRecord(wanted.voice)
+        ? choiceFromInline(wanted.voice)
+        : choiceFor(current(), slot(wanted.preset));
       const audio = await options.synthesize(choice, text);
       const { wav, sampleRate } = previewWav(audio, Boolean(wanted.phone));
       response.writeHead(200, {

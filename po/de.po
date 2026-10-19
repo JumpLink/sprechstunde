@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-20 00:22+0200\n"
+"POT-Creation-Date: 2026-10-20 00:26+0200\n"
 "PO-Revision-Date: 2026-10-19 23:10+0200\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -280,44 +280,44 @@ msgstr "der Anfragekörper ist zu groß"
 msgid "the request body must be a JSON object"
 msgstr "der Anfragekörper muss ein JSON-Objekt sein"
 
-#: src/admin/server.ts:205
+#: src/admin/server.ts:222
 msgid "no voice is configured"
 msgstr "es ist keine Stimme konfiguriert"
 
-#: src/admin/server.ts:209 src/admin/server.ts:379
+#: src/admin/server.ts:226 src/admin/server.ts:396
 #, javascript-format
 msgid "no preset with id %s"
 msgstr "keine Voreinstellung mit der Id %s"
 
-#: src/admin/server.ts:219
+#: src/admin/server.ts:236
 msgid "this server answers on 127.0.0.1 only"
 msgstr "dieser Server antwortet nur auf 127.0.0.1"
 
-#: src/admin/server.ts:221
+#: src/admin/server.ts:238
 msgid "a change must come from the page this server serves"
 msgstr "eine Änderung muss von der Seite kommen, die dieser Server ausliefert"
 
-#: src/admin/server.ts:233
+#: src/admin/server.ts:250
 msgid "invalid preset id"
 msgstr "ungültige Preset-ID"
 
-#: src/admin/server.ts:265
+#: src/admin/server.ts:282
 msgid "unknown catalog"
 msgstr "unbekannter Katalog"
 
-#: src/admin/server.ts:269
+#: src/admin/server.ts:286
 msgid "\"language\" must be a BCP-47 tag"
 msgstr "„language“ muss ein BCP-47-Tag sein"
 
-#: src/admin/server.ts:313 src/admin/server.ts:346
+#: src/admin/server.ts:330 src/admin/server.ts:363
 msgid "\"file\" must be the name of a .json file in the profiles directory"
 msgstr "\"file\" muss der Name einer .json-Datei im Profilverzeichnis sein"
 
-#: src/admin/server.ts:342
+#: src/admin/server.ts:359
 msgid "\"file\" must be a file name or null"
 msgstr "\"file\" muss ein Dateiname oder null sein"
 
-#: src/admin/server.ts:467
+#: src/admin/server.ts:486
 msgid "unknown route"
 msgstr "unbekannte Route"
 
