@@ -22,6 +22,10 @@ merge, hedged TTS, `metrics.ts`. Tests sit next to the file as `*.test.ts`
 provider, `livekit/sip` cannot)
 |`compose.yaml` |local stack (Valkey, LiveKit, SIP, Asterisk, optional agent), host networking
 |`profiles/example/` |the only profile in the repo: a made-up venue
+|`src/admin/` |settings server (node:http, `/api/*`) and `static.ts`, which serves the built SPA
+|`web/` |the settings UI: Svelte 5 + Vite + Tailwind 4, own `package.json`/lockfile (root TypeScript
+is 7, svelte-check needs 6), built to `dist/web/`. `npm run web:install` / `web:dev` / `web:check`.
+`web/**/*.svelte` is excluded from oxlint and oxfmt (oxc cannot parse Svelte); `svelte-check` covers it
 |`dev/` |shell/bench helpers (`browser-call.sh`, `i18n.sh`, `record-voice.sh`, …)
 |`.werkstatt-state.json` |declares the gitignored local files (`.env`, `node_modules`, `dist`,
 `var`, `console-recordings`) and how to recreate them

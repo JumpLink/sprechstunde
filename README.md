@@ -276,6 +276,13 @@ npm run admin                                     # http://127.0.0.1:8091
 podman compose --profile agent up -d admin        # same thing in the container
 ```
 
+The page is a Svelte 5 app in `web/` (Vite, Tailwind CSS 4, bits-ui), a separate npm package with
+its own lockfile. `npm run build` compiles it to `dist/web/`, which the admin server serves; without
+that build the server answers 503. Pages: overview, voices (presets and the vendor catalog), LLM,
+knowledge and tools, calls. For development run `npm run web:install` once, then `npm run admin` and
+`npm run web:dev` (Vite with hot reload, `/api` proxied to `127.0.0.1:8091`). `web/` is checked by
+`svelte-check` through `npm run typecheck`.
+
 It keeps a list of **presets** — a vendor plus its model, voice, reference clip and the name the
 assistant uses — and one active pair, a primary voice and an optional fallback. Previewing a preset
 synthesizes the profile's greeting through the very code a call uses (`buildBaseTts`), shows the
