@@ -21,11 +21,11 @@ msgstr ""
 msgid "CPU profile written to"
 msgstr ""
 
-#: src/agent/assistant.ts:141
+#: src/agent/assistant.ts:142
 msgid "transfer failed"
 msgstr ""
 
-#: src/agent/assistant.ts:185
+#: src/agent/assistant.ts:186
 msgid "CPU profile failed"
 msgstr ""
 
