@@ -24,6 +24,7 @@ import {
 import { listProfiles, loadProfile } from '../core/profile.js';
 import { choiceFromPreset, type TtsChoice, ttsChoice, ttsFallbackChoice } from '../agent/tts-provider.js';
 import { _ } from '../i18n.js';
+import { CATALOG_TARGETS, type CatalogService, type CatalogTarget, createCatalog } from './catalog.js';
 import { byPreset, callsFrom, METRIC_NAMES, readMetrics, summarizeCall } from './latency.js';
 import { appJs, pageHtml, uiStrings } from './page.js';
 import { previewWav, type Synthesizer } from './preview.js';
@@ -44,6 +45,8 @@ export interface AdminOptions {
   sampleText: string;
   /** The profile the worker starts with: what a call uses while no other one is picked. */
   startProfile?: { id: string; name?: string; locale?: string };
+  /** Vendor models and voices; the real vendors unless a test hands in a fake. */
+  catalog?: CatalogService;
   env?: NodeJS.ProcessEnv;
 }
 
@@ -125,6 +128,8 @@ function maybeNumber(value: unknown): number | undefined {
 
 export function createAdminServer(options: AdminOptions): Server {
   const env = options.env ?? process.env;
+
+  const catalog = options.catalog ?? createCatalog({ env });
 
   const read = (): Settings => readSettings(options.settingsPath) ?? emptySettings();
 
@@ -244,6 +249,26 @@ export function createAdminServer(options: AdminOptions): Server {
           summary: summarizeCall(call),
         })),
       });
+    }
+
+    const catalogTarget = /^\/api\/catalog\/([^/]+)$/.exec(path)?.[1];
+    if (method === 'GET' && catalogTarget !== undefined) {
+      if (!(CATALOG_TARGETS as readonly string[]).includes(catalogTarget)) {
+        throw new HttpError(404, _('unknown catalog'));
+      }
+      const language = url.searchParams.get('language') || undefined;
+      if (language !== undefined && !/^[A-Za-z]{2,3}(-[A-Za-z0-9]{2,8})*$/.test(language)) {
+        throw new HttpError(400, _('"language" must be a BCP-47 tag'));
+      }
+      const refresh = url.searchParams.get('refresh');
+      return json(
+        response,
+        200,
+        await catalog.get(catalogTarget as CatalogTarget, {
+          refresh: refresh === '1' || refresh === 'true',
+          ...(language && { language }),
+        }),
+      );
     }
 
     if (method === 'GET' && path === '/api/profiles') {

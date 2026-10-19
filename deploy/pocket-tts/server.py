@@ -16,6 +16,8 @@ Endpoints:
   POST   /sessions        -> 201 {"id": "..."} or 503 when all sessions are taken
   DELETE /sessions/<id>   -> 204
   GET    /health          -> pool and session counts
+  GET    /voices          -> {"voices": [...], "default": "...", "language": "..."}: the built-in
+                          voices a request may name (POCKET_PRESET_VOICES, set by the image)
 """
 
 import json
@@ -37,6 +39,8 @@ def env(name: str, default: str) -> str:
 
 LANGUAGE = env("POCKET_LANGUAGE", "german")
 DEFAULT_VOICE = env("POCKET_VOICE", "juergen")
+# The voices baked into the image (Containerfile); the default voice is always one of them.
+PRESET_VOICES = sorted(set(env("POCKET_PRESET_VOICES", "").split()) | {DEFAULT_VOICE})
 WORKERS = int(env("POCKET_WORKERS", "4"))
 THREADS = int(env("POCKET_THREADS", "2"))
 MAX_SESSIONS = int(env("POCKET_MAX_SESSIONS", str(WORKERS * 2)))
@@ -140,6 +144,10 @@ class Handler(BaseHTTPRequestHandler):
         self.wfile.write(data)
 
     def do_GET(self):
+        if self.path == "/voices":
+            return self.reply_json(
+                200, {"voices": PRESET_VOICES, "default": DEFAULT_VOICE, "language": LANGUAGE}
+            )
         if self.path != "/health":
             return self.reply_json(404, {"error": "not found"})
         pool = self.pool

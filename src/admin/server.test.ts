@@ -7,6 +7,7 @@ import { join } from 'node:path';
 import { after, test } from 'node:test';
 import { readSettings, type Settings } from '../core/settings.js';
 import type { TtsChoice } from '../agent/tts-provider.js';
+import type { CatalogService } from './catalog.js';
 import { createAdminServer } from './server.js';
 import type { Synthesized } from './preview.js';
 
@@ -36,7 +37,13 @@ after(() => {
 });
 
 async function start(
-  options: { env?: NodeJS.ProcessEnv; settings?: unknown; metrics?: string; profiles?: Record<string, string> } = {},
+  options: {
+    env?: NodeJS.ProcessEnv;
+    settings?: unknown;
+    metrics?: string;
+    profiles?: Record<string, string>;
+    catalog?: CatalogService;
+  } = {},
 ): Promise<Harness> {
   const dir = mkdtempSync(join(tmpdir(), 'sprechstunde-admin-'));
   const settingsPath = join(dir, 'voice.json');
@@ -60,6 +67,7 @@ async function start(
     settingsPath,
     metricsDir,
     sampleText: 'Guten Tag.',
+    ...(options.catalog && { catalog: options.catalog }),
     startProfile: { id: 'start', name: 'Test', locale: 'de-DE' },
     env: { ...(options.env ?? ENV), SPRECHSTUNDE_PROFILES_DIR: profilesDir },
     // 240 samples of silence at 24 kHz; no vendor is involved.
@@ -380,4 +388,37 @@ test('GET /api/profiles without a directory is an empty list', async () => {
   rmSync(harness.profilesDir, { recursive: true });
   const data = (await (await fetch(`${harness.url}/api/profiles`)).json()) as { profiles: unknown[] };
   assert.deepEqual(data.profiles, []);
+});
+
+test('GET /api/catalog/<target> answers from the catalog; bad input is refused', async () => {
+  const asked: unknown[] = [];
+  const harness = await start({
+    catalog: {
+      get: async (target, request) => {
+        asked.push([target, request]);
+        return { provider: target, available: true, models: [], voices: [], fetchedAt: '2026-01-01T00:00:00.000Z' };
+      },
+    },
+  });
+  const ok = await fetch(`${harness.url}/api/catalog/kugel?refresh=1&language=de-DE`);
+  assert.equal(ok.status, 200);
+  assert.equal(((await ok.json()) as { provider: string }).provider, 'kugel');
+  await fetch(`${harness.url}/api/catalog/llm`);
+  assert.deepEqual(asked, [
+    ['kugel', { refresh: true, language: 'de-DE' }],
+    ['llm', { refresh: false }],
+  ]);
+
+  assert.equal((await fetch(`${harness.url}/api/catalog/nobody`)).status, 404);
+  assert.equal((await fetch(`${harness.url}/api/catalog/kugel?language=../x`)).status, 400);
+});
+
+test('GET /api/catalog never throws out of the endpoint and never serves a key', async () => {
+  const harness = await start();
+  // The default catalog with no key for Cartesia in this environment: unavailable, status 200.
+  const response = await fetch(`${harness.url}/api/catalog/kugel`);
+  assert.equal(response.status, 200);
+  const text = await response.text();
+  assert.equal((JSON.parse(text) as { available: boolean }).available, false);
+  assert.equal(text.includes(KEY), false);
 });

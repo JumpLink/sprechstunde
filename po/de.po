@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-20 00:09+0200\n"
+"POT-Creation-Date: 2026-10-20 00:14+0200\n"
 "PO-Revision-Date: 2026-10-19 23:10+0200\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -11,6 +11,20 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: src/admin/catalog.ts:157 src/admin/page.ts:32
+msgid "no API key for this vendor in the environment"
+msgstr "kein API-Schlüssel für diesen Anbieter in der Umgebung"
+
+#: src/admin/catalog.ts:338
+#, javascript-format
+msgid "the vendor answered with %s"
+msgstr "der Anbieter antwortete mit %s"
+
+#: src/admin/catalog.ts:343
+#, javascript-format
+msgid "the request failed: %s"
+msgstr "die Anfrage ist fehlgeschlagen: %s"
 
 #: src/admin/main.ts:22
 #, javascript-format
@@ -100,10 +114,6 @@ msgid "No presets yet. Add one, then make it the active voice."
 msgstr ""
 "Noch keine Voreinstellungen. Lege eine an und mache sie zur aktiven Stimme."
 
-#: src/admin/page.ts:32
-msgid "no API key for this vendor in the environment"
-msgstr "kein API-Schlüssel für diesen Anbieter in der Umgebung"
-
 #: src/admin/page.ts:33
 msgid "calls"
 msgstr "Anrufe"
@@ -162,7 +172,9 @@ msgstr "Profil"
 msgid ""
 "The venue profile the next calls use. Without a choice, the profile the "
 "agent started with answers."
-msgstr "Das Betriebsprofil, das die nächsten Anrufe nutzen. Ohne Auswahl antwortet das Profil, mit dem der Agent gestartet ist."
+msgstr ""
+"Das Betriebsprofil, das die nächsten Anrufe nutzen. Ohne Auswahl antwortet "
+"das Profil, mit dem der Agent gestartet ist."
 
 #: src/admin/page.ts:114
 msgid "Presets"
@@ -260,44 +272,52 @@ msgstr "Letzte Anrufe"
 msgid "no audio received"
 msgstr "kein Audio empfangen"
 
-#: src/admin/server.ts:81
+#: src/admin/server.ts:84
 msgid "the request body is too large"
 msgstr "der Anfragekörper ist zu groß"
 
-#: src/admin/server.ts:97
+#: src/admin/server.ts:100
 msgid "the request body must be a JSON object"
 msgstr "der Anfragekörper muss ein JSON-Objekt sein"
 
-#: src/admin/server.ts:194
+#: src/admin/server.ts:199
 msgid "no voice is configured"
 msgstr "es ist keine Stimme konfiguriert"
 
-#: src/admin/server.ts:198 src/admin/server.ts:312
+#: src/admin/server.ts:203 src/admin/server.ts:337
 #, javascript-format
 msgid "no preset with id %s"
 msgstr "keine Voreinstellung mit der Id %s"
 
-#: src/admin/server.ts:208
+#: src/admin/server.ts:213
 msgid "this server answers on 127.0.0.1 only"
 msgstr "dieser Server antwortet nur auf 127.0.0.1"
 
-#: src/admin/server.ts:210
+#: src/admin/server.ts:215
 msgid "a change must come from the page this server serves"
 msgstr "eine Änderung muss von der Seite kommen, die dieser Server ausliefert"
 
-#: src/admin/server.ts:222
+#: src/admin/server.ts:227
 msgid "invalid preset id"
 msgstr "ungültige Preset-ID"
 
-#: src/admin/server.ts:275
+#: src/admin/server.ts:257
+msgid "unknown catalog"
+msgstr "unbekannter Katalog"
+
+#: src/admin/server.ts:261
+msgid "\"language\" must be a BCP-47 tag"
+msgstr "„language“ muss ein BCP-47-Tag sein"
+
+#: src/admin/server.ts:300
 msgid "\"file\" must be a file name or null"
 msgstr "\"file\" muss ein Dateiname oder null sein"
 
-#: src/admin/server.ts:279
+#: src/admin/server.ts:304
 msgid "\"file\" must be the name of a .json file in the profiles directory"
 msgstr "\"file\" muss der Name einer .json-Datei im Profilverzeichnis sein"
 
-#: src/admin/server.ts:400
+#: src/admin/server.ts:425
 msgid "unknown route"
 msgstr "unbekannte Route"
 
@@ -360,12 +380,12 @@ msgid "LIVEKIT_URL, LIVEKIT_API_KEY and LIVEKIT_API_SECRET must be set"
 msgstr ""
 "LIVEKIT_URL, LIVEKIT_API_KEY und LIVEKIT_API_SECRET müssen gesetzt sein"
 
-#: src/agent/tts-provider.ts:60 src/agent/tts-provider.ts:152
+#: src/agent/tts-provider.ts:65 src/agent/tts-provider.ts:157
 msgid "%1 must be one of: %2"
 msgstr "%1 muss einer dieser Werte sein: %2"
 
-#: src/agent/tts-provider.ts:63 src/agent/tts-provider.ts:66
-#: src/agent/tts-provider.ts:148 src/agent/tts-provider.ts:178
+#: src/agent/tts-provider.ts:68 src/agent/tts-provider.ts:71
+#: src/agent/tts-provider.ts:153 src/agent/tts-provider.ts:183
 #: src/cli/fallback.ts:23 src/cli/provision.ts:10 src/cli/sip-contacts.ts:18
 #: src/cli/stt-try.ts:100 src/cli/tts-try.ts:88 src/cli/voice.ts:12
 #: src/mistral.ts:21
@@ -373,16 +393,16 @@ msgstr "%1 muss einer dieser Werte sein: %2"
 msgid "%s must be set"
 msgstr "%s muss gesetzt sein"
 
-#: src/agent/tts-provider.ts:69
+#: src/agent/tts-provider.ts:74
 #, javascript-format
 msgid "%s must be a numeric KugelAudio voice id"
 msgstr "%s muss eine numerische KugelAudio-Stimmen-ID sein"
 
-#: src/agent/tts-provider.ts:89
+#: src/agent/tts-provider.ts:94
 msgid "preset \"%1\" needs a model for the %2 provider"
 msgstr "Voreinstellung „%1“ braucht ein Modell für den Anbieter %2"
 
-#: src/agent/tts-provider.ts:93
+#: src/agent/tts-provider.ts:98
 #, javascript-format
 msgid "preset \"%s\" needs a numeric KugelAudio voice id"
 msgstr "Voreinstellung „%s“ braucht eine numerische KugelAudio-Stimmen-ID"

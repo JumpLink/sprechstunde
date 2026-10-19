@@ -1,0 +1,271 @@
+import assert from 'node:assert/strict';
+import { test } from 'node:test';
+import { type CatalogDeps, createCatalog, type KugelLike, type MistralLike } from './catalog.js';
+
+// Made-up data only: no real voice ids, no real account content.
+const KEY = 'sk-test-must-never-be-in-a-reason';
+
+function jsonResponse(body: unknown, status = 200): Response {
+  return new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } });
+}
+
+/** A fetch that answers from a table of URL prefixes and records what it was asked. */
+function fakeFetch(routes: Record<string, () => Response | Promise<Response>>) {
+  const calls: Array<{ url: string; headers: Record<string, string> }> = [];
+  const fetchFn = (async (input: string | URL | Request, init?: RequestInit) => {
+    const url = String(input);
+    calls.push({ url, headers: (init?.headers ?? {}) as Record<string, string> });
+    const route = Object.keys(routes).find((prefix) => url.startsWith(prefix));
+    if (!route) throw new Error(`unexpected request: ${url}`);
+    return routes[route]!();
+  }) as typeof fetch;
+  return { fetch: fetchFn, calls };
+}
+
+const kugelVoices = Array.from({ length: 130 }, (_unused, index) => ({
+  id: 1000 + index,
+  name: `Voice ${index}`,
+  description: index === 0 ? 'A calm test voice' : undefined,
+  sex: index % 2 ? 'female' : 'male',
+  supportedLanguages: ['de', 'en'],
+  sampleUrl: index === 0 ? 'https://example.invalid/sample.mp3' : undefined,
+}));
+
+function fakeKugel(): { client: KugelLike; pages: number[] } {
+  const pages: number[] = [];
+  return {
+    pages,
+    client: {
+      models: { list: async () => [{ id: 'kugel-test', name: 'Kugel Test' }] },
+      voices: {
+        list: async ({ limit = 100, offset = 0 }) => {
+          pages.push(offset);
+          return { voices: kugelVoices.slice(offset, offset + limit), total: kugelVoices.length };
+        },
+      },
+    },
+  };
+}
+
+const mistralCards = [
+  { id: 'chat-a', name: 'Chat A', capabilities: { completionChat: true, functionCalling: true } },
+  { id: 'chat-notools', capabilities: { completionChat: true, functionCalling: false } },
+  { id: 'chat-internal', internal: true, capabilities: { completionChat: true, functionCalling: true } },
+  { id: 'speech-a', capabilities: { audioSpeech: true } },
+  { id: 'embed-a', capabilities: {} },
+];
+
+function fakeMistral(): MistralLike {
+  return {
+    models: { list: async () => ({ data: mistralCards }) },
+    audio: {
+      voices: {
+        list: async ({ offset }) => ({
+          items:
+            offset === 0
+              ? [{ id: 'voice-uuid-1', name: 'Test Preset', languages: ['de'], gender: null, description: 'made up' }]
+              : [],
+          total: 1,
+        }),
+      },
+    },
+  };
+}
+
+function catalog(deps: CatalogDeps = {}) {
+  return createCatalog({ env: { MISTRAL_API_KEY: KEY, KUGELAUDIO_API_KEY: KEY, CARTESIA_API_KEY: KEY }, ...deps });
+}
+
+test('a provider without a key is unavailable, with a reason and without a request', async () => {
+  const { fetch: fetchFn, calls } = fakeFetch({});
+  const service = createCatalog({ env: {}, fetch: fetchFn });
+  for (const target of ['mistral', 'cartesia', 'kugel', 'llm'] as const) {
+    const result = await service.get(target);
+    assert.equal(result.available, false, target);
+    assert.ok(result.reason, target);
+    assert.deepEqual([result.models, result.voices], [[], []]);
+  }
+  assert.equal(calls.length, 0);
+});
+
+test('kugel: paginates past the page limit and normalizes voices', async () => {
+  const { client, pages } = fakeKugel();
+  const result = await catalog({ kugel: () => client }).get('kugel', { language: 'de-DE' });
+  assert.equal(result.available, true);
+  assert.deepEqual(pages, [0, 100]);
+  assert.equal(result.voices.length, 130);
+  assert.deepEqual(result.models, [{ id: 'kugel-test', label: 'Kugel Test' }]);
+  assert.deepEqual(result.voices[0], {
+    id: '1000',
+    name: 'Voice 0',
+    languages: ['de', 'en'],
+    gender: 'male',
+    description: 'A calm test voice',
+    sampleUrl: 'https://example.invalid/sample.mp3',
+  });
+  assert.equal('description' in result.voices[1]!, false);
+});
+
+test('kugel: the key reaches the client with the EU prefix a call uses', async () => {
+  const keys: string[] = [];
+  const { client } = fakeKugel();
+  await catalog({
+    kugel: (apiKey) => {
+      keys.push(apiKey);
+      return client;
+    },
+  }).get('kugel');
+  assert.deepEqual(keys, [`eu-${KEY}`]);
+});
+
+test('mistral: speech models and voices; llm: chat models that can call tools', async () => {
+  const service = catalog({ mistral: () => fakeMistral() });
+  const speech = await service.get('mistral');
+  assert.deepEqual(speech.models, [{ id: 'speech-a', label: 'speech-a' }]);
+  assert.deepEqual(speech.voices, [
+    { id: 'voice-uuid-1', name: 'Test Preset', languages: ['de'], description: 'made up' },
+  ]);
+
+  const llm = await service.get('llm');
+  assert.deepEqual(llm.models, [{ id: 'chat-a', label: 'Chat A' }]);
+  assert.deepEqual(llm.voices, []);
+});
+
+test('openrouter: needs no key; voices belong to their model', async () => {
+  const { fetch: fetchFn, calls } = fakeFetch({
+    'https://openrouter.ai/api/v1/models': () =>
+      jsonResponse({
+        data: [
+          { id: 'acme/speak-1', name: 'Acme: Speak', supported_voices: ['ann', 'bob'] },
+          { id: 'acme/speak-2', name: 'Acme: Speak 2' },
+        ],
+      }),
+  });
+  const result = await createCatalog({ env: {}, fetch: fetchFn }).get('openrouter');
+  assert.match(calls[0]!.url, /output_modalities=speech/);
+  assert.deepEqual(
+    result.models.map((model) => model.id),
+    ['acme/speak-1', 'acme/speak-2'],
+  );
+  assert.deepEqual(
+    result.voices.map((entry) => [entry.id, entry.model]),
+    [
+      ['ann', 'acme/speak-1'],
+      ['bob', 'acme/speak-1'],
+    ],
+  );
+});
+
+test('cartesia: sends key and version, follows the cursor, reads accent locales', async () => {
+  let page = 0;
+  const { fetch: fetchFn, calls } = fakeFetch({
+    'https://api.cartesia.ai/voices': () =>
+      jsonResponse(
+        page++ === 0
+          ? {
+              data: [
+                {
+                  id: 'cv-1',
+                  name: 'Test One',
+                  tagline: 'Warm',
+                  gender: 'feminine',
+                  language: 'de',
+                  accents: [{ accent: 'standard-german', locale: 'de-DE', is_native: true }],
+                },
+              ],
+              has_more: true,
+              next_page: 'cv-1',
+            }
+          : { data: [{ id: 'cv-2', name: 'Test Two', language: 'de' }], has_more: false, next_page: null },
+      ),
+  });
+  const result = await catalog({ fetch: fetchFn }).get('cartesia', { language: 'de-DE' });
+  assert.equal(calls.length, 2);
+  assert.equal(calls[0]!.headers['X-API-Key'], KEY);
+  assert.equal(calls[0]!.headers['Cartesia-Version'], '2025-04-16');
+  assert.match(calls[0]!.url, /language=de(&|$)/);
+  assert.match(calls[1]!.url, /starting_after=cv-1/);
+  assert.deepEqual(result.voices, [
+    { id: 'cv-1', name: 'Test One', languages: ['de-DE'], gender: 'feminine', description: 'Warm' },
+    { id: 'cv-2', name: 'Test Two', languages: ['de'] },
+  ]);
+  assert.equal(result.models.length, 1);
+});
+
+test('pocket: asks its own server, falls back to the image defaults on a 404', async () => {
+  const env = { POCKET_TTS_URL: 'http://pocket.invalid:1/' };
+  const listed = fakeFetch({
+    'http://pocket.invalid:1/voices': () => jsonResponse({ voices: ['one', 'two'], language: 'german' }),
+  });
+  const result = await createCatalog({ env, fetch: listed.fetch }).get('pocket');
+  assert.deepEqual(
+    result.voices.map((entry) => entry.id),
+    ['one', 'two'],
+  );
+  assert.deepEqual(result.voices[0]!.languages, ['german']);
+
+  const old = fakeFetch({ 'http://pocket.invalid:1/voices': () => jsonResponse({ error: 'not found' }, 404) });
+  const fallback = await createCatalog({ env, fetch: old.fetch }).get('pocket');
+  assert.equal(fallback.available, true);
+  assert.ok(fallback.voices.length > 0);
+});
+
+test('network errors and error statuses are unavailable, never thrown, never carry the key', async () => {
+  const down = createCatalog({
+    env: { CARTESIA_API_KEY: KEY, POCKET_TTS_URL: 'http://pocket.invalid:1' },
+    fetch: (async () => {
+      throw new Error(`connect failed for ${KEY}`);
+    }) as typeof fetch,
+  });
+  for (const target of ['cartesia', 'openrouter', 'pocket'] as const) {
+    const result = await down.get(target);
+    assert.equal(result.available, false, target);
+    assert.ok(result.reason, target);
+    assert.equal(JSON.stringify(result).includes(KEY), false, target);
+  }
+
+  const denied = fakeFetch({ 'https://api.cartesia.ai/': () => jsonResponse({ error: KEY }, 401) });
+  const result = await catalog({ fetch: denied.fetch }).get('cartesia');
+  assert.equal(result.available, false);
+  assert.match(result.reason ?? '', /401/);
+
+  const broken = catalog({
+    kugel: () => {
+      throw new Error(`bad key ${KEY}`);
+    },
+  });
+  assert.equal(JSON.stringify(await broken.get('kugel')).includes(KEY), false);
+});
+
+test('cache: one hour, refresh bypasses it, failures are not cached', async () => {
+  let time = 1_000_000;
+  let asked = 0;
+  const { client } = fakeKugel();
+  const service = catalog({
+    now: () => time,
+    kugel: () => {
+      asked++;
+      return client;
+    },
+  });
+  await service.get('kugel');
+  await service.get('kugel');
+  assert.equal(asked, 1);
+  await service.get('kugel', { refresh: true });
+  assert.equal(asked, 2);
+  time += 61 * 60 * 1000;
+  await service.get('kugel');
+  assert.equal(asked, 3);
+  // Another language is another list.
+  await service.get('kugel', { language: 'en' });
+  assert.equal(asked, 4);
+
+  let failing = true;
+  const flaky = createCatalog({
+    env: {},
+    fetch: (async () => (failing ? jsonResponse({}, 500) : jsonResponse({ data: [] }))) as typeof fetch,
+  });
+  assert.equal((await flaky.get('openrouter')).available, false);
+  failing = false;
+  assert.equal((await flaky.get('openrouter')).available, true);
+});
