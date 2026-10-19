@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-19 23:13+0200\n"
+"POT-Creation-Date: 2026-10-19 23:14+0200\n"
 "PO-Revision-Date: 2026-10-19 23:10+0200\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -286,7 +286,7 @@ msgstr ""
 msgid "transfer failed"
 msgstr "Weiterleitung fehlgeschlagen"
 
-#: src/agent/assistant.ts:237
+#: src/agent/assistant.ts:238
 msgid "CPU profile failed"
 msgstr "CPU-Profil fehlgeschlagen"
 
@@ -302,7 +302,7 @@ msgstr "Echo-Modus: Weiterleitung abgebrochen"
 msgid "starting assistant with profile"
 msgstr "Assistent startet mit Profil"
 
-#: src/agent/metrics.ts:81
+#: src/agent/metrics.ts:83
 #, javascript-format
 msgid "cannot write metrics to %s"
 msgstr "Metriken können nicht nach %s geschrieben werden"
@@ -330,7 +330,7 @@ msgstr "%1 muss einer dieser Werte sein: %2"
 
 #: src/agent/tts-provider.ts:53 src/agent/tts-provider.ts:56
 #: src/agent/tts-provider.ts:137 src/cli/fallback.ts:23 src/cli/provision.ts:10
-#: src/cli/sip-contacts.ts:18 src/cli/stt-try.ts:100 src/cli/tts-try.ts:83
+#: src/cli/sip-contacts.ts:18 src/cli/stt-try.ts:100 src/cli/tts-try.ts:88
 #: src/cli/voice.ts:12 src/mistral.ts:21
 #, javascript-format
 msgid "%s must be set"
@@ -505,7 +505,7 @@ msgstr "Zielverzögerung"
 msgid "final ms (median)"
 msgstr "final ms (Median)"
 
-#: src/cli/stt-try.ts:109 src/cli/tts-try.ts:105
+#: src/cli/stt-try.ts:109 src/cli/tts-try.ts:110
 msgid "max ms"
 msgstr "max. ms"
 
@@ -513,23 +513,23 @@ msgstr "max. ms"
 msgid "text"
 msgstr "Text"
 
-#: src/cli/stt-try.ts:117 src/cli/tts-try.ts:130
+#: src/cli/stt-try.ts:117 src/cli/tts-try.ts:135
 msgid "failed:"
 msgstr "fehlgeschlagen:"
 
-#: src/cli/tts-try.ts:105
+#: src/cli/tts-try.ts:110
 msgid "voice"
 msgstr "Stimme"
 
-#: src/cli/tts-try.ts:105
+#: src/cli/tts-try.ts:110
 msgid "first audio ms"
 msgstr "erstes Audio ms"
 
-#: src/cli/tts-try.ts:105
+#: src/cli/tts-try.ts:110
 msgid "total ms"
 msgstr "gesamt ms"
 
-#: src/cli/tts-try.ts:105
+#: src/cli/tts-try.ts:110
 msgid "file"
 msgstr "Datei"
 
