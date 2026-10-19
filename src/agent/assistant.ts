@@ -10,6 +10,7 @@ import type { Profile } from '../core/profile.js';
 import { transferRequest } from '../core/tools.js';
 import { _ } from '../i18n.js';
 import { recordMetrics } from './metrics.js';
+import { attachTranscript, transcriptDir } from './transcript.js';
 import { transferSipParticipant } from './transfer.js';
 import { StallGuardSTT } from './stt-guard.js';
 import { ContiguousSTT } from './stt-merge.js';
@@ -158,11 +159,16 @@ export async function runAssistant(ctx: JobContext, profile: Profile): Promise<v
       // Adaptive interruption runs on LiveKit Cloud inference. `dev` tries it (caller audio would go
       // to a third party), fails at job start and falls back to VAD; `start` never tries. Pin VAD
       // so dev tests behave like production and no audio leaves for LiveKit Cloud.
-      interruption: { mode: 'vad' },
+      // Phone test 2026-10-19: the agent broke off an answer 1–2 s in and started over, four times
+      // in one call. A backchannel ("mhm"), line noise or echo is short and wordless; a caller who
+      // really takes the turn says more than one word.
+      interruption: { mode: 'vad', minDuration: 800, minWords: 2 },
     },
   });
 
   session.on(voice.AgentSessionEventTypes.MetricsCollected, (event) => recordMetrics(event.metrics));
+  const debugTranscripts = transcriptDir();
+  if (debugTranscripts) attachTranscript(session, ctx.job.id, debugTranscripts);
   // The session closes when the caller hangs up, but the job would sit in the room until the
   // room times out; whoever joins that room meanwhile gets a silent agent and no new dispatch.
   session.on(voice.AgentSessionEventTypes.Close, () => {

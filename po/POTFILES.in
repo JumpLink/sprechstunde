@@ -4,9 +4,11 @@ src/agent/main.ts
 src/agent/metrics.ts
 src/agent/stt-guard.ts
 src/agent/stt-merge.ts
+src/agent/transcript.ts
 src/agent/transfer.ts
 src/agent/tts-hedge.ts
 src/agent/tts-voice.ts
+src/agent/watchdog.ts
 src/cli/fallback.ts
 src/cli/metrics.ts
 src/cli/provision.ts

@@ -7,7 +7,7 @@ latency/robustness details: [README.md](README.md).
 
 A voice assistant for small businesses' phone lines (opening hours, directions, hand-over to a
 person), built on LiveKit Agents (Node 24, TypeScript, ESM) with a Mistral STT/LLM/TTS cascade.
-Apache-2.0, **public repo**. Status: spike — no real call has gone through yet (README, "Not
+Apache-2.0, **public repo**. Status: spike — real calls and transfers over 1&1 work (README, "Not
 tested yet"; keep that list honest when you change behaviour).
 
 ## Layout
@@ -45,7 +45,8 @@ format` fixes formatting (oxfmt).
 
 |**core stays channel-independent**: nothing under `src/core/` imports LiveKit or knows about
 telephony; channel specifics go in `src/agent/`
-|**privacy**: transcripts and caller numbers are never stored. Metrics (`var/metrics/<date>.jsonl`)
+|**privacy**: caller numbers are never stored; transcripts only behind the debug switch
+`SPRECHSTUNDE_TRANSCRIPT_DIR` (off when empty, never on in production, never in metrics). Metrics (`var/metrics/<date>.jsonl`)
 are numbers, ids and timestamps only — never add text content to them or to logs
 |**secrets** only in the gitignored `.env` (template: `.env.example`); never read it into output,
 commits, issues or PR text

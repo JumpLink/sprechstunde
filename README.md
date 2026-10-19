@@ -91,6 +91,7 @@ could not reach PipeWire); that is an observation on one machine, not a general 
 | `SPRECHSTUNDE_TTS_REF_AUDIO` | path to an audio file to clone; overrides every other voice setting |
 | `SPRECHSTUNDE_TRUNK_NUMBERS` | comma-separated numbers for the inbound trunk; empty accepts any |
 | `SPRECHSTUNDE_METRICS_DIR` | where latency metrics are written, default `var/metrics` |
+| `SPRECHSTUNDE_TRANSCRIPT_DIR` | debug only, off when empty: writes what caller and agent said, plus turn events, to `<dir>/<date>/<job id>.jsonl`. In compose any non-empty value turns it on and writes to `var/transcripts` |
 | `SPRECHSTUNDE_ANSWER_TIMEOUT` | seconds Asterisk lets LiveKit ring before it plays the fallback, default `10` |
 | `SIP_PROVIDER_*`, `TRANSFER_TARGET_NUMBER`, `TRANSFER_SIP_HOST` | Asterisk's provider registration and the one number a call may be transferred to; it replaces the profile's `transfer.target` — see `.env.example` |
 
@@ -185,7 +186,9 @@ What the agent does beyond the defaults, and why:
 
 The agent logs latency metrics to `var/metrics/<date>.jsonl` (`SPRECHSTUNDE_METRICS_DIR`) —
 numbers, ids and timestamps only. A directory it cannot write costs a warning, not the call. It
-does not store transcripts or caller numbers. The dispatch rule sets `hidePhoneNumber`, so
+does not store transcripts or caller numbers unless `SPRECHSTUNDE_TRANSCRIPT_DIR` is set: that
+switch is for one's own test calls and logs a warning at every call; production leaves it empty,
+and files under `var/transcripts` are deleted by hand once the bug is understood. The dispatch rule sets `hidePhoneNumber`, so
 LiveKit names the room and the caller after the last four digits and identifies them by an unsalted
 hash of the number: a pseudonym, not anonymity. The `livekit/sip` container still logs the full
 number; `npm run provision` replaces a rule created before this setting.
@@ -215,23 +218,33 @@ de-duplicated. Malformed lines are skipped and counted.
 - 1&1 keeps a registration about two hours, not the requested ten minutes, and allows only a few
   contacts per number. Unregistering on stop is verified with `sip:contacts`; a killed container
   still leaves its contact behind.
+- The agent container under memory pressure (2026-10-18): its inference and job processes ended,
+  the worker stayed registered, and every call got the fallback for a day. `start` now polls its
+  own health endpoint (`:8081/`, 503 once the inference process is gone) and exits after four
+  failed probes 15 s apart, so `restart: unless-stopped` brings it back. Covered by unit tests
+  with a fake probe; the real failure has not been reproduced.
+- Interruptions need 0.8 s of speech and two recognised words since a phone test where the agent
+  broke off and restarted answers four times in one call. Whether that was backchannel, echo or a
+  turn ended too early is not known; untested after the change.
 - On a transfer over 1&1 the target sees the assistant's own number, not the caller's. Whether
   Asterisk sends it or 1&1 replaces whatever Asterisk sends is not checked; passing the caller's
   number through would need the provider to allow it.
-- Transfer reached a real mobile over 1&1 once, and only its voicemail: the REFER goes to
-  `sip:<TRANSFER_TARGET_NUMBER>@TRANSFER_SIP_HOST`, because Asterisk answers a `tel:` target with
-  400. A person answering, and what the caller hears meanwhile, are untested.
+- Transfer over 1&1 reached a person on a mobile on 2026-10-19 and both sides heard each other;
+  the REFER goes to `sip:<TRANSFER_TARGET_NUMBER>@TRANSFER_SIP_HOST`, because Asterisk answers a
+  `tel:` target with 400. What the caller hears while it rings is not written down yet.
 - The optional `agent` container (`podman compose --profile agent up`): the image builds and, in
   assistant mode, starts and registers as a worker with LiveKit (turn-detector files found, metrics
   directory writable, German catalogue present). A dispatch probe without a phone ran a session
-  in it, greeting synthesised and clean close; no phone call has gone through it yet.
+  in it, greeting synthesised and clean close. Phone calls through it, including a transfer, worked
+  on 2026-10-19.
 - The stall guard and the batch fallback are covered by unit tests with fake STTs, not yet by a
   real Mistral outage. The rescue path and `HedgedTTS` are verified only with fakes.
 - The session now shuts the job down when the caller hangs up; untested in a real call.
 - Echo mode closes its audio stream, track and source on shutdown; checked against the rtc-node
   API, not against a running call.
 - The fallback with no agent running: an Asterisk-internal call into `[from-provider]` rang
-  LiveKit and played `fallback.wav` after 10 s. No real caller has heard it yet. Without a
+  LiveKit and played `fallback.wav` after 10 s, and on 2026-10-19 a real caller over 1&1 heard it
+  while the agent hung (see the memory-pressure item). Without a
   recording the "no service" prompt is English: Debian packages no German Asterisk core sounds.
 
 ## Development

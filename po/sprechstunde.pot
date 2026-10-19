@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-18 02:44+0200\n"
+"POT-Creation-Date: 2026-10-19 17:06+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,15 +17,15 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src/agent/assistant.ts:69
+#: src/agent/assistant.ts:70
 msgid "CPU profile written to"
 msgstr ""
 
-#: src/agent/assistant.ts:139
+#: src/agent/assistant.ts:140
 msgid "transfer failed"
 msgstr ""
 
-#: src/agent/assistant.ts:177
+#: src/agent/assistant.ts:183
 msgid "CPU profile failed"
 msgstr ""
 
@@ -37,7 +37,7 @@ msgstr ""
 msgid "echo mode: forwarding stopped"
 msgstr ""
 
-#: src/agent/main.ts:19
+#: src/agent/main.ts:20
 msgid "starting assistant with profile"
 msgstr ""
 
@@ -46,8 +46,20 @@ msgstr ""
 msgid "cannot write metrics to %s"
 msgstr ""
 
+#: src/agent/transcript.ts:54
+msgid "cannot write transcript"
+msgstr ""
+
+#: src/agent/transcript.ts:64
+msgid "debug transcripts are on; this stores what callers say"
+msgstr ""
+
 #: src/agent/transfer.ts:14
 msgid "LIVEKIT_URL, LIVEKIT_API_KEY and LIVEKIT_API_SECRET must be set"
+msgstr ""
+
+#: src/agent/watchdog.ts:46
+msgid "worker is unhealthy; exiting so the container restarts"
 msgstr ""
 
 #: src/cli/fallback.ts:23 src/cli/provision.ts:10 src/cli/sip-contacts.ts:18
