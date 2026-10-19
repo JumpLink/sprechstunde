@@ -29,7 +29,7 @@ import { choiceFromPreset, type TtsChoice, ttsChoice, ttsChoices, ttsFallbackCho
 import { _ } from '../i18n.js';
 import { CATALOG_TARGETS, type CatalogService, type CatalogTarget, createCatalog } from './catalog.js';
 import { byPreset, callsFrom, METRIC_NAMES, readMetrics, summarizeCall } from './latency.js';
-import { appJs, pageHtml, uiStrings } from './page.js';
+import { findWebDir, serveStatic } from './static.js';
 import { previewWav, type Synthesizer } from './preview.js';
 
 export const DEFAULT_PORT = 8091;
@@ -54,6 +54,8 @@ export interface AdminOptions {
   /** Vendor models and voices; the real vendors unless a test hands in a fake. */
   catalog?: CatalogService;
   env?: NodeJS.ProcessEnv;
+  /** The built settings app; found next to this build when absent, `null` for none (tests). */
+  webDir?: string | null;
 }
 
 class HttpError extends Error {
@@ -107,13 +109,20 @@ function body(raw: unknown): Record<string, unknown> {
   return raw;
 }
 
-function send(response: ServerResponse, status: number, type: string, payload: string | Uint8Array): void {
+function send(
+  response: ServerResponse,
+  status: number,
+  type: string,
+  payload: string | Uint8Array,
+  headers: Record<string, string> = {},
+): void {
   response.writeHead(status, {
     'content-type': type,
     'content-length': typeof payload === 'string' ? Buffer.byteLength(payload) : payload.byteLength,
     // Nothing here is for another page to read, and the answers change with every call.
     'cache-control': 'no-store',
     'x-content-type-options': 'nosniff',
+    ...headers,
   });
   response.end(payload);
 }
@@ -195,7 +204,6 @@ export function createAdminServer(options: AdminOptions): Server {
         openrouter: Boolean(env.OPENROUTER_API_KEY),
         kugel: Boolean(env.KUGELAUDIO_API_KEY),
       },
-      strings: uiStrings(),
     };
   };
 
@@ -250,10 +258,6 @@ export function createAdminServer(options: AdminOptions): Server {
       if (presetId === undefined || !PRESET_ID.test(presetId)) throw new HttpError(400, _('invalid preset id'));
     }
 
-    if (method === 'GET' && path === '/') return send(response, 200, 'text/html; charset=utf-8', pageHtml());
-    if (method === 'GET' && path === '/app.js') {
-      return send(response, 200, 'text/javascript; charset=utf-8', appJs());
-    }
     if (method === 'GET' && path === '/api/state') return json(response, 200, state());
 
     if (method === 'GET' && path === '/api/latency') {
@@ -481,6 +485,22 @@ export function createAdminServer(options: AdminOptions): Server {
       });
       response.end(wav);
       return;
+    }
+
+    // Anything else that is not the API is the settings app: its files, or index.html for a page path.
+    if ((method === 'GET' || method === 'HEAD') && !path.startsWith('/api/')) {
+      const served = serveStatic(options.webDir === undefined ? findWebDir() : (options.webDir ?? undefined), path);
+      if (served === 'not-built') {
+        return send(
+          response,
+          503,
+          'text/plain; charset=utf-8',
+          _('the settings app is not built: run `npm run web:build`'),
+        );
+      }
+      if (served !== 'not-found') {
+        return send(response, served.status, served.type, served.body, served.headers);
+      }
     }
 
     throw new HttpError(404, _('unknown route'));

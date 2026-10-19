@@ -63,6 +63,7 @@
       <a class="mt-3 inline-block text-sm text-primary underline-offset-4 hover:underline" href="/knowledge">
         {_('Show knowledge and tools')}
       </a>
+      <p class="mt-3 break-all text-xs text-muted-foreground">{_('Settings file')}: {snapshot.settingsPath}</p>
     </Card>
 
     <Card title={_('Voice')} description={_('Primary voice and the one that takes over when it fails')}>

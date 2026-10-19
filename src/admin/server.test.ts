@@ -3,7 +3,7 @@ import { mkdirSync, mkdtempSync, rmSync, readFileSync, writeFileSync } from 'nod
 import { request as httpRequest } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 import { after, test } from 'node:test';
 import { parseProfile } from '../core/profile.js';
 import { readSettings, type Settings } from '../core/settings.js';
@@ -44,6 +44,8 @@ async function start(
     metrics?: string;
     profiles?: Record<string, string>;
     catalog?: CatalogService;
+    /** Files of the built settings app by path; none means the app is not built. */
+    web?: Record<string, string>;
   } = {},
 ): Promise<Harness> {
   const dir = mkdtempSync(join(tmpdir(), 'sprechstunde-admin-'));
@@ -63,11 +65,23 @@ async function start(
     writeFileSync(join(metricsDir, '2026-10-19.jsonl'), options.metrics);
   }
 
+  let webDir: string | null = null;
+  if (options.web) {
+    webDir = join(dir, 'web');
+    for (const [name, content] of Object.entries(options.web)) {
+      mkdirSync(dirname(join(webDir, name)), { recursive: true });
+      writeFileSync(join(webDir, name), content);
+    }
+  }
+  // Outside the web directory: what a traversal would have to reach.
+  writeFileSync(join(dir, 'secret.txt'), KEY);
+
   const asked: Harness['asked'] = [];
   const server = createAdminServer({
     settingsPath,
     metricsDir,
     sampleText: 'Guten Tag.',
+    webDir,
     ...(options.catalog && { catalog: options.catalog }),
     startProfile: { id: 'start', name: 'Test', locale: 'de-DE' },
     loadStartProfile: () => parseProfile(JSON.parse(venue('start'))),
@@ -116,17 +130,103 @@ async function settingsOf(harness: Harness, response: Response): Promise<Setting
   return payload;
 }
 
-test('the page and its script are served', async () => {
-  const harness = await start();
+const WEB = {
+  'index.html': '<!doctype html><title>app</title><script type="module" src="/assets/app.js"></script>',
+  'assets/app.js': 'console.log("app");',
+  'assets/app.css': 'body{}',
+  'locale/de.json': '{"Save":"Speichern"}',
+};
+
+/** A GET with the path exactly as written: `fetch` would resolve the dot segments first. */
+function rawGet(harness: Harness, path: string): Promise<{ status: number; body: string }> {
+  const { port } = new URL(harness.url);
+  return new Promise((resolve, reject) => {
+    const request = httpRequest({ host: '127.0.0.1', port, path }, (response) => {
+      let body = '';
+      response.on('data', (chunk: Buffer) => (body += chunk.toString()));
+      response.on('end', () => resolve({ status: response.statusCode ?? 0, body }));
+    });
+    request.on('error', reject);
+    request.end();
+  });
+}
+
+test('the settings app is served with its own types and a strict policy', async () => {
+  const harness = await start({ web: WEB });
   const page = await fetch(harness.url);
   assert.equal(page.status, 200);
   assert.match(page.headers.get('content-type') ?? '', /text\/html/);
-  const html = await page.text();
-  assert.match(html, /<script src="\/app\.js">/);
+  assert.equal(page.headers.get('cache-control'), 'no-store');
+  const policy = page.headers.get('content-security-policy') ?? '';
+  assert.match(policy, /default-src 'none'/);
+  assert.match(policy, /script-src 'self'(;|$)/);
+  assert.equal(page.headers.get('x-frame-options'), 'DENY');
+  assert.match(await page.text(), /assets\/app\.js/);
 
-  const script = await fetch(`${harness.url}/app.js`);
+  const script = await fetch(`${harness.url}/assets/app.js`);
   assert.equal(script.status, 200);
-  assert.match(script.headers.get('content-type') ?? '', /javascript/);
+  assert.match(script.headers.get('content-type') ?? '', /text\/javascript/);
+  assert.match(script.headers.get('cache-control') ?? '', /immutable/);
+  assert.equal(script.headers.get('x-content-type-options'), 'nosniff');
+
+  const css = await fetch(`${harness.url}/assets/app.css`);
+  assert.match(css.headers.get('content-type') ?? '', /text\/css/);
+
+  const locale = await fetch(`${harness.url}/locale/de.json`);
+  assert.match(locale.headers.get('content-type') ?? '', /application\/json/);
+  assert.deepEqual(await locale.json(), { Save: 'Speichern' });
+});
+
+test('a page path falls back to index.html, a missing file does not', async () => {
+  const harness = await start({ web: WEB });
+  for (const path of ['/voices', '/knowledge', '/calls/', '/some/deep/page']) {
+    const response = await fetch(`${harness.url}${path}`);
+    assert.equal(response.status, 200, path);
+    assert.match(await response.text(), /<title>app<\/title>/, path);
+  }
+  const asset = await fetch(`${harness.url}/assets/gone.js`);
+  assert.equal(asset.status, 404);
+  assert.match(asset.headers.get('content-type') ?? '', /application\/json/);
+  // The API never falls back to the app.
+  const api = await fetch(`${harness.url}/api/nothing`);
+  assert.equal(api.status, 404);
+  assert.equal(typeof ((await api.json()) as { error: unknown }).error, 'string');
+  // Only reads are served.
+  const post = await call(harness, 'POST', '/voices', {});
+  assert.equal(post.status, 404);
+});
+
+test('a path cannot leave the web directory', async () => {
+  const harness = await start({ web: WEB });
+  for (const path of [
+    '/../secret.txt',
+    '/assets/../../secret.txt',
+    '/%2e%2e/secret.txt',
+    '/assets/%2e%2e/%2e%2e/secret.txt',
+    '/..%2fsecret.txt',
+    '/assets%5c..%5c..%5csecret.txt',
+    '/%00.js',
+  ]) {
+    const reply = await rawGet(harness, path);
+    assert.ok(!reply.body.includes(KEY), path);
+    assert.notEqual(reply.status, 500, path);
+  }
+  const reply = await rawGet(harness, '/../secret.txt');
+  assert.equal(reply.status, 404);
+});
+
+test('without a build the app answers 503, the API still works', async () => {
+  const harness = await start();
+  const page = await fetch(harness.url);
+  assert.equal(page.status, 503);
+  assert.match(await page.text(), /web:build/);
+  assert.equal((await fetch(`${harness.url}/api/state`)).status, 200);
+});
+
+test('the state no longer carries UI strings', async () => {
+  const harness = await start();
+  const state = (await (await fetch(`${harness.url}/api/state`)).json()) as Record<string, unknown>;
+  assert.equal('strings' in state, false);
 });
 
 test('a state-changing request must come from this page', async () => {

@@ -1,9 +1,9 @@
 src/admin/catalog.ts
 src/admin/latency.ts
 src/admin/main.ts
-src/admin/page.ts
 src/admin/preview.ts
 src/admin/server.ts
+src/admin/static.ts
 src/agent/assistant.ts
 src/agent/echo.ts
 src/agent/llm.ts
