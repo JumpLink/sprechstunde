@@ -36,12 +36,11 @@ function main(): void {
     synthesize: ttsSynthesizer(() => mistralClient(), profile),
   });
 
-  server.listen(port(process.env), HOST, () => {
-    console.log(
-      _('settings UI on http://%1:%2')
-        .replace('%1', HOST)
-        .replace('%2', String(port(process.env))),
-    );
+  const listenOn = port(process.env);
+  server.listen(listenOn, HOST, () => {
+    // The URL stays out of the catalogue: gettext warns about embedded URLs, and a translator has
+    // nothing to decide about one.
+    console.log(_('settings UI on %s').replace('%s', `http://${HOST}:${listenOn}`));
     console.log(_('settings file: %s').replace('%s', settingsFile()));
   });
 }

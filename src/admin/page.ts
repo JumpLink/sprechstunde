@@ -72,80 +72,81 @@ function escapeHtml(text: string): string {
 }
 
 export function pageHtml(): string {
-  const h = (text: string) => escapeHtml(_(text));
+  // `_h` is an xgettext keyword of its own (dev/i18n.sh): translate, then escape for HTML.
+  const _h = (text: string) => escapeHtml(_(text));
   // TRANSLATORS: the language tag of this catalogue, used as the page's lang attribute ("de").
-  const lang = h('en');
+  const lang = _h('en');
   return `<!doctype html>
 <html lang="${lang}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="content-security-policy" content="default-src 'none'; script-src 'self'; style-src 'unsafe-inline'; media-src blob:; connect-src 'self'; form-action 'none'">
-<title>${h('Voice settings')}</title>
+<title>${_h('Voice settings')}</title>
 <style>${STYLE}</style>
 </head>
 <body>
-<h1>${h('Voice settings')}</h1>
-<p class="hint">${h('Changes take effect with the next call; a call in progress keeps its voice.')}
+<h1>${_h('Voice settings')}</h1>
+<p class="hint">${_h('Changes take effect with the next call; a call in progress keeps its voice.')}
 <span id="settings-path" class="tag"></span></p>
 <div id="message" role="status" aria-live="polite"></div>
 
-<h2>${h('Active voice')}</h2>
-<p class="hint">${h(
+<h2>${_h('Active voice')}</h2>
+<p class="hint">${_h(
     'The primary voice speaks; the fallback steps in when the primary fails or has no free session. Without a primary preset the environment decides.',
   )}</p>
 <form class="row" id="active-form">
-  <label>${h('Primary')}<select id="active-primary" name="primary"></select></label>
-  <label>${h('Fallback')}<select id="active-fallback" name="fallback"></select></label>
-  <button class="primary" type="submit">${h('Save')}</button>
+  <label>${_h('Primary')}<select id="active-primary" name="primary"></select></label>
+  <label>${_h('Fallback')}<select id="active-fallback" name="fallback"></select></label>
+  <button class="primary" type="submit">${_h('Save')}</button>
 </form>
 <p class="hint" id="env-voice"></p>
 
-<h2>${h('Presets')}</h2>
+<h2>${_h('Presets')}</h2>
 <table id="presets">
   <thead><tr>
-    <th>${h('Label')}</th><th>${h('Id')}</th><th>${h('Vendor')}</th><th>${h('Model')}</th>
-    <th>${h('Voice')}</th><th>${h('Assistant name')}</th><th></th>
+    <th>${_h('Label')}</th><th>${_h('Id')}</th><th>${_h('Vendor')}</th><th>${_h('Model')}</th>
+    <th>${_h('Voice')}</th><th>${_h('Assistant name')}</th><th></th>
   </tr></thead>
   <tbody></tbody>
 </table>
 <form class="row" id="preset-form">
-  <label>${h('Id')}<input name="id" required pattern="[A-Za-z0-9][A-Za-z0-9._-]*" size="12"></label>
-  <label>${h('Label')}<input name="label" required size="16"></label>
-  <label>${h('Vendor')}<select name="provider" id="preset-provider"></select></label>
-  <label>${h('Model')}<input name="model" size="18" placeholder="${h("the vendor's default")}"></label>
-  <label>${h('Voice')}<input name="voice" size="18"></label>
-  <label>${h('Reference audio')}<input name="refAudio" size="18" placeholder="${h('path, Mistral only')}"></label>
-  <label>${h('Assistant name')}<input name="name" size="12"></label>
-  <button class="primary" type="submit" id="preset-submit">${h('Add')}</button>
-  <button type="button" id="preset-cancel" hidden>${h('Cancel')}</button>
+  <label>${_h('Id')}<input name="id" required pattern="[A-Za-z0-9][A-Za-z0-9._-]*" size="12"></label>
+  <label>${_h('Label')}<input name="label" required size="16"></label>
+  <label>${_h('Vendor')}<select name="provider" id="preset-provider"></select></label>
+  <label>${_h('Model')}<input name="model" size="18" placeholder="${_h("the vendor's default")}"></label>
+  <label>${_h('Voice')}<input name="voice" size="18"></label>
+  <label>${_h('Reference audio')}<input name="refAudio" size="18" placeholder="${_h('path, Mistral only')}"></label>
+  <label>${_h('Assistant name')}<input name="name" size="12"></label>
+  <button class="primary" type="submit" id="preset-submit">${_h('Add')}</button>
+  <button type="button" id="preset-cancel" hidden>${_h('Cancel')}</button>
 </form>
 
-<h2>${h('Preview')}</h2>
-<p class="hint">${h(
+<h2>${_h('Preview')}</h2>
+<p class="hint">${_h(
     'Synthesized through the same code a call uses. "Phone" resamples to 8 kHz: that is the only band a caller hears.',
   )}</p>
 <textarea id="preview-text" rows="3"></textarea>
 <div class="checks" id="preview-choices"></div>
 <form class="row" id="preview-form">
-  <label class="checks"><input type="checkbox" id="preview-phone"> ${h('Phone (8 kHz)')}</label>
-  <button class="primary" type="submit">${h('Play')}</button>
+  <label class="checks"><input type="checkbox" id="preview-phone"> ${_h('Phone (8 kHz)')}</label>
+  <button class="primary" type="submit">${_h('Play')}</button>
 </form>
 <div class="cards" id="preview-results"></div>
 
-<h2>${h('LLM')}</h2>
-<p class="hint">${h('A fallback model is asked when the first one does not answer within the attempt timeout.')}</p>
+<h2>${_h('LLM')}</h2>
+<p class="hint">${_h('A fallback model is asked when the first one does not answer within the attempt timeout.')}</p>
 <form class="row" id="llm-form">
-  <label>${h('Model')}<input name="model" size="24" placeholder="mistral-small-latest"></label>
-  <label>${h('Fallback model')}<input name="fallbackModel" size="24"></label>
-  <label>${h('Attempt timeout (s)')}<input name="attemptTimeoutS" size="6" inputmode="decimal"></label>
-  <button class="primary" type="submit">${h('Save')}</button>
+  <label>${_h('Model')}<input name="model" size="24" placeholder="mistral-small-latest"></label>
+  <label>${_h('Fallback model')}<input name="fallbackModel" size="24"></label>
+  <label>${_h('Attempt timeout (s)')}<input name="attemptTimeoutS" size="6" inputmode="decimal"></label>
+  <button class="primary" type="submit">${_h('Save')}</button>
 </form>
 
-<h2>${h('Measured latency')}</h2>
-<p class="hint">${h('From the metrics files, newest first. p50 and p95 are nearest-rank over the lines of a call.')}</p>
+<h2>${_h('Measured latency')}</h2>
+<p class="hint">${_h('From the metrics files, newest first. p50 and p95 are nearest-rank over the lines of a call.')}</p>
 <table id="latency-presets"><thead><tr></tr></thead><tbody></tbody></table>
-<h3 class="tag">${h('Recent calls')}</h3>
+<h3 class="tag">${_h('Recent calls')}</h3>
 <table id="latency-calls"><thead><tr></tr></thead><tbody></tbody></table>
 
 <script src="/app.js"></script>

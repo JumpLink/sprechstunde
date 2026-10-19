@@ -84,7 +84,8 @@ test('choiceFromPreset: the vendor default fills in the model', () => {
     preset: 'house',
   });
   assert.equal(choiceFromPreset({ id: 'p', label: 'P', provider: 'pocket', voice: 'juergen' }).model, 'pocket-tts');
-  assert.throws(() => choiceFromPreset({ id: 'r', label: 'R', provider: 'openrouter', voice: 'v' }), /needs a model/);
+  // The message is translated; the preset and the vendor are in it whatever the locale.
+  assert.throws(() => choiceFromPreset({ id: 'r', label: 'R', provider: 'openrouter', voice: 'v' }), /openrouter/);
 });
 
 test('ttsChoices: the environment decides while no preset is active', () => {

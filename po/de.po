@@ -1,14 +1,9 @@
-# German translations for sprechstunde package.
-# Copyright (C) 2026 THE sprechstunde'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the sprechstunde package.
-# Automatically generated, 2026.
-#
 msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-19 20:53+0200\n"
-"PO-Revision-Date: 2026-10-16 10:36+0200\n"
+"POT-Creation-Date: 2026-10-19 23:06+0200\n"
+"PO-Revision-Date: 2026-10-19 23:10+0200\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
 "Language: de\n"
@@ -17,19 +12,277 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: src/agent/assistant.ts:72
+#: src/admin/main.ts:21
+#, javascript-format
+msgid "%s must be a port number"
+msgstr "%s muss eine Portnummer sein"
+
+#: src/admin/main.ts:43
+#, javascript-format
+msgid "settings UI on %s"
+msgstr "Einstellungsoberfläche auf %s"
+
+#: src/admin/main.ts:44
+#, javascript-format
+msgid "settings file: %s"
+msgstr "Einstellungsdatei: %s"
+
+#: src/admin/page.ts:15 src/admin/page.ts:121
+msgid "Add"
+msgstr "Hinzufügen"
+
+#: src/admin/page.ts:16 src/admin/page.ts:122
+msgid "Cancel"
+msgstr "Abbrechen"
+
+#: src/admin/page.ts:17 src/admin/page.ts:101 src/admin/page.ts:143
+msgid "Save"
+msgstr "Speichern"
+
+#: src/admin/page.ts:18
+msgid "Edit"
+msgstr "Bearbeiten"
+
+#: src/admin/page.ts:19
+msgid "Delete"
+msgstr "Löschen"
+
+#: src/admin/page.ts:20
+#, javascript-format
+msgid "Delete the preset \"%s\"?"
+msgstr "Voreinstellung „%s“ löschen?"
+
+#: src/admin/page.ts:21 src/admin/page.ts:133
+msgid "Play"
+msgstr "Abspielen"
+
+#: src/admin/page.ts:22
+msgid "Synthesizing…"
+msgstr "Wird synthetisiert …"
+
+#: src/admin/page.ts:23
+#, javascript-format
+msgid "Failed: %s"
+msgstr "Fehlgeschlagen: %s"
+
+#: src/admin/page.ts:24
+msgid "Saved."
+msgstr "Gespeichert."
+
+#: src/admin/page.ts:25
+msgid "none"
+msgstr "keine"
+
+#: src/admin/page.ts:26
+msgid "the environment"
+msgstr "die Umgebung"
+
+#: src/admin/page.ts:27
+msgid "primary"
+msgstr "primär"
+
+#: src/admin/page.ts:28
+msgid "fallback"
+msgstr "Ersatz"
+
+#: src/admin/page.ts:29
+#, javascript-format
+msgid "first audio %s ms"
+msgstr "erstes Audio %s ms"
+
+#: src/admin/page.ts:30
+msgid "No calls measured yet."
+msgstr "Noch keine Anrufe gemessen."
+
+#: src/admin/page.ts:31
+msgid "No presets yet. Add one, then make it the active voice."
+msgstr ""
+"Noch keine Voreinstellungen. Lege eine an und mache sie zur aktiven Stimme."
+
+#: src/admin/page.ts:32
+msgid "no API key for this vendor in the environment"
+msgstr "kein API-Schlüssel für diesen Anbieter in der Umgebung"
+
+#: src/admin/page.ts:33
+msgid "calls"
+msgstr "Anrufe"
+
+#. TRANSLATORS: the language tag of this catalogue, used as the page's lang attribute ("de").
+#: src/admin/page.ts:78
+msgid "en"
+msgstr "de"
+
+#: src/admin/page.ts:85 src/admin/page.ts:89
+msgid "Voice settings"
+msgstr "Stimmeinstellungen"
+
+#: src/admin/page.ts:90
+msgid ""
+"Changes take effect with the next call; a call in progress keeps its voice."
+msgstr ""
+"Änderungen gelten ab dem nächsten Anruf; ein laufender Anruf behält seine "
+"Stimme."
+
+#: src/admin/page.ts:94
+msgid "Active voice"
+msgstr "Aktive Stimme"
+
+#: src/admin/page.ts:96
+msgid ""
+"The primary voice speaks; the fallback steps in when the primary fails or "
+"has no free session. Without a primary preset the environment decides."
+msgstr ""
+"Die primäre Stimme spricht; die Ersatzstimme springt ein, wenn die primäre "
+"ausfällt oder keine freie Sitzung hat. Ohne primäre Voreinstellung "
+"entscheidet die Umgebung."
+
+#: src/admin/page.ts:99
+msgid "Primary"
+msgstr "Primär"
+
+#: src/admin/page.ts:100
+msgid "Fallback"
+msgstr "Ersatz"
+
+#: src/admin/page.ts:105
+msgid "Presets"
+msgstr "Voreinstellungen"
+
+#: src/admin/page.ts:108 src/admin/page.ts:115
+msgid "Label"
+msgstr "Bezeichnung"
+
+#: src/admin/page.ts:108 src/admin/page.ts:114
+msgid "Id"
+msgstr "Id"
+
+#: src/admin/page.ts:108 src/admin/page.ts:116
+msgid "Vendor"
+msgstr "Anbieter"
+
+#: src/admin/page.ts:108 src/admin/page.ts:117 src/admin/page.ts:140
+msgid "Model"
+msgstr "Modell"
+
+#: src/admin/page.ts:109 src/admin/page.ts:118
+msgid "Voice"
+msgstr "Stimme"
+
+#: src/admin/page.ts:109 src/admin/page.ts:120
+msgid "Assistant name"
+msgstr "Name des Assistenten"
+
+#: src/admin/page.ts:117
+msgid "the vendor's default"
+msgstr "Standard des Anbieters"
+
+#: src/admin/page.ts:119
+msgid "Reference audio"
+msgstr "Referenzaufnahme"
+
+#: src/admin/page.ts:119
+msgid "path, Mistral only"
+msgstr "Pfad, nur Mistral"
+
+#: src/admin/page.ts:125
+msgid "Preview"
+msgstr "Hörprobe"
+
+#: src/admin/page.ts:127
+msgid ""
+"Synthesized through the same code a call uses. \"Phone\" resamples to 8 kHz: "
+"that is the only band a caller hears."
+msgstr ""
+"Synthetisiert über denselben Code wie ein Anruf. „Telefon“ rechnet auf 8 kHz "
+"herunter: mehr hört ein Anrufer nicht."
+
+#: src/admin/page.ts:132
+msgid "Phone (8 kHz)"
+msgstr "Telefon (8 kHz)"
+
+#: src/admin/page.ts:137
+msgid "LLM"
+msgstr "LLM"
+
+#: src/admin/page.ts:138
+msgid ""
+"A fallback model is asked when the first one does not answer within the "
+"attempt timeout."
+msgstr ""
+"Das Ersatzmodell wird gefragt, wenn das erste nicht innerhalb des "
+"Versuchszeitlimits antwortet."
+
+#: src/admin/page.ts:141
+msgid "Fallback model"
+msgstr "Ersatzmodell"
+
+#: src/admin/page.ts:142
+msgid "Attempt timeout (s)"
+msgstr "Versuchszeitlimit (s)"
+
+#: src/admin/page.ts:146
+msgid "Measured latency"
+msgstr "Gemessene Latenz"
+
+#: src/admin/page.ts:147
+msgid ""
+"From the metrics files, newest first. p50 and p95 are nearest-rank over the "
+"lines of a call."
+msgstr ""
+"Aus den Metrikdateien, neueste zuerst. p50 und p95 sind Nearest-Rank über "
+"die Zeilen eines Anrufs."
+
+#: src/admin/page.ts:149
+msgid "Recent calls"
+msgstr "Letzte Anrufe"
+
+#: src/admin/preview.ts:66 src/cli/speech.ts:31
+msgid "no audio received"
+msgstr "kein Audio empfangen"
+
+#: src/admin/server.ts:75
+msgid "the request body is too large"
+msgstr "der Anfragekörper ist zu groß"
+
+#: src/admin/server.ts:91
+msgid "the request body must be a JSON object"
+msgstr "der Anfragekörper muss ein JSON-Objekt sein"
+
+#: src/admin/server.ts:187
+msgid "no voice is configured"
+msgstr "es ist keine Stimme konfiguriert"
+
+#: src/admin/server.ts:191 src/admin/server.ts:249
+#, javascript-format
+msgid "no preset with id %s"
+msgstr "keine Voreinstellung mit der Id %s"
+
+#: src/admin/server.ts:201
+msgid "this server answers on 127.0.0.1 only"
+msgstr "dieser Server antwortet nur auf 127.0.0.1"
+
+#: src/admin/server.ts:203
+msgid "a change must come from the page this server serves"
+msgstr "eine Änderung muss von der Seite kommen, die dieser Server ausliefert"
+
+#: src/admin/server.ts:337
+msgid "unknown route"
+msgstr "unbekannte Route"
+
+#: src/agent/assistant.ts:74
 msgid "CPU profile written to"
 msgstr "CPU-Profil geschrieben nach"
 
-#: src/agent/assistant.ts:138
+#: src/agent/assistant.ts:141
 msgid "Pocket TTS has no free session, this call uses the fallback voice"
-msgstr "Pocket TTS hat keine freie Sitzung, dieser Anruf nutzt die Ersatzstimme"
+msgstr ""
+"Pocket TTS hat keine freie Sitzung, dieser Anruf nutzt die Ersatzstimme"
 
-#: src/agent/assistant.ts:181
+#: src/agent/assistant.ts:186
 msgid "transfer failed"
 msgstr "Weiterleitung fehlgeschlagen"
 
-#: src/agent/assistant.ts:225
+#: src/agent/assistant.ts:237
 msgid "CPU profile failed"
 msgstr "CPU-Profil fehlgeschlagen"
 
@@ -45,10 +298,14 @@ msgstr "Echo-Modus: Weiterleitung abgebrochen"
 msgid "starting assistant with profile"
 msgstr "Assistent startet mit Profil"
 
-#: src/agent/metrics.ts:49
+#: src/agent/metrics.ts:81
 #, javascript-format
 msgid "cannot write metrics to %s"
 msgstr "Metriken können nicht nach %s geschrieben werden"
+
+#: src/agent/settings.ts:16
+msgid "ignoring the settings file, using the environment instead:"
+msgstr "Einstellungsdatei wird ignoriert, stattdessen gilt die Umgebung:"
 
 #: src/agent/transcript.ts:54
 msgid "cannot write transcript"
@@ -63,17 +320,21 @@ msgid "LIVEKIT_URL, LIVEKIT_API_KEY and LIVEKIT_API_SECRET must be set"
 msgstr ""
 "LIVEKIT_URL, LIVEKIT_API_KEY und LIVEKIT_API_SECRET müssen gesetzt sein"
 
-#: src/agent/tts-provider.ts:47
+#: src/agent/tts-provider.ts:50
 msgid "%1 must be one of: %2"
 msgstr "%1 muss einer dieser Werte sein: %2"
 
-#: src/agent/tts-provider.ts:50 src/agent/tts-provider.ts:53
-#: src/agent/tts-provider.ts:89 src/cli/fallback.ts:23 src/cli/provision.ts:10
+#: src/agent/tts-provider.ts:53 src/agent/tts-provider.ts:56
+#: src/agent/tts-provider.ts:137 src/cli/fallback.ts:23 src/cli/provision.ts:10
 #: src/cli/sip-contacts.ts:18 src/cli/stt-try.ts:100 src/cli/tts-try.ts:83
 #: src/cli/voice.ts:12 src/mistral.ts:21
 #, javascript-format
 msgid "%s must be set"
 msgstr "%s muss gesetzt sein"
+
+#: src/agent/tts-provider.ts:76
+msgid "preset \"%1\" needs a model for the %2 provider"
+msgstr "Voreinstellung „%1“ braucht ein Modell für den Anbieter %2"
 
 #: src/agent/watchdog.ts:46
 msgid "worker is unhealthy; exiting so the container restarts"
@@ -223,10 +484,6 @@ msgstr "keine Antwort vom Registrar"
 #: src/cli/sip-contacts.ts:116
 msgid "Contacts registered:"
 msgstr "Angemeldete Kontakte:"
-
-#: src/cli/speech.ts:31
-msgid "no audio received"
-msgstr "kein Audio empfangen"
 
 #: src/cli/stt-try.ts:60
 msgid "connection closed before the transcript was done"
