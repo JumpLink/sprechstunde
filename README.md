@@ -172,7 +172,11 @@ SPRECHSTUNDE_TTS_FALLBACK_PROVIDER=mistral SPRECHSTUNDE_TTS_FALLBACK_VOICE=<voic
   2.5x, 4 → 208 ms / 1.4x, 6 → 285 ms / 0.95x (falls behind). A caller mostly listens, so 4
   workers should carry more than 4 calls; that is an estimate, not measured. Measure on the
   target server before relying on it.
-- Memory: ~0.75 GB per worker (4 workers ≈ 3 GB); the image is ~1.5 GB with weights and voice.
+- Memory: ~0.75 GB per worker (4 workers ≈ 3 GB); the image is ~1.5 GB with the weights and the
+  preset voices. Which voices are baked in is the build argument `POCKET_PRESET_VOICES`
+  (default `juergen alba`); the image runs with `HF_HUB_OFFLINE=1`, so a voice that was not baked
+  in cannot be loaded later. `POCKET_VOICE` picks the server's default among them and a request's
+  `voice` field overrides it per request, so switching between baked voices needs no rebuild.
 - Reference audio: a cloned voice from an 8–10 s clip worked; a 19 s clip broke sentences off.
 
 If you use Mistral's API, check the training opt-out in the admin panel (Privacy → "Anonymous
