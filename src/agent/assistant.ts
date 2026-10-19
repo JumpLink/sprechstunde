@@ -20,6 +20,7 @@ import { transferSipParticipant } from './transfer.js';
 import { StallGuardSTT } from './stt-guard.js';
 import { ContiguousSTT } from './stt-merge.js';
 import { openPocketSession } from './pocket-tts.js';
+import { closeSpeech } from './speech-close.js';
 import { HedgedTTS } from './tts-hedge.js';
 import { buildBaseTts, pocketUrl, type TtsChoice, ttsChoices } from './tts-provider.js';
 
@@ -104,8 +105,9 @@ function buildStt(client: Mistral, vad: silero.VAD, language: string): stt.STT {
 
 function buildTts(client: Mistral, profile: Profile, choice: TtsChoice): tts.TTS {
   const base = buildBaseTts(client, profile, choice);
-  // A vendor that streams text in over a socket (Cartesia) chunks and paces itself; the hedge and
-  // the chunking below exist for request-per-chunk vendors. Cartesia must stay on its socket: its
+  // A vendor that streams text in over a socket (Cartesia, Kugel) chunks and paces itself; the
+  // hedge and the chunking below exist for request-per-chunk vendors. A second request would also
+  // share Kugel's one socket, so hedging there buys nothing. Cartesia must stay on its socket: its
   // `synthesize()` plays a 400 error body as audio (plugin 1.9.3, issue #24).
   if (base.capabilities.streaming) return base;
   return new tts.StreamAdapter(
@@ -233,7 +235,7 @@ export async function runAssistant(ctx: JobContext, venue: Profile): Promise<voi
       publication.resolveFirstSubscription();
     }
     void (async () => {
-      await speech.release?.();
+      await closeSpeech(speech);
       // The profile has to be on disk before the shutdown tears the process down.
       await stopCpuProfile?.().catch((error) => console.error(_('CPU profile failed'), error));
       ctx.shutdown('session closed');

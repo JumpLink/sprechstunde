@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-19 23:14+0200\n"
+"POT-Creation-Date: 2026-10-19 23:31+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,17 +17,17 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src/admin/main.ts:21
+#: src/admin/main.ts:22
 #, javascript-format
 msgid "%s must be a port number"
 msgstr ""
 
-#: src/admin/main.ts:43
+#: src/admin/main.ts:48
 #, javascript-format
 msgid "settings UI on %s"
 msgstr ""
 
-#: src/admin/main.ts:44
+#: src/admin/main.ts:49
 #, javascript-format
 msgid "settings file: %s"
 msgstr ""
@@ -241,44 +241,44 @@ msgstr ""
 msgid "the request body must be a JSON object"
 msgstr ""
 
-#: src/admin/server.ts:188
+#: src/admin/server.ts:189
 msgid "no voice is configured"
 msgstr ""
 
-#: src/admin/server.ts:192 src/admin/server.ts:259
+#: src/admin/server.ts:193 src/admin/server.ts:260
 #, javascript-format
 msgid "no preset with id %s"
 msgstr ""
 
-#: src/admin/server.ts:202
+#: src/admin/server.ts:203
 msgid "this server answers on 127.0.0.1 only"
 msgstr ""
 
-#: src/admin/server.ts:204
+#: src/admin/server.ts:205
 msgid "a change must come from the page this server serves"
 msgstr ""
 
-#: src/admin/server.ts:216
+#: src/admin/server.ts:217
 msgid "invalid preset id"
 msgstr ""
 
-#: src/admin/server.ts:347
+#: src/admin/server.ts:348
 msgid "unknown route"
 msgstr ""
 
-#: src/agent/assistant.ts:74
+#: src/agent/assistant.ts:75
 msgid "CPU profile written to"
 msgstr ""
 
-#: src/agent/assistant.ts:141
+#: src/agent/assistant.ts:143
 msgid "Pocket TTS has no free session, this call uses the fallback voice"
 msgstr ""
 
-#: src/agent/assistant.ts:186
+#: src/agent/assistant.ts:188
 msgid "transfer failed"
 msgstr ""
 
-#: src/agent/assistant.ts:238
+#: src/agent/assistant.ts:240
 msgid "CPU profile failed"
 msgstr ""
 
@@ -303,6 +303,10 @@ msgstr ""
 msgid "ignoring the settings file, using the environment instead:"
 msgstr ""
 
+#: src/agent/speech-close.ts:11
+msgid "Closing the TTS failed"
+msgstr ""
+
 #: src/agent/transcript.ts:54
 msgid "cannot write transcript"
 msgstr ""
@@ -315,20 +319,31 @@ msgstr ""
 msgid "LIVEKIT_URL, LIVEKIT_API_KEY and LIVEKIT_API_SECRET must be set"
 msgstr ""
 
-#: src/agent/tts-provider.ts:50
+#: src/agent/tts-provider.ts:60 src/agent/tts-provider.ts:152
 msgid "%1 must be one of: %2"
 msgstr ""
 
-#: src/agent/tts-provider.ts:53 src/agent/tts-provider.ts:56
-#: src/agent/tts-provider.ts:137 src/cli/fallback.ts:23 src/cli/provision.ts:10
-#: src/cli/sip-contacts.ts:18 src/cli/stt-try.ts:100 src/cli/tts-try.ts:88
-#: src/cli/voice.ts:12 src/mistral.ts:21
+#: src/agent/tts-provider.ts:63 src/agent/tts-provider.ts:66
+#: src/agent/tts-provider.ts:148 src/agent/tts-provider.ts:178
+#: src/cli/fallback.ts:23 src/cli/provision.ts:10 src/cli/sip-contacts.ts:18
+#: src/cli/stt-try.ts:100 src/cli/tts-try.ts:88 src/cli/voice.ts:12
+#: src/mistral.ts:21
 #, javascript-format
 msgid "%s must be set"
 msgstr ""
 
-#: src/agent/tts-provider.ts:76
+#: src/agent/tts-provider.ts:69
+#, javascript-format
+msgid "%s must be a numeric KugelAudio voice id"
+msgstr ""
+
+#: src/agent/tts-provider.ts:89
 msgid "preset \"%1\" needs a model for the %2 provider"
+msgstr ""
+
+#: src/agent/tts-provider.ts:93
+#, javascript-format
+msgid "preset \"%s\" needs a numeric KugelAudio voice id"
 msgstr ""
 
 #: src/agent/watchdog.ts:46

@@ -10,6 +10,7 @@ src/agent/main.ts
 src/agent/metrics.ts
 src/agent/pocket-tts.ts
 src/agent/settings.ts
+src/agent/speech-close.ts
 src/agent/stt-guard.ts
 src/agent/stt-merge.ts
 src/agent/transcript.ts

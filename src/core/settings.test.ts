@@ -52,7 +52,18 @@ test('parseSettings: rejects a bad preset', () => {
 test('parseSettings: a vendor without a default voice needs one', () => {
   assert.throws(() => parseSettings({ presets: [preset({ provider: 'cartesia' })] }), /"voice" is required/);
   assert.throws(() => parseSettings({ presets: [preset({ provider: 'openrouter' })] }), /"voice" is required/);
+  assert.throws(() => parseSettings({ presets: [preset({ provider: 'kugel' })] }), /"voice" is required/);
   assert.equal(parseSettings({ presets: [preset({ provider: 'pocket' })] }).presets[0]!.voice, undefined);
+});
+
+test('parseSettings: a kugel voice is a numeric vendor id', () => {
+  assert.throws(() => parseSettings({ presets: [preset({ provider: 'kugel', voice: 'ernst' })] }), /numeric voice id/);
+  assert.equal(parseSettings({ presets: [preset({ provider: 'kugel', voice: '7' })] }).presets[0]!.voice, '7');
+  // Beyond nine digits the id could stop being a safe integer once it goes through Number().
+  assert.throws(
+    () => parseSettings({ presets: [preset({ provider: 'kugel', voice: '1234567890' })] }),
+    /numeric voice id/,
+  );
 });
 
 test('parseSettings: only Mistral clones a reference clip', () => {

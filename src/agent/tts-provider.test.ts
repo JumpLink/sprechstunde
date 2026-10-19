@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { parseSettings } from '../core/settings.js';
-import { choiceFromPreset, ttsChoice, ttsChoices, ttsFallbackChoice } from './tts-provider.js';
+import { choiceFromPreset, kugelApiKey, ttsChoice, ttsChoices, ttsFallbackChoice } from './tts-provider.js';
 
 test('ttsChoice: Mistral by default, voice from the profile', () => {
   assert.deepEqual(ttsChoice({}), {
@@ -33,6 +33,47 @@ test('ttsChoice: OpenRouter has no default model', () => {
 
 test('ttsChoice: an unknown vendor fails instead of falling back', () => {
   assert.throws(() => ttsChoice({ SPRECHSTUNDE_TTS_PROVIDER: 'elevenlabs' }), /SPRECHSTUNDE_TTS_PROVIDER/);
+});
+
+test('ttsChoice: a kugel voice is a number, not a name', () => {
+  assert.throws(() => ttsChoice({ SPRECHSTUNDE_TTS_PROVIDER: 'kugel' }), /SPRECHSTUNDE_TTS_VOICE/);
+  assert.throws(
+    () => ttsChoice({ SPRECHSTUNDE_TTS_PROVIDER: 'kugel', SPRECHSTUNDE_TTS_VOICE: 'ernst' }),
+    /SPRECHSTUNDE_TTS_VOICE/,
+  );
+  assert.throws(
+    () => ttsChoice({ SPRECHSTUNDE_TTS_PROVIDER: 'kugel', SPRECHSTUNDE_TTS_VOICE: '1234567890' }),
+    /SPRECHSTUNDE_TTS_VOICE/,
+  );
+  assert.deepEqual(ttsChoice({ SPRECHSTUNDE_TTS_PROVIDER: 'kugel', SPRECHSTUNDE_TTS_VOICE: '7' }), {
+    provider: 'kugel',
+    model: 'kugel-3.5',
+    voice: '7',
+    refAudio: undefined,
+    name: undefined,
+  });
+  // The fallback slot reads its own key and says so.
+  assert.throws(
+    () =>
+      ttsFallbackChoice({
+        SPRECHSTUNDE_TTS_FALLBACK_PROVIDER: 'kugel',
+        SPRECHSTUNDE_TTS_FALLBACK_VOICE: 'ernst',
+      }),
+    /SPRECHSTUNDE_TTS_FALLBACK_VOICE/,
+  );
+});
+
+test('kugelApiKey: the EU endpoint unless asked otherwise', () => {
+  assert.equal(kugelApiKey({ KUGELAUDIO_API_KEY: 'k' }), 'eu-k');
+  assert.equal(kugelApiKey({ KUGELAUDIO_API_KEY: 'k', SPRECHSTUNDE_KUGEL_REGION: 'eu' }), 'eu-k');
+  assert.equal(kugelApiKey({ KUGELAUDIO_API_KEY: 'k', SPRECHSTUNDE_KUGEL_REGION: 'global' }), 'global-k');
+  // A key that names its own region is left alone, whatever the variable says.
+  for (const key of ['eu-k', 'us-k', 'global-k']) {
+    assert.equal(kugelApiKey({ KUGELAUDIO_API_KEY: key }), key);
+    assert.equal(kugelApiKey({ KUGELAUDIO_API_KEY: key, SPRECHSTUNDE_KUGEL_REGION: 'global' }), key);
+  }
+  assert.throws(() => kugelApiKey({}), /KUGELAUDIO_API_KEY/);
+  assert.throws(() => kugelApiKey({ KUGELAUDIO_API_KEY: 'k', SPRECHSTUNDE_KUGEL_REGION: 'us' }), /KUGEL_REGION/);
 });
 
 test('ttsChoice: Pocket needs no voice, its server has a default', () => {
@@ -86,6 +127,22 @@ test('choiceFromPreset: the vendor default fills in the model', () => {
   assert.equal(choiceFromPreset({ id: 'p', label: 'P', provider: 'pocket', voice: 'juergen' }).model, 'pocket-tts');
   // The message is translated; the preset and the vendor are in it whatever the locale.
   assert.throws(() => choiceFromPreset({ id: 'r', label: 'R', provider: 'openrouter', voice: 'v' }), /openrouter/);
+});
+
+test('choiceFromPreset: a kugel preset carries the numeric voice id', () => {
+  assert.deepEqual(choiceFromPreset({ id: 'berlin', label: 'Berlin', provider: 'kugel', voice: '7' }), {
+    provider: 'kugel',
+    model: 'kugel-3.5',
+    voice: '7',
+    refAudio: undefined,
+    name: undefined,
+    preset: 'berlin',
+  });
+  // The message is translated, quotation marks and all; only the preset id is in every locale.
+  assert.throws(
+    () => choiceFromPreset({ id: 'berlin', label: 'Berlin', provider: 'kugel', voice: 'a-name' }),
+    /berlin/,
+  );
 });
 
 test('ttsChoices: the environment decides while no preset is active', () => {

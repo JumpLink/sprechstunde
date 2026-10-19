@@ -10,7 +10,7 @@
 import { mkdirSync, readFileSync, renameSync, unlinkSync, writeFileSync } from 'node:fs';
 import { dirname, isAbsolute, join, resolve, sep } from 'node:path';
 
-export const TTS_PROVIDERS = ['mistral', 'cartesia', 'openrouter', 'pocket'] as const;
+export const TTS_PROVIDERS = ['mistral', 'cartesia', 'openrouter', 'pocket', 'kugel'] as const;
 export type TtsProvider = (typeof TTS_PROVIDERS)[number];
 
 export interface VoicePreset {
@@ -21,7 +21,7 @@ export interface VoicePreset {
   provider: TtsProvider;
   /** The vendor's model; its default when empty (OpenRouter has none). */
   model?: string;
-  /** The vendor's voice id. Required for Cartesia and OpenRouter. */
+  /** The vendor's voice id. Required for Cartesia, OpenRouter and Kugel (a number there). */
   voice?: string;
   /** Audio file to clone, Mistral only; mutually exclusive with `voice`. */
   refAudio?: string;
@@ -56,6 +56,8 @@ export function emptySettings(): Settings {
 }
 
 export const PRESET_ID = /^[A-Za-z0-9][A-Za-z0-9._-]*$/;
+/** A Kugel voice id as it appears in the vendor's library: digits, nothing else. */
+export const KUGEL_VOICE_ID = /^\d{1,9}$/;
 const MAX_ATTEMPT_TIMEOUT_S = 120;
 
 export const DEFAULT_VOICES_DIR = join('var', 'voices');
@@ -113,8 +115,13 @@ function parsePreset(raw: unknown, index: number, path: string): VoicePreset {
   // Only Mistral takes a reference clip; silently ignoring it on another vendor would look like
   // the clone worked.
   if (refAudio && provider !== 'mistral') fail(path, `${where}"refAudio" works with the mistral provider only`);
-  if (!voice && (provider === 'cartesia' || provider === 'openrouter')) {
+  if (!voice && (provider === 'cartesia' || provider === 'openrouter' || provider === 'kugel')) {
     fail(path, `${where}"voice" is required for provider ${provider}`);
+  }
+  // Kugel addresses a voice by its numeric library id. A name would reach the vendor as "no id"
+  // and be answered in its default voice, which only shows up when someone listens to a call.
+  if (provider === 'kugel' && voice && !KUGEL_VOICE_ID.test(voice)) {
+    fail(path, `${where}"voice" must be a numeric voice id for provider kugel: ${voice}`);
   }
 
   const preset: VoicePreset = { id, label, provider: provider as TtsProvider };

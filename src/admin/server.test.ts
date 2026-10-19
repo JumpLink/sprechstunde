@@ -294,7 +294,8 @@ test('no response ever carries an API key', async () => {
 
   const state = (await (await fetch(`${harness.url}/api/state`)).json()) as { keys: Record<string, boolean> };
   // Whether a vendor can be previewed is useful; the key itself never is.
-  assert.deepEqual(state.keys, { mistral: true, cartesia: true, openrouter: true });
+  // `kugel` has no key in this environment: the UI marks such a vendor instead of hiding it.
+  assert.deepEqual(state.keys, { mistral: true, cartesia: true, openrouter: true, kugel: false });
 });
 
 test('unknown routes are a 404', async () => {
