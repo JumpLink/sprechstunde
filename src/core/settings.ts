@@ -55,7 +55,7 @@ export function emptySettings(): Settings {
   return { presets: [], active: {}, llm: {} };
 }
 
-const ID = /^[A-Za-z0-9][A-Za-z0-9._-]*$/;
+export const PRESET_ID = /^[A-Za-z0-9][A-Za-z0-9._-]*$/;
 const MAX_ATTEMPT_TIMEOUT_S = 120;
 
 function fail(path: string, message: string): never {
@@ -80,7 +80,7 @@ function parsePreset(raw: unknown, index: number, path: string): VoicePreset {
 
   const id = optionalStr(raw, 'id', where, path);
   if (!id) fail(path, `${where}"id" must be a non-empty string`);
-  if (!ID.test(id)) fail(path, `${where}"id" may only contain letters, digits, ".", "_" and "-": ${id}`);
+  if (!PRESET_ID.test(id)) fail(path, `${where}"id" may only contain letters, digits, ".", "_" and "-": ${id}`);
 
   const label = optionalStr(raw, 'label', where, path);
   if (!label) fail(path, `${where}"label" must be a non-empty string`);

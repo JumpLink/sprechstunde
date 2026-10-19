@@ -301,3 +301,13 @@ test('unknown routes are a 404', async () => {
   const harness = await start();
   assert.equal((await fetch(`${harness.url}/api/nope`)).status, 404);
 });
+
+test('a preset id in the URL is decoded and must match the id pattern', async () => {
+  const harness = await start({ settings: { presets: [PRESET] } });
+  for (const bad of ['..%2Fx', '%E0%A4%A', 'a%20b', '.hidden']) {
+    const response = await call(harness, 'DELETE', `/api/presets/${bad}`);
+    assert.equal(response.status, 400, bad);
+  }
+  const ok = await call(harness, 'DELETE', '/api/presets/%6Aane');
+  assert.equal(ok.status, 200);
+});

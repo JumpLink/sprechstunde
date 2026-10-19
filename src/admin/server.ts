@@ -17,6 +17,7 @@ import {
   type Settings,
   TTS_PROVIDERS,
   writeSettings,
+  PRESET_ID,
 } from '../core/settings.js';
 import { choiceFromPreset, type TtsChoice, ttsChoice, ttsFallbackChoice } from '../agent/tts-provider.js';
 import { _ } from '../i18n.js';
@@ -204,7 +205,16 @@ export function createAdminServer(options: AdminOptions): Server {
     }
     const url = new URL(request.url ?? '/', `http://${request.headers.host}`);
     const path = url.pathname;
-    const presetId = /^\/api\/presets\/(.+)$/.exec(path)?.[1];
+    const rawPresetId = /^\/api\/presets\/(.+)$/.exec(path)?.[1];
+    let presetId: string | undefined;
+    if (rawPresetId !== undefined) {
+      try {
+        presetId = decodeURIComponent(rawPresetId);
+      } catch {
+        presetId = undefined;
+      }
+      if (presetId === undefined || !PRESET_ID.test(presetId)) throw new HttpError(400, _('invalid preset id'));
+    }
 
     if (method === 'GET' && path === '/') return send(response, 200, 'text/html; charset=utf-8', pageHtml());
     if (method === 'GET' && path === '/app.js') {

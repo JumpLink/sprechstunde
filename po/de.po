@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-19 23:06+0200\n"
+"POT-Creation-Date: 2026-10-19 23:12+0200\n"
 "PO-Revision-Date: 2026-10-19 23:10+0200\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -240,32 +240,36 @@ msgstr "Letzte Anrufe"
 msgid "no audio received"
 msgstr "kein Audio empfangen"
 
-#: src/admin/server.ts:75
+#: src/admin/server.ts:76
 msgid "the request body is too large"
 msgstr "der Anfragekörper ist zu groß"
 
-#: src/admin/server.ts:91
+#: src/admin/server.ts:92
 msgid "the request body must be a JSON object"
 msgstr "der Anfragekörper muss ein JSON-Objekt sein"
 
-#: src/admin/server.ts:187
+#: src/admin/server.ts:188
 msgid "no voice is configured"
 msgstr "es ist keine Stimme konfiguriert"
 
-#: src/admin/server.ts:191 src/admin/server.ts:249
+#: src/admin/server.ts:192 src/admin/server.ts:259
 #, javascript-format
 msgid "no preset with id %s"
 msgstr "keine Voreinstellung mit der Id %s"
 
-#: src/admin/server.ts:201
+#: src/admin/server.ts:202
 msgid "this server answers on 127.0.0.1 only"
 msgstr "dieser Server antwortet nur auf 127.0.0.1"
 
-#: src/admin/server.ts:203
+#: src/admin/server.ts:204
 msgid "a change must come from the page this server serves"
 msgstr "eine Änderung muss von der Seite kommen, die dieser Server ausliefert"
 
-#: src/admin/server.ts:337
+#: src/admin/server.ts:216
+msgid "invalid preset id"
+msgstr "ungültige Preset-ID"
+
+#: src/admin/server.ts:347
 msgid "unknown route"
 msgstr "unbekannte Route"
 

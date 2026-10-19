@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-19 23:09+0200\n"
+"POT-Creation-Date: 2026-10-19 23:12+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -233,32 +233,36 @@ msgstr ""
 msgid "no audio received"
 msgstr ""
 
-#: src/admin/server.ts:75
+#: src/admin/server.ts:76
 msgid "the request body is too large"
 msgstr ""
 
-#: src/admin/server.ts:91
+#: src/admin/server.ts:92
 msgid "the request body must be a JSON object"
 msgstr ""
 
-#: src/admin/server.ts:187
+#: src/admin/server.ts:188
 msgid "no voice is configured"
 msgstr ""
 
-#: src/admin/server.ts:191 src/admin/server.ts:249
+#: src/admin/server.ts:192 src/admin/server.ts:259
 #, javascript-format
 msgid "no preset with id %s"
 msgstr ""
 
-#: src/admin/server.ts:201
+#: src/admin/server.ts:202
 msgid "this server answers on 127.0.0.1 only"
 msgstr ""
 
-#: src/admin/server.ts:203
+#: src/admin/server.ts:204
 msgid "a change must come from the page this server serves"
 msgstr ""
 
-#: src/admin/server.ts:337
+#: src/admin/server.ts:216
+msgid "invalid preset id"
+msgstr ""
+
+#: src/admin/server.ts:347
 msgid "unknown route"
 msgstr ""
 
