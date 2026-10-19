@@ -24,6 +24,8 @@ import multiprocessing as mp
 import os
 import queue
 import secrets
+import signal
+import sys
 import threading
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -228,6 +230,9 @@ def main():
         "listening on %s:%d, %d workers x %d threads, %d sessions, language %s, voice %s",
         HOST, PORT, WORKERS, THREADS, MAX_SESSIONS, LANGUAGE, DEFAULT_VOICE,
     )
+    # As PID 1 in a container, Python ignores SIGTERM unless it has a handler; podman would wait
+    # 10 s and kill. Exiting lets the daemon worker processes go down with us.
+    signal.signal(signal.SIGTERM, lambda *_: sys.exit(0))
     server.serve_forever()
 
 
