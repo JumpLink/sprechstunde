@@ -43,6 +43,8 @@ export interface Settings {
   presets: VoicePreset[];
   active: Partial<Record<ActiveSlot, string>>;
   llm: LlmSettings;
+  /** File name inside the profiles directory the next calls use; the start profile when unset. */
+  profile?: string;
 }
 
 export const DEFAULT_SETTINGS_FILE = join('var', 'settings', 'voice.json');
@@ -72,6 +74,23 @@ export function presetRefAudioPath(refAudio: string, env: NodeJS.ProcessEnv = pr
   const base = voicesDir(env);
   const file = resolve(base, refAudio);
   return file.startsWith(base + sep) ? file : null;
+}
+
+/** A profile is picked by file name only, never by path. */
+export const PROFILE_FILE = /^[A-Za-z0-9][A-Za-z0-9._-]*\.json$/;
+
+export const DEFAULT_PROFILES_DIR = join('var', 'profiles');
+
+export function profilesDir(env: NodeJS.ProcessEnv = process.env): string {
+  return resolve(env.SPRECHSTUNDE_PROFILES_DIR || DEFAULT_PROFILES_DIR);
+}
+
+/** The file a settings `profile` names, or null when it is not a plain `*.json` name inside the profiles directory. */
+export function profileFilePath(file: string, env: NodeJS.ProcessEnv = process.env): string | null {
+  if (!PROFILE_FILE.test(file)) return null;
+  const base = profilesDir(env);
+  const path = resolve(base, file);
+  return path.startsWith(base + sep) ? path : null;
 }
 
 function fail(path: string, message: string): never {
@@ -181,7 +200,15 @@ export function parseSettings(raw: unknown, path = '<settings>'): Settings {
   // A fallback alone would silently do nothing: the agent reads the pair, primary first.
   if (active.fallback && !active.primary) fail(path, 'active "fallback" needs an active "primary"');
 
-  return { presets, active, llm: parseLlm(raw.llm, path) };
+  const settings: Settings = { presets, active, llm: parseLlm(raw.llm, path) };
+  const profile = optionalStr(raw, 'profile', '', path);
+  if (profile !== undefined) {
+    if (profileFilePath(profile) === null) {
+      fail(path, `"profile" must be the name of a .json file in the profiles directory (SPRECHSTUNDE_PROFILES_DIR)`);
+    }
+    settings.profile = profile;
+  }
+  return settings;
 }
 
 export function activePreset(settings: Settings | undefined, slot: ActiveSlot): VoicePreset | undefined {

@@ -18,7 +18,10 @@ import {
   TTS_PROVIDERS,
   writeSettings,
   PRESET_ID,
+  profileFilePath,
+  profilesDir,
 } from '../core/settings.js';
+import { listProfiles, loadProfile } from '../core/profile.js';
 import { choiceFromPreset, type TtsChoice, ttsChoice, ttsFallbackChoice } from '../agent/tts-provider.js';
 import { _ } from '../i18n.js';
 import { byPreset, callsFrom, METRIC_NAMES, readMetrics, summarizeCall } from './latency.js';
@@ -39,6 +42,8 @@ export interface AdminOptions {
   synthesize: Synthesizer;
   /** Preview text the page starts with; the profile's greeting is what a caller really hears. */
   sampleText: string;
+  /** The profile the worker starts with: what a call uses while no other one is picked. */
+  startProfile?: { id: string; name?: string; locale?: string };
   env?: NodeJS.ProcessEnv;
 }
 
@@ -239,6 +244,53 @@ export function createAdminServer(options: AdminOptions): Server {
           summary: summarizeCall(call),
         })),
       });
+    }
+
+    if (method === 'GET' && path === '/api/profiles') {
+      let profiles: ReturnType<typeof listProfiles> = [];
+      let error: string | undefined;
+      try {
+        profiles = listProfiles(profilesDir(env));
+      } catch (failure) {
+        error = (failure as Error).message;
+      }
+      let active: string | null = null;
+      try {
+        active = read().profile ?? null;
+      } catch {
+        // an unreadable settings file is reported by /api/state
+      }
+      return json(response, 200, {
+        profiles,
+        active,
+        default: options.startProfile ?? null,
+        ...(error && { error }),
+      });
+    }
+
+    if (method === 'PUT' && path === '/api/profile') {
+      const wanted = body(await readBody(request));
+      const file = wanted.file;
+      if (file !== null && typeof file !== 'string') {
+        throw new HttpError(400, _('"file" must be a file name or null'));
+      }
+      if (file !== null) {
+        const target = profileFilePath(file, env);
+        if (!target) throw new HttpError(400, _('"file" must be the name of a .json file in the profiles directory'));
+        try {
+          loadProfile(target);
+        } catch (error) {
+          throw new HttpError(400, (error as Error).message);
+        }
+      }
+      return json(
+        response,
+        200,
+        update((settings) => {
+          const { profile: _previous, ...rest } = settings;
+          return file === null ? rest : { ...rest, profile: file };
+        }),
+      );
     }
 
     if (method === 'POST' && path === '/api/presets') {

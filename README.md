@@ -98,6 +98,7 @@ could not reach PipeWire); that is an observation on one machine, not a general 
 | `SPRECHSTUNDE_TTS_REF_AUDIO` | path to an audio file to clone; overrides every other voice setting |
 | `SPRECHSTUNDE_TRUNK_NUMBERS` | comma-separated numbers for the inbound trunk; empty accepts any |
 | `SPRECHSTUNDE_METRICS_DIR` | where latency metrics are written, default `var/metrics` |
+| `SPRECHSTUNDE_PROFILES_DIR` | where the [settings UI](#settings-ui) looks for profiles it may pick per call, default `var/profiles` (mounted read-only into the containers). The settings file names one by file name (`*.json`), never by path; the agent reads it at the start of a call and falls back to `SPRECHSTUNDE_PROFILE` when the file is missing or invalid |
 | `SPRECHSTUNDE_SETTINGS_FILE` | the voices and models picked in the [settings UI](#settings-ui), default `var/settings/voice.json`. As soon as it names an active voice, it wins over the `SPRECHSTUNDE_TTS_*` and `SPRECHSTUNDE_LLM_*` variables above; a missing or unreadable file leaves them in charge |
 | `SPRECHSTUNDE_VOICES_DIR` | where a preset's `refAudio` clip lives, default `var/voices` (mounted read-only into the containers). A preset may only name a relative path inside it; `SPRECHSTUNDE_TTS_REF_AUDIO` stays unrestricted |
 | `SPRECHSTUNDE_ADMIN_PORT` | port of the settings UI on `127.0.0.1`, default `8091` |
@@ -282,6 +283,10 @@ time to the first audio sample, and plays several presets next to each other; "p
 sample to the 8 kHz a line carries, which is where a voice that sounded fine on speakers often does
 not. The same page sets the LLM, its fallback and the attempt timeout, and lists the measured
 latency of the recent calls, grouped by the preset they ran on.
+
+A profile dropdown picks which venue profile (a `*.json` file in `SPRECHSTUNDE_PROFILES_DIR`) the
+next calls use; "start profile" means the one the agent was started with. The profile id lands in
+the `call_config` metrics line.
 
 What it writes is `var/settings/voice.json` (`SPRECHSTUNDE_SETTINGS_FILE`). The agent reads that
 file when a call starts, so the next caller hears the new voice without a restart — and as long as

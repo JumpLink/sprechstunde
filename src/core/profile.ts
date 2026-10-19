@@ -1,5 +1,6 @@
-import { readFileSync } from 'node:fs';
-import { dirname, resolve } from 'node:path';
+import { readdirSync, readFileSync } from 'node:fs';
+import { dirname, join, resolve } from 'node:path';
+import { PROFILE_FILE } from './settings.js';
 
 export interface Fact {
   topic: string;
@@ -150,4 +151,34 @@ export function withAssistantName(profile: Profile, name: string | undefined): P
     instructions: rename(profile.instructions),
     ...(profile.transfer && { transfer: { ...profile.transfer, announce: rename(profile.transfer.announce) } }),
   };
+}
+
+export interface ProfileEntry {
+  file: string;
+  /** The profile's id; the file name without `.json` when the file does not load. */
+  id: string;
+  /** What the assistant is called in this profile. */
+  name?: string;
+  locale?: string;
+  /** Why the file does not load. */
+  error?: string;
+}
+
+/** Every `*.json` file in `dir`, loaded or not: one broken file must not hide the others. */
+export function listProfiles(dir: string): ProfileEntry[] {
+  let files: string[];
+  try {
+    files = readdirSync(dir).filter((file) => PROFILE_FILE.test(file));
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') return [];
+    throw error;
+  }
+  return files.sort().map((file): ProfileEntry => {
+    try {
+      const profile = loadProfile(join(dir, file));
+      return { file, id: profile.id, name: profile.assistantName, locale: profile.locale };
+    } catch (error) {
+      return { file, id: file.replace(/\.json$/, ''), error: (error as Error).message };
+    }
+  });
 }

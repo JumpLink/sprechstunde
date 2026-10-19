@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-19 23:31+0200\n"
+"POT-Creation-Date: 2026-10-20 00:09+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -22,25 +22,26 @@ msgstr ""
 msgid "%s must be a port number"
 msgstr ""
 
-#: src/admin/main.ts:48
+#: src/admin/main.ts:49
 #, javascript-format
 msgid "settings UI on %s"
 msgstr ""
 
-#: src/admin/main.ts:49
+#: src/admin/main.ts:50
 #, javascript-format
 msgid "settings file: %s"
 msgstr ""
 
-#: src/admin/page.ts:15 src/admin/page.ts:121
+#: src/admin/page.ts:15 src/admin/page.ts:130
 msgid "Add"
 msgstr ""
 
-#: src/admin/page.ts:16 src/admin/page.ts:122
+#: src/admin/page.ts:16 src/admin/page.ts:131
 msgid "Cancel"
 msgstr ""
 
-#: src/admin/page.ts:17 src/admin/page.ts:101 src/admin/page.ts:143
+#: src/admin/page.ts:17 src/admin/page.ts:103 src/admin/page.ts:111
+#: src/admin/page.ts:152
 msgid "Save"
 msgstr ""
 
@@ -57,7 +58,7 @@ msgstr ""
 msgid "Delete the preset \"%s\"?"
 msgstr ""
 
-#: src/admin/page.ts:21 src/admin/page.ts:133
+#: src/admin/page.ts:21 src/admin/page.ts:142
 msgid "Play"
 msgstr ""
 
@@ -111,121 +112,140 @@ msgstr ""
 msgid "calls"
 msgstr ""
 
+#: src/admin/page.ts:34
+#, javascript-format
+msgid "start profile: %s"
+msgstr ""
+
+#: src/admin/page.ts:35
+msgid "does not load"
+msgstr ""
+
 #. TRANSLATORS: the language tag of this catalogue, used as the page's lang attribute ("de").
-#: src/admin/page.ts:78
+#: src/admin/page.ts:80
 msgid "en"
 msgstr ""
 
-#: src/admin/page.ts:85 src/admin/page.ts:89
+#: src/admin/page.ts:87 src/admin/page.ts:91
 msgid "Voice settings"
 msgstr ""
 
-#: src/admin/page.ts:90
+#: src/admin/page.ts:92
 msgid ""
 "Changes take effect with the next call; a call in progress keeps its voice."
 msgstr ""
 
-#: src/admin/page.ts:94
+#: src/admin/page.ts:96
 msgid "Active voice"
 msgstr ""
 
-#: src/admin/page.ts:96
+#: src/admin/page.ts:98
 msgid ""
 "The primary voice speaks; the fallback steps in when the primary fails or "
 "has no free session. Without a primary preset the environment decides."
 msgstr ""
 
-#: src/admin/page.ts:99
+#: src/admin/page.ts:101
 msgid "Primary"
 msgstr ""
 
-#: src/admin/page.ts:100
+#: src/admin/page.ts:102
 msgid "Fallback"
 msgstr ""
 
-#: src/admin/page.ts:105
+#: src/admin/page.ts:107 src/admin/page.ts:110
+msgid "Profile"
+msgstr ""
+
+#: src/admin/page.ts:108
+msgid ""
+"The venue profile the next calls use. Without a choice, the profile the "
+"agent started with answers."
+msgstr ""
+
+#: src/admin/page.ts:114
 msgid "Presets"
 msgstr ""
 
-#: src/admin/page.ts:108 src/admin/page.ts:115
+#: src/admin/page.ts:117 src/admin/page.ts:124
 msgid "Label"
 msgstr ""
 
-#: src/admin/page.ts:108 src/admin/page.ts:114
+#: src/admin/page.ts:117 src/admin/page.ts:123
 msgid "Id"
 msgstr ""
 
-#: src/admin/page.ts:108 src/admin/page.ts:116
+#: src/admin/page.ts:117 src/admin/page.ts:125
 msgid "Vendor"
 msgstr ""
 
-#: src/admin/page.ts:108 src/admin/page.ts:117 src/admin/page.ts:140
+#: src/admin/page.ts:117 src/admin/page.ts:126 src/admin/page.ts:149
 msgid "Model"
 msgstr ""
 
-#: src/admin/page.ts:109 src/admin/page.ts:118
+#: src/admin/page.ts:118 src/admin/page.ts:127
 msgid "Voice"
 msgstr ""
 
-#: src/admin/page.ts:109 src/admin/page.ts:120
+#: src/admin/page.ts:118 src/admin/page.ts:129
 msgid "Assistant name"
 msgstr ""
 
-#: src/admin/page.ts:117
+#: src/admin/page.ts:126
 msgid "the vendor's default"
 msgstr ""
 
-#: src/admin/page.ts:119
+#: src/admin/page.ts:128
 msgid "Reference audio"
 msgstr ""
 
-#: src/admin/page.ts:119
+#: src/admin/page.ts:128
 msgid "file in the voices directory, Mistral only"
 msgstr ""
 
-#: src/admin/page.ts:125
+#: src/admin/page.ts:134
 msgid "Preview"
 msgstr ""
 
-#: src/admin/page.ts:127
+#: src/admin/page.ts:136
 msgid ""
 "Synthesized through the same code a call uses. \"Phone\" resamples to 8 kHz: "
 "that is the only band a caller hears."
 msgstr ""
 
-#: src/admin/page.ts:132
+#: src/admin/page.ts:141
 msgid "Phone (8 kHz)"
 msgstr ""
 
-#: src/admin/page.ts:137
+#: src/admin/page.ts:146
 msgid "LLM"
 msgstr ""
 
-#: src/admin/page.ts:138
+#: src/admin/page.ts:147
 msgid ""
 "A fallback model is asked when the first one does not answer within the "
 "attempt timeout."
 msgstr ""
 
-#: src/admin/page.ts:141
+#: src/admin/page.ts:150
 msgid "Fallback model"
 msgstr ""
 
-#: src/admin/page.ts:142
+#: src/admin/page.ts:151
 msgid "Attempt timeout (s)"
 msgstr ""
 
-#: src/admin/page.ts:146
+#: src/admin/page.ts:155
 msgid "Measured latency"
 msgstr ""
 
-#: src/admin/page.ts:147
+#: src/admin/page.ts:156
 msgid ""
 "From the metrics files, newest first. p50 and p95 are nearest-rank over the "
 "lines of a call."
 msgstr ""
 
-#: src/admin/page.ts:149
+#: src/admin/page.ts:158
 msgid "Recent calls"
 msgstr ""
 
@@ -233,36 +253,44 @@ msgstr ""
 msgid "no audio received"
 msgstr ""
 
-#: src/admin/server.ts:76
+#: src/admin/server.ts:81
 msgid "the request body is too large"
 msgstr ""
 
-#: src/admin/server.ts:92
+#: src/admin/server.ts:97
 msgid "the request body must be a JSON object"
 msgstr ""
 
-#: src/admin/server.ts:189
+#: src/admin/server.ts:194
 msgid "no voice is configured"
 msgstr ""
 
-#: src/admin/server.ts:193 src/admin/server.ts:260
+#: src/admin/server.ts:198 src/admin/server.ts:312
 #, javascript-format
 msgid "no preset with id %s"
 msgstr ""
 
-#: src/admin/server.ts:203
+#: src/admin/server.ts:208
 msgid "this server answers on 127.0.0.1 only"
 msgstr ""
 
-#: src/admin/server.ts:205
+#: src/admin/server.ts:210
 msgid "a change must come from the page this server serves"
 msgstr ""
 
-#: src/admin/server.ts:217
+#: src/admin/server.ts:222
 msgid "invalid preset id"
 msgstr ""
 
-#: src/admin/server.ts:348
+#: src/admin/server.ts:275
+msgid "\"file\" must be a file name or null"
+msgstr ""
+
+#: src/admin/server.ts:279
+msgid "\"file\" must be the name of a .json file in the profiles directory"
+msgstr ""
+
+#: src/admin/server.ts:400
 msgid "unknown route"
 msgstr ""
 
@@ -274,11 +302,11 @@ msgstr ""
 msgid "Pocket TTS has no free session, this call uses the fallback voice"
 msgstr ""
 
-#: src/agent/assistant.ts:188
+#: src/agent/assistant.ts:189
 msgid "transfer failed"
 msgstr ""
 
-#: src/agent/assistant.ts:240
+#: src/agent/assistant.ts:242
 msgid "CPU profile failed"
 msgstr ""
 
@@ -294,13 +322,17 @@ msgstr ""
 msgid "starting assistant with profile"
 msgstr ""
 
-#: src/agent/metrics.ts:83
+#: src/agent/metrics.ts:86
 #, javascript-format
 msgid "cannot write metrics to %s"
 msgstr ""
 
-#: src/agent/settings.ts:16
+#: src/agent/settings.ts:17
 msgid "ignoring the settings file, using the environment instead:"
+msgstr ""
+
+#: src/agent/settings.ts:39
+msgid "ignoring the selected profile, using the start profile instead:"
 msgstr ""
 
 #: src/agent/speech-close.ts:11
