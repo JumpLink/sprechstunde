@@ -32,6 +32,8 @@
     loading: boolean;
     /** Preset for the gender filter; the person can change it. */
     gender?: Gender;
+    /** Facets to leave out of the filter panel. */
+    hide?: Facet[];
     selected: Candidate[];
     heard: Record<string, { busy?: boolean; ttfaMs?: number; error?: string }>;
     onpick: (candidate: Candidate) => void;
@@ -43,7 +45,7 @@
     onaction: () => void;
   }
 
-  let { candidates, loading, gender, selected, heard, onpick, onhear, onstop, actionLabel, actionDisabled = false, onaction }: Props =
+  let { candidates, loading, gender, hide, selected, heard, onpick, onhear, onstop, actionLabel, actionDisabled = false, onaction }: Props =
     $props();
 
   const PAGE = 30;
@@ -156,7 +158,7 @@
 </script>
 
 {#snippet panel()}
-  <FilterPanel {candidates} {filters} {context} ontoggle={toggle} onflag={(flag) => change({ [flag]: !filters[flag] })} onreset={reset} />
+  <FilterPanel {candidates} {hide} {filters} {context} ontoggle={toggle} onflag={(flag) => change({ [flag]: !filters[flag] })} onreset={reset} />
 {/snippet}
 
 <div class="lg:grid lg:grid-cols-[16rem_minmax(0,1fr)] lg:items-start lg:gap-6">
@@ -242,7 +244,7 @@
     {/if}
 
     {#if selected.length > 0}
-      <div class="sticky bottom-3 z-10 flex flex-wrap items-center justify-between gap-2 rounded-xl border bg-card p-3 shadow-lg" role="region" aria-label={_('Selection')}>
+      <div class="sticky bottom-16 z-10 lg:bottom-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border bg-card p-3 shadow-lg" role="region" aria-label={_('Selection')}>
         <p class="min-w-0 text-sm" aria-live="polite">
           <span class="font-medium">{fill(_('%s selected'), selected.length)}</span>
           <span class="text-muted-foreground"> · {selected.map((entry) => entry.name).join(', ')}</span>

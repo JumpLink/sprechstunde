@@ -326,6 +326,7 @@
         {candidates}
         {loading}
         {gender}
+        hide={['language']}
         selected={favourites}
         heard={plays}
         onpick={pick}

@@ -16,9 +16,11 @@
     ontoggle: (facet: Facet, value: string) => void;
     onflag: (flag: 'eu' | 'local') => void;
     onreset: () => void;
+    /** Facets that tell nothing in this place, e.g. the language where only German is cast. */
+    hide?: Facet[];
   }
 
-  let { candidates, filters, context, ontoggle, onflag, onreset }: Props = $props();
+  let { candidates, filters, context, ontoggle, onflag, onreset, hide = [] }: Props = $props();
 
   const titles = $derived<Record<Facet, string>>({
     vendor: _('Vendor'),
@@ -29,7 +31,7 @@
     quality: _('Quality'),
   });
 
-  const shown = $derived((['vendor', 'language', 'gender', 'age', 'category', 'quality'] as Facet[]).filter((facet) => offered(candidates, facet)));
+  const shown = $derived((['vendor', 'language', 'gender', 'age', 'category', 'quality'] as Facet[]).filter((facet) => !hide.includes(facet) && offered(candidates, facet)));
 
   function label(facet: Facet, value: string): string {
     if (facet === 'vendor') return vendorOf(value).name;

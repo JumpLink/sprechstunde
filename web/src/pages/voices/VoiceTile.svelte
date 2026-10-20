@@ -56,7 +56,7 @@
     <p class="min-h-4 text-xs {heard?.error ? 'text-destructive' : 'text-muted-foreground'}" aria-live="polite">
       {#if heard?.error}{heard.error}{:else if heard?.ttfaMs !== undefined}{fill(_('First audio after %s ms'), heard.ttfaMs)}{/if}
     </p>
-    <div class="mt-auto flex gap-1.5">
+    <div class="mt-auto flex flex-wrap gap-1.5">
       <Button variant="outline" size="icon" disabled={heard?.busy} onclick={onhear} aria-label={_('Hear greeting')} title={_('Hear greeting')}>
         {#if heard?.busy}<Loader class="size-4 animate-spin" />{:else}<MessageCircle class="size-4" />{/if}
       </Button>
@@ -70,7 +70,7 @@
       >
         <Heart class={cn('size-4', favourite && 'fill-current text-destructive')} />
       </Button>
-      <Button class="flex-1" variant={selected ? 'default' : 'outline'} size="sm" aria-pressed={selected} onclick={onselect}>
+      <Button class="w-full" variant={selected ? 'default' : 'outline'} size="sm" aria-pressed={selected} onclick={onselect}>
         {#if selected}<Check class="size-4" />{_('Chosen')}{:else}{_('Pick')}{/if}
       </Button>
     </div>
