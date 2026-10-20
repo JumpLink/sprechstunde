@@ -38,7 +38,7 @@ import {
 import { buildInstructions, type Persona, personaOf } from '../core/prompt.js';
 import { transferOverride } from '../core/tools.js';
 import { profileForCall } from '../agent/settings.js';
-import { choiceFromVoice, type TtsChoice, ttsChoice, ttsFallbackChoice } from '../agent/tts-provider.js';
+import { choiceFromVoice, kugelApiKey, type TtsChoice, ttsChoice, ttsFallbackChoice } from '../agent/tts-provider.js';
 import { _ } from '../i18n.js';
 import { CATALOG_TARGETS, type CatalogService, type CatalogTarget, createCatalog } from './catalog.js';
 import { byCharacter, callsFrom, METRIC_NAMES, readMetrics, summarizeCall } from './latency.js';
@@ -163,6 +163,15 @@ function plainField(value: unknown, name: string): string | undefined {
     }
   }
   return value;
+}
+
+/** Whether the configured KugelAudio key routes to the EU endpoint; false when there is no key. */
+function kugelInEu(env: NodeJS.ProcessEnv): boolean {
+  try {
+    return kugelApiKey(env).startsWith('eu-');
+  } catch {
+    return false;
+  }
 }
 
 function slot(value: unknown): string | undefined {
@@ -315,6 +324,8 @@ export function createAdminServer(options: AdminOptions): Server {
         openrouter: Boolean(env.OPENROUTER_API_KEY),
         kugel: Boolean(env.KUGELAUDIO_API_KEY),
       },
+      // Known facts for the casting badges: where KugelAudio speaks from, with the key as configured.
+      kugelEu: kugelInEu(env),
     };
   };
 

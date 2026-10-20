@@ -1660,3 +1660,12 @@ test('GET /api/sample refuses a redirect and enforces the size cap while streami
   const two = await start({ catalog: SAMPLE_CATALOG, fetch: lying });
   assert.equal((await fetch(`${two.url}/api/sample?provider=kugel&voice=a`)).status, 502);
 });
+
+test('GET /api/state: kugelEu tells whether the configured key speaks from the EU', async () => {
+  const eu = await start({ env: { ...ENV, KUGELAUDIO_API_KEY: 'k' } });
+  assert.equal(((await (await fetch(`${eu.url}/api/state`)).json()) as { kugelEu: boolean }).kugelEu, true);
+  const global = await start({ env: { ...ENV, KUGELAUDIO_API_KEY: 'k', SPRECHSTUNDE_KUGEL_REGION: 'global' } });
+  assert.equal(((await (await fetch(`${global.url}/api/state`)).json()) as { kugelEu: boolean }).kugelEu, false);
+  const none = await start();
+  assert.equal(((await (await fetch(`${none.url}/api/state`)).json()) as { kugelEu: boolean }).kugelEu, false);
+});
