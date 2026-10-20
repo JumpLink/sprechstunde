@@ -71,7 +71,7 @@ so `var/` must belong to uid/gid 1000.
 cd /opt/sprechstunde
 mkdir -p var/settings var/metrics var/transcripts var/voices var/profiles var/db
 chown -R 1000:1000 var
-podman compose -f compose.yaml -f compose.server.yaml --profile agent build
+podman compose -f compose.yaml -f compose.server.yaml --profile agent --profile pocket build
 install -m 644 deploy/systemd/sprechstunde.service /etc/systemd/system/
 systemctl daemon-reload && systemctl enable --now sprechstunde
 ```
@@ -137,7 +137,7 @@ cd /opt/sprechstunde
 git fetch && git log --oneline HEAD..origin/main     # what is coming
 git rev-parse HEAD > ~/sprechstunde.previous         # the way back
 git pull --ff-only
-podman compose -f compose.yaml -f compose.server.yaml --profile agent build
+podman compose -f compose.yaml -f compose.server.yaml --profile agent --profile pocket build
 systemctl restart sprechstunde
 ```
 

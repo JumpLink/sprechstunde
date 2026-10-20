@@ -15,8 +15,14 @@ test('server compose: no published ports, host networking stays, transcripts are
 
 test('server compose: the boot unit starts the same two files the runbook names', () => {
   const unit = read('deploy/systemd/sprechstunde.service');
-  assert.match(unit, /ExecStart=.*compose -f compose\.yaml -f compose\.server\.yaml --profile agent up -d/);
-  assert.match(unit, /ExecStop=.*compose -f compose\.yaml -f compose\.server\.yaml --profile agent down/);
+  assert.match(
+    unit,
+    /ExecStart=.*compose -f compose\.yaml -f compose\.server\.yaml --profile agent --profile pocket up -d/,
+  );
+  assert.match(
+    unit,
+    /ExecStop=.*compose -f compose\.yaml -f compose\.server\.yaml --profile agent --profile pocket down/,
+  );
 });
 
 test('compose: health-check arguments carry no spaces', () => {
