@@ -51,7 +51,10 @@ function main(): void {
   const tick = (): void => {
     if (running) return;
     running = true;
-    void runDue(knowledge.service, DEFAULT_TENANT).finally(() => (running = false));
+    knowledge.service.retryStale();
+    runDue(knowledge.service, DEFAULT_TENANT)
+      .catch((error: unknown) => console.error(`knowledge refresh run failed: ${(error as Error).message}`))
+      .finally(() => (running = false));
   };
   setInterval(tick, SCHEDULE_INTERVAL_MS).unref();
   setTimeout(tick, 30_000).unref();

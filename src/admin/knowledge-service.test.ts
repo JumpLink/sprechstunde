@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { renderSnapshot } from '../core/knowledge-snapshot.js';
 import { FetchRefused, type SafeFetcher } from './fetch-safe.js';
+import { createKnowledgeApi } from './knowledge-api.js';
 import { openDb } from './knowledge-db.js';
 import { createKnowledgeRepo } from './knowledge-repo.js';
 import { createKnowledgeService, KnowledgeError } from './knowledge-service.js';
@@ -10,6 +11,8 @@ const html = (body: string, title = 'Page') =>
   `<html><head><title>${title}</title></head><body><main>${body}</main></body></html>`;
 
 function rig(pages: Record<string, string | Error>) {
+  const failing = { publish: false };
+  const logged: string[] = [];
   const bodies = { ...pages };
   const fetched: string[] = [];
   const fetcher = {
@@ -29,13 +32,19 @@ function rig(pages: Record<string, string | Error>) {
     repo,
     fetcher,
     render: renderSnapshot,
-    publish: (tenant, venue, text) => published.push({ tenant, venue, text }),
+    publish: (tenant, venue, text) => {
+      if (failing.publish) throw new Error('disk full');
+      published.push({ tenant, venue, text });
+    },
+    log: (message) => logged.push(message),
     now: () => new Date(clock),
   });
   return {
     service,
     repo,
     published,
+    failing,
+    logged,
     fetched,
     bodies,
     tick: (hours: number) => (clock += hours * 3_600_000),
@@ -280,4 +289,46 @@ test('removing a source republishes without it', async () => {
   const source = await r.service.addSource(T, { venue: 'v', kind: 'manual', title: 'N', markdown: 'text' });
   r.service.removeSource(T, source.id);
   assert.equal(r.published.at(-1)!.text, '');
+});
+
+test('a publish that fails after the commit is not an error: it is marked stale and retried', async () => {
+  const r = rig({});
+  r.failing.publish = true;
+  const source = await r.service.addSource(T, {
+    venue: 'v.json',
+    kind: 'manual',
+    title: 'Notes',
+    markdown: 'Closed Mondays',
+  });
+  assert.equal(r.service.isStale(T, 'v.json'), true);
+  assert.equal(r.service.hasStale(), true);
+  assert.match(r.logged[0]!, /disk full/);
+  assert.equal(r.service.overview(T, 'v.json').length, 1, 'the change itself is saved');
+  assert.equal(r.service.retryStale(), 1, 'still failing');
+  r.failing.publish = false;
+  assert.equal(r.service.retryStale(), 0);
+  assert.equal(r.service.isStale(T, 'v.json'), false);
+  assert.match(r.published.at(-1)!.text, /Closed Mondays/);
+  assert.ok(source.id);
+});
+
+test('the API still answers 200 and says the publish is pending', async () => {
+  const r = rig({});
+  const api = createKnowledgeApi({ service: r.service, tenantId: T, venueExists: () => true });
+  r.failing.publish = true;
+  const made = await api({
+    method: 'POST',
+    path: '/api/knowledge/sources',
+    query: new URLSearchParams(),
+    body: async () => ({ venue: 'v.json', kind: 'manual', title: 'Notes', markdown: 'Hi' }),
+  });
+  assert.equal(made?.status, 201);
+  assert.equal((made!.payload as { publishFailed?: boolean }).publishFailed, true);
+  const published = await api({
+    method: 'GET',
+    path: '/api/knowledge/published',
+    query: new URLSearchParams('venue=v.json'),
+    body: async () => ({}),
+  });
+  assert.equal((published!.payload as { stale: boolean }).stale, true);
 });

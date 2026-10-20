@@ -50,6 +50,8 @@ export interface ServiceOptions {
   publish: (tenantId: string, venue: string, text: string) => void;
   render: (sections: SnapshotSection[]) => string;
   now?: () => Date;
+  /** Where a failed publish is reported (details stay in the log, never in an answer). */
+  log?: (message: string) => void;
 }
 
 export interface NewSourceInput {
@@ -131,8 +133,21 @@ export function createKnowledgeService(options: ServiceOptions) {
         })),
     );
 
-  const republish = (tenantId: string, venue: string): void =>
-    options.publish(tenantId, venue, snapshotOf(tenantId, venue));
+  // The database commit is what counts. A snapshot that could not be written stays marked stale and
+  // is retried (next scheduler tick, next start), so a full disk never turns a saved change into an error.
+  const stale = new Map<string, { tenantId: string; venue: string }>();
+  const log = options.log ?? ((message: string) => console.error(message));
+
+  const republish = (tenantId: string, venue: string): void => {
+    const key = `${tenantId}\u0000${venue}`;
+    try {
+      options.publish(tenantId, venue, snapshotOf(tenantId, venue));
+      stale.delete(key);
+    } catch (error) {
+      stale.set(key, { tenantId, venue });
+      log(`knowledge publish failed, will retry: ${(error as Error).message}`);
+    }
+  };
 
   const need = <T>(value: T | undefined): T => {
     if (value === undefined) throw new KnowledgeError(404, _('not found'));
@@ -211,6 +226,15 @@ export function createKnowledgeService(options: ServiceOptions) {
 
   return {
     republish,
+
+    /** True when the venue's published text is behind the database. */
+    isStale: (tenantId: string, venue: string): boolean => stale.has(`${tenantId}\u0000${venue}`),
+    hasStale: (): boolean => stale.size > 0,
+    /** Tries every stale snapshot again; returns how many are still behind. */
+    retryStale(): number {
+      for (const { tenantId, venue } of stale.values()) republish(tenantId, venue);
+      return stale.size;
+    },
 
     async addSource(tenantId: string, input: NewSourceInput): Promise<Source> {
       const t = repo.forTenant(tenantId);

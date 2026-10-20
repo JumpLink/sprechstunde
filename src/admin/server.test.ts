@@ -12,6 +12,7 @@ import {
   writeFileSync,
 } from 'node:fs';
 import { request as httpRequest } from 'node:http';
+import type { KnowledgeApi } from './knowledge-api.js';
 import type { AddressInfo } from 'node:net';
 import { tmpdir } from 'node:os';
 import { dirname, isAbsolute, join } from 'node:path';
@@ -58,6 +59,7 @@ async function start(
     fetch?: typeof fetch;
     /** Files of the built settings app by path; none means the app is not built. */
     web?: Record<string, string>;
+    knowledge?: KnowledgeApi;
   } = {},
 ): Promise<Harness> {
   const dir = mkdtempSync(join(tmpdir(), 'sprechstunde-admin-'));
@@ -98,6 +100,7 @@ async function start(
     webDir,
     ...(options.catalog && { catalog: options.catalog }),
     ...(options.fetch && { fetch: options.fetch }),
+    ...(options.knowledge && { knowledge: options.knowledge }),
     startProfile: { id: 'start', name: 'Test', locale: 'de-DE' },
     startProfileFile,
     loadStartProfile: () => parseProfile(JSON.parse(venue('start'))),
@@ -326,6 +329,29 @@ test('a Host that is not loopback is refused (DNS rebinding)', async () => {
   // `fetch` sets the Host header itself, so this one goes out over a plain request.
   assert.equal(await statusWithHost(harness, 'admin.evil.example'), 403);
   assert.equal(await statusWithHost(harness, 'localhost'), 200);
+});
+
+test('an unexpected error answers with a generic message, not its details', async () => {
+  const original = console.error;
+  const logged: string[] = [];
+  console.error = (message: string) => logged.push(message);
+  try {
+    const harness = await start({
+      knowledge: async () => {
+        throw new Error('ENOENT: /srv/secret/place.sqlite');
+      },
+    });
+    const response = await call(harness, 'GET', '/api/knowledge/sources');
+    assert.equal(response.status, 500);
+    const body = await response.text();
+    assert.ok(!body.includes('secret'), body);
+    assert.ok(
+      logged.some((line) => line.includes('ENOENT')),
+      'the details go to the log',
+    );
+  } finally {
+    console.error = original;
+  }
 });
 
 test('characters: create, change and delete', async () => {

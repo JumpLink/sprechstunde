@@ -25,7 +25,7 @@
   let sources = $state<KnowledgeSource[]>();
   let openId = $state<string>();
   let sections = $state<SourceSection[]>();
-  let published = $state<string>();
+  let published = $state<{ text: string; stale: boolean }>();
   let busy = $state<string>();
   let drafts = $state<Record<string, string>>({});
   let previewing = $state<Record<string, boolean>>({});
@@ -59,7 +59,7 @@
 
   async function loadList(): Promise<void> {
     sources = await api<KnowledgeSource[]>('GET', `/api/knowledge/sources?venue=${q(venue)}`);
-    published = (await api<{ text: string }>('GET', `/api/knowledge/published?venue=${q(venue)}`)).text;
+    published = await api<{ text: string; stale: boolean }>('GET', `/api/knowledge/published?venue=${q(venue)}`);
   }
   async function loadOpen(): Promise<void> {
     if (!openId) return void (sections = undefined);
@@ -354,12 +354,17 @@
     </Card>
 
     <Card title={_('What the bot knows')} description={_('Exactly the text the assistant gets from your sources, with where each part comes from.')}>
+      {#if published?.stale}
+        <p class="mb-3 flex items-start gap-2 text-sm text-amber-700 dark:text-amber-300" role="alert">
+          <AlertTriangle class="mt-0.5 size-4 shrink-0" />{_('Publishing failed and is being retried. The bot still has the older text.')}
+        </p>
+      {/if}
       {#if published === undefined}
         <Skeleton class="h-24" />
-      {:else if published === ''}
+      {:else if published.text === ''}
         <Empty title={_('Nothing yet')}>{_('Accepted sources show up here.')}</Empty>
       {:else}
-        <pre class="max-h-96 overflow-auto rounded-md bg-muted/50 p-3 text-xs whitespace-pre-wrap break-words">{published}</pre>
+        <pre class="max-h-96 overflow-auto rounded-md bg-muted/50 p-3 text-xs whitespace-pre-wrap break-words">{published.text}</pre>
       {/if}
     </Card>
   {/if}

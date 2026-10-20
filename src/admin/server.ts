@@ -888,7 +888,8 @@ export function createAdminServer(options: AdminOptions): Server {
       const status = error instanceof HttpError ? error.status : 500;
       if (status === 500) console.error((error as Error).message);
       if (response.headersSent) return response.end();
-      json(response, status, { error: (error as Error).message });
+      // Only an HttpError was written for the page; anything else may name paths or SQL.
+      json(response, status, { error: error instanceof HttpError ? error.message : _('internal error') });
     });
   });
 }

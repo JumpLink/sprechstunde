@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-20 14:25+0200\n"
+"POT-Creation-Date: 2026-10-20 14:28+0200\n"
 "PO-Revision-Date: 2026-10-19 23:10+0200\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -26,7 +26,7 @@ msgstr "der Anbieter antwortete mit %s"
 msgid "the request failed: %s"
 msgstr "die Anfrage ist fehlgeschlagen: %s"
 
-#: src/admin/fetch-safe.ts:184 src/admin/knowledge-service.ts:109
+#: src/admin/fetch-safe.ts:184 src/admin/knowledge-service.ts:111
 msgid "only http and https addresses can be fetched"
 msgstr "es können nur http- und https-Adressen abgerufen werden"
 
@@ -78,7 +78,7 @@ msgstr "die Seite antwortete mit einem Fehler"
 msgid "the page is not a kind of document that can be read"
 msgstr "die Seite ist kein Dokument, das sich lesen lässt"
 
-#: src/admin/fetch-safe.ts:350 src/admin/knowledge-service.ts:106
+#: src/admin/fetch-safe.ts:350 src/admin/knowledge-service.ts:108
 msgid "this is not a valid web address"
 msgstr "das ist keine gültige Webadresse"
 
@@ -120,58 +120,58 @@ msgid "\"baseRevisionId\" must be the revision the page loaded, or null"
 msgstr ""
 "„baseRevisionId“ muss die Revision sein, die die Seite geladen hat, oder null"
 
-#: src/admin/knowledge-service.ts:85
+#: src/admin/knowledge-service.ts:87
 #, javascript-format
 msgid "at most %s patterns are allowed"
 msgstr "höchstens %s Muster sind erlaubt"
 
-#: src/admin/knowledge-service.ts:89
+#: src/admin/knowledge-service.ts:91
 #, javascript-format
 msgid "a pattern may have at most %s characters"
 msgstr "ein Muster darf höchstens %s Zeichen haben"
 
-#: src/admin/knowledge-service.ts:101
+#: src/admin/knowledge-service.ts:103
 msgid "\"url\" must be a web address"
 msgstr "„url“ muss eine Webadresse sein"
 
-#: src/admin/knowledge-service.ts:138
+#: src/admin/knowledge-service.ts:153
 msgid "not found"
 msgstr "nicht gefunden"
 
-#: src/admin/knowledge-service.ts:218
+#: src/admin/knowledge-service.ts:242
 #, javascript-format
 msgid "\"kind\" must be one of: %s"
 msgstr "„kind“ muss einer dieser Werte sein: %s"
 
-#: src/admin/knowledge-service.ts:221
+#: src/admin/knowledge-service.ts:245
 msgid "Notes"
 msgstr "Notizen"
 
-#: src/admin/knowledge-service.ts:221 web/src/pages/Sources.svelte:22
+#: src/admin/knowledge-service.ts:245 web/src/pages/Sources.svelte:22
 msgid "Web page"
 msgstr "Webseite"
 
-#: src/admin/knowledge-service.ts:224 src/admin/knowledge-service.ts:364
+#: src/admin/knowledge-service.ts:248 src/admin/knowledge-service.ts:388
 msgid "the text is too long"
 msgstr "der Text ist zu lang"
 
-#: src/admin/knowledge-service.ts:255 src/admin/knowledge-service.ts:426
+#: src/admin/knowledge-service.ts:279 src/admin/knowledge-service.ts:450
 msgid "\"refreshHours\" must be a whole number of hours, or null"
 msgstr "„refreshHours“ muss eine ganze Zahl von Stunden oder null sein"
 
-#: src/admin/knowledge-service.ts:274
+#: src/admin/knowledge-service.ts:298
 msgid "a text source has nothing to fetch"
 msgstr "eine Textquelle hat nichts abzurufen"
 
-#: src/admin/knowledge-service.ts:339 src/admin/knowledge-service.ts:350
+#: src/admin/knowledge-service.ts:363 src/admin/knowledge-service.ts:374
 msgid "this change was already decided: reload the page"
 msgstr "über diese Änderung ist schon entschieden: Seite neu laden"
 
-#: src/admin/knowledge-service.ts:363
+#: src/admin/knowledge-service.ts:387
 msgid "\"markdown\" must be text"
 msgstr "„markdown“ muss ein Text sein"
 
-#: src/admin/knowledge-service.ts:366
+#: src/admin/knowledge-service.ts:390
 msgid ""
 "this section changed since you loaded it: reload and make the change again"
 msgstr ""
@@ -183,12 +183,12 @@ msgstr ""
 msgid "%s must be a port number"
 msgstr "%s muss eine Portnummer sein"
 
-#: src/admin/main.ts:63
+#: src/admin/main.ts:66
 #, javascript-format
 msgid "settings UI on %s"
 msgstr "Einstellungsoberfläche auf %s"
 
-#: src/admin/main.ts:64
+#: src/admin/main.ts:67
 #, javascript-format
 msgid "settings file: %s"
 msgstr "Einstellungsdatei: %s"
@@ -398,6 +398,10 @@ msgstr "Die Einstellungs-App ist nicht gebaut: `npm run web:build` ausführen"
 #: src/admin/server.ts:883
 msgid "unknown route"
 msgstr "unbekannte Route"
+
+#: src/admin/server.ts:892
+msgid "internal error"
+msgstr "interner Fehler"
 
 #: src/agent/assistant.ts:76
 msgid "CPU profile written to"
@@ -783,7 +787,7 @@ msgid "Calls"
 msgstr "Anrufe"
 
 #: web/src/lib/ui/Confirm.svelte:28 web/src/pages/Sources.svelte:338
-#: web/src/pages/Sources.svelte:425 web/src/pages/characters/Wizard.svelte:310
+#: web/src/pages/Sources.svelte:430 web/src/pages/characters/Wizard.svelte:310
 msgid "Cancel"
 msgstr "Abbrechen"
 
@@ -1080,7 +1084,7 @@ msgid "Use this profile"
 msgstr "Dieses Profil verwenden"
 
 #: web/src/pages/Knowledge.svelte:227 web/src/pages/Knowledge.svelte:495
-#: web/src/pages/Sources.svelte:298 web/src/pages/Sources.svelte:438
+#: web/src/pages/Sources.svelte:298 web/src/pages/Sources.svelte:443
 msgid "History"
 msgstr "Verlauf"
 
@@ -1308,7 +1312,7 @@ msgstr "%s Byte"
 msgid "Restore"
 msgstr "Wiederherstellen"
 
-#: web/src/pages/Knowledge.svelte:515 web/src/pages/Sources.svelte:454
+#: web/src/pages/Knowledge.svelte:515 web/src/pages/Sources.svelte:459
 #: web/src/pages/voices/VoiceBrowser.svelte:331
 msgid "Close"
 msgstr "Schließen"
@@ -1456,7 +1460,7 @@ msgid "no key"
 msgstr "kein Schlüssel"
 
 #: web/src/pages/Sources.svelte:22 web/src/pages/Sources.svelte:325
-#: web/src/pages/Sources.svelte:399
+#: web/src/pages/Sources.svelte:404
 msgid "Text"
 msgstr "Text"
 
@@ -1527,7 +1531,7 @@ msgstr ""
 "Webseiten werden abgerufen, dann entscheidest du, was aktiv wird. Dein "
 "eigener Text ist sofort aktiv."
 
-#: web/src/pages/Sources.svelte:205 web/src/pages/Sources.svelte:372
+#: web/src/pages/Sources.svelte:205 web/src/pages/Sources.svelte:377
 msgid "Add source"
 msgstr "Quelle hinzufügen"
 
@@ -1548,31 +1552,31 @@ msgstr "Abgerufen %s"
 msgid "Fetch now"
 msgstr "Jetzt abrufen"
 
-#: web/src/pages/Sources.svelte:239 web/src/pages/Sources.svelte:464
+#: web/src/pages/Sources.svelte:239 web/src/pages/Sources.svelte:469
 msgid "Remove source"
 msgstr "Quelle entfernen"
 
-#: web/src/pages/Sources.svelte:257 web/src/pages/Sources.svelte:411
+#: web/src/pages/Sources.svelte:257 web/src/pages/Sources.svelte:416
 msgid "Fetch again every"
 msgstr "Erneut abrufen alle"
 
-#: web/src/pages/Sources.svelte:264 web/src/pages/Sources.svelte:413
+#: web/src/pages/Sources.svelte:264 web/src/pages/Sources.svelte:418
 msgid "Never"
 msgstr "Nie"
 
-#: web/src/pages/Sources.svelte:265 web/src/pages/Sources.svelte:414
+#: web/src/pages/Sources.svelte:265 web/src/pages/Sources.svelte:419
 msgid "6 hours"
 msgstr "6 Stunden"
 
-#: web/src/pages/Sources.svelte:266 web/src/pages/Sources.svelte:415
+#: web/src/pages/Sources.svelte:266 web/src/pages/Sources.svelte:420
 msgid "Day"
 msgstr "Tag"
 
-#: web/src/pages/Sources.svelte:267 web/src/pages/Sources.svelte:416
+#: web/src/pages/Sources.svelte:267 web/src/pages/Sources.svelte:421
 msgid "Week"
 msgstr "Woche"
 
-#: web/src/pages/Sources.svelte:276 web/src/pages/Sources.svelte:420
+#: web/src/pages/Sources.svelte:276 web/src/pages/Sources.svelte:425
 msgid "Accept changes without asking"
 msgstr "Änderungen ohne Rückfrage übernehmen"
 
@@ -1588,7 +1592,7 @@ msgstr "Drücke „Jetzt abrufen“."
 msgid "No longer listed"
 msgstr "Nicht mehr gelistet"
 
-#: web/src/pages/Sources.svelte:297 web/src/pages/Sources.svelte:447
+#: web/src/pages/Sources.svelte:297 web/src/pages/Sources.svelte:452
 msgid "Edited by hand"
 msgstr "Von Hand bearbeitet"
 
@@ -1630,72 +1634,77 @@ msgstr ""
 "Genau der Text, den der Assistent aus deinen Quellen bekommt, mit Herkunft "
 "jedes Teils."
 
-#: web/src/pages/Sources.svelte:360
+#: web/src/pages/Sources.svelte:359
+msgid ""
+"Publishing failed and is being retried. The bot still has the older text."
+msgstr "Veröffentlichen fehlgeschlagen, wird wiederholt. Der Bot hat noch den älteren Text."
+
+#: web/src/pages/Sources.svelte:365
 msgid "Nothing yet"
 msgstr "Noch nichts"
 
-#: web/src/pages/Sources.svelte:360
+#: web/src/pages/Sources.svelte:365
 msgid "Accepted sources show up here."
 msgstr "Übernommene Quellen erscheinen hier."
 
-#: web/src/pages/Sources.svelte:373
+#: web/src/pages/Sources.svelte:378
 msgid "Pages are fetched politely: the site's robots.txt is respected."
 msgstr ""
 "Seiten werden höflich abgerufen: Die robots.txt der Seite wird beachtet."
 
-#: web/src/pages/Sources.svelte:381
+#: web/src/pages/Sources.svelte:386
 msgid "Kind"
 msgstr "Art"
 
-#: web/src/pages/Sources.svelte:395
+#: web/src/pages/Sources.svelte:400
 msgid "Title"
 msgstr "Titel"
 
-#: web/src/pages/Sources.svelte:399
+#: web/src/pages/Sources.svelte:404
 msgid "Markdown works."
 msgstr "Markdown funktioniert."
 
-#: web/src/pages/Sources.svelte:403
+#: web/src/pages/Sources.svelte:408
 msgid "Web address"
 msgstr "Webadresse"
 
-#: web/src/pages/Sources.svelte:403
+#: web/src/pages/Sources.svelte:408
 msgid "Address of the sitemap"
 msgstr "Adresse der Sitemap"
 
-#: web/src/pages/Sources.svelte:407
+#: web/src/pages/Sources.svelte:412
 msgid "Only these pages"
 msgstr "Nur diese Seiten"
 
-#: web/src/pages/Sources.svelte:407
+#: web/src/pages/Sources.svelte:412
 msgid "One pattern per line, such as /menu/**. Empty takes every page."
 msgstr "Ein Muster pro Zeile, z. B. /menu/**. Leer nimmt jede Seite."
 
-#: web/src/pages/Sources.svelte:427
+#: web/src/pages/Sources.svelte:432
 msgid "Add"
 msgstr "Hinzufügen"
 
-#: web/src/pages/Sources.svelte:445
+#: web/src/pages/Sources.svelte:450
 msgid "Accepted"
 msgstr "Übernommen"
 
-#: web/src/pages/Sources.svelte:445
+#: web/src/pages/Sources.svelte:450
 msgid "Waiting"
 msgstr "Wartet"
 
-#: web/src/pages/Sources.svelte:445
+#: web/src/pages/Sources.svelte:450
 msgid "Discarded"
 msgstr "Verworfen"
 
-#: web/src/pages/Sources.svelte:447
+#: web/src/pages/Sources.svelte:452
 msgid "Fetched"
 msgstr "Abgerufen"
 
-#: web/src/pages/Sources.svelte:462
+#: web/src/pages/Sources.svelte:467
 msgid "Remove this source?"
 msgstr "Diese Quelle entfernen?"
 
-#: web/src/pages/Sources.svelte:463
+#: web/src/pages/Sources.svelte:468
 msgid ""
 "Its fetched texts and their history are deleted, and the assistant stops "
 "using them."

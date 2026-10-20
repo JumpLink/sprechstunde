@@ -54,7 +54,7 @@ export function createKnowledgeApi(options: KnowledgeApiOptions) {
     return id;
   };
 
-  return async function route(request: ApiRequest): Promise<ApiResult | undefined> {
+  async function handle(request: ApiRequest): Promise<ApiResult | undefined> {
     if (!request.path.startsWith(PREFIX)) return undefined;
     const parts = request.path.slice(PREFIX.length).split('/');
     const [area, id, action] = parts;
@@ -142,10 +142,28 @@ export function createKnowledgeApi(options: KnowledgeApiOptions) {
     }
 
     if (area === 'published' && parts.length === 1 && method === 'GET') {
-      return ok({ text: service.published(tenantId, venueOf(request.query.get('venue'))) });
+      const venue = venueOf(request.query.get('venue'));
+      return ok({ text: service.published(tenantId, venue), stale: service.isStale(tenantId, venue) });
     }
 
     return undefined;
+  }
+
+  return async function route(request: ApiRequest): Promise<ApiResult | undefined> {
+    const result = await handle(request);
+    // The change is saved; the UI is told when the bot's copy of it is still being written.
+    const payload = result?.payload;
+    if (
+      result &&
+      request.method !== 'GET' &&
+      service.hasStale() &&
+      payload &&
+      typeof payload === 'object' &&
+      !Array.isArray(payload)
+    ) {
+      return { ...result, payload: { ...payload, publishFailed: true } };
+    }
+    return result;
   };
 }
 
