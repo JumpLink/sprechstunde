@@ -147,7 +147,7 @@ export function createKnowledgeService(options: ServiceOptions) {
   const log = options.log ?? ((message: string) => console.error(message));
 
   const republish = (tenantId: string, venue: string): void => {
-    const key = `${tenantId}\u0000${venue}`;
+    const key = JSON.stringify([tenantId, venue]);
     try {
       options.publish(tenantId, venue, snapshotOf(tenantId, venue));
       stale.delete(key);
@@ -238,7 +238,7 @@ export function createKnowledgeService(options: ServiceOptions) {
     republish,
 
     /** True when the venue's published text is behind the database. */
-    isStale: (tenantId: string, venue: string): boolean => stale.has(`${tenantId}\u0000${venue}`),
+    isStale: (tenantId: string, venue: string): boolean => stale.has(JSON.stringify([tenantId, venue])),
     hasStale: (): boolean => stale.size > 0,
     /** Tries every stale snapshot again; returns how many are still behind. */
     retryStale(): number {
