@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { loadProfile, parseProfile, withAssistantName } from './profile.js';
-import { buildInstructions } from './prompt.js';
+import { buildInstructions, personaOf } from './prompt.js';
 import { describeKnowledge } from './knowledge.js';
 import { maskTransferTarget, TRANSFER_TOOL, toolDescriptors, transferOverride, transferRequest } from './tools.js';
 
@@ -84,6 +84,60 @@ test('instructions state the local date and weekday of the venue', () => {
   assert.match(text, /Sonntag, 18\. Oktober 2026 um 01:30/);
 });
 
+const NOW = new Date('2026-10-17T12:00:00Z');
+
+test('prompt: without a persona, or with an empty one, it is exactly what it was', () => {
+  const plain = buildInstructions(example, NOW);
+  assert.equal(buildInstructions(example, NOW, undefined), plain);
+  assert.equal(buildInstructions(example, NOW, {}), plain);
+  assert.equal(buildInstructions(example, NOW, { tone: '' }), plain);
+  assert.doesNotMatch(plain, /Speaking style/);
+});
+
+test('prompt: a migrated character of unknown gender changes nothing', () => {
+  const plain = buildInstructions(example, NOW);
+  const migrated = {
+    gender: 'neutral',
+    genderUnknown: true,
+    tone: undefined,
+  } as const;
+  assert.equal(buildInstructions(example, NOW, personaOf(migrated)), plain);
+});
+
+test('prompt: the tone becomes a speaking-style line before the rules', () => {
+  const text = buildInstructions(example, NOW, { tone: 'Warm and calm.' });
+  assert.match(text, /^Speaking style: Warm and calm\.$/m);
+  assert.ok(text.indexOf('Speaking style') < text.indexOf('Rules:'));
+});
+
+test('prompt: gender picks the German self-description', () => {
+  assert.equal(example.locale.startsWith('de'), true);
+  assert.match(buildInstructions(example, NOW, { gender: 'female' }), /"eine KI-Assistentin"/);
+  assert.match(buildInstructions(example, NOW, { gender: 'male' }), /"ein KI-Assistent"/);
+  assert.match(buildInstructions(example, NOW, { gender: 'neutral' }), /"eine KI"/);
+});
+
+test('prompt: gender wording stays out of a venue that does not speak German', () => {
+  const english = { ...example, locale: 'en-GB' };
+  const text = buildInstructions(english, NOW, { gender: 'female' });
+  assert.doesNotMatch(text, /KI/);
+  assert.match(text, /feminine/);
+});
+
+test('prompt: a venue greeting is never rewritten by the persona', () => {
+  const persona = { tone: 'Cheerful.', gender: 'female' } as const;
+  const text = buildInstructions(example, NOW, persona);
+  assert.equal(describeKnowledge(example, NOW, undefined, persona).greeting, example.greeting);
+  assert.ok(text.includes(example.instructions));
+});
+
+test('profile: the character is an optional id', () => {
+  assert.equal(parseProfile(variant(() => {})).character, undefined);
+  assert.equal(parseProfile(variant((r) => (r.character = 'mia'))).character, 'mia');
+  assert.throws(() => parseProfile(variant((r) => (r.character = 'not an id'))), /"character"/);
+  assert.throws(() => parseProfile(variant((r) => (r.character = 5))), /character/);
+});
+
 test('rejects ttsVoice together with refAudio', () => {
   assert.throws(
     () => parseProfile(variant((r) => (r.voice = { ttsVoice: 'a', refAudio: 'b.wav' }))),
@@ -123,7 +177,11 @@ test('transferRequest: a configured number replaces the profile target', () => {
 });
 
 test('withAssistantName renames whole-word mentions only', () => {
-  const profile = { ...example, assistantName: 'Mia', greeting: 'Sie sprechen mit Mia. Miami? Mia!' };
+  const profile = {
+    ...example,
+    assistantName: 'Mia',
+    greeting: 'Sie sprechen mit Mia. Miami? Mia!',
+  };
   const renamed = withAssistantName(profile, 'Jürgen');
   assert.equal(renamed.assistantName, 'Jürgen');
   assert.equal(renamed.greeting, 'Sie sprechen mit Jürgen. Miami? Jürgen!');
@@ -145,11 +203,20 @@ test('the tool descriptors are what the prompt and the agent refer to', () => {
 });
 
 test('transferOverride reads the deployment, with a default SIP host', () => {
-  assert.deepEqual(transferOverride({}), { number: undefined, sipHost: '127.0.0.1:5070' });
-  assert.deepEqual(transferOverride({ TRANSFER_TARGET_NUMBER: '+491', TRANSFER_SIP_HOST: 'pbx:5060' }), {
-    number: '+491',
-    sipHost: 'pbx:5060',
+  assert.deepEqual(transferOverride({}), {
+    number: undefined,
+    sipHost: '127.0.0.1:5070',
   });
+  assert.deepEqual(
+    transferOverride({
+      TRANSFER_TARGET_NUMBER: '+491',
+      TRANSFER_SIP_HOST: 'pbx:5060',
+    }),
+    {
+      number: '+491',
+      sipHost: 'pbx:5060',
+    },
+  );
 });
 
 test('maskTransferTarget keeps the scheme and the last two digits only', () => {
@@ -168,7 +235,10 @@ test('describeKnowledge masks the transfer target and uses the real prompt', () 
   assert.doesNotMatch(JSON.stringify(knowledge), /\+4900000000/);
   assert.match(knowledge.transfer?.targetMasked ?? '', /^tel:\+•+00$/);
 
-  const override = describeKnowledge(example, now, { number: '+4915112345678', sipHost: 'pbx:5060' });
+  const override = describeKnowledge(example, now, {
+    number: '+4915112345678',
+    sipHost: 'pbx:5060',
+  });
   assert.equal(override.transfer?.targetMasked, 'sip:+•••••••••••78');
   assert.doesNotMatch(JSON.stringify(override), /12345678|pbx/);
 

@@ -1,7 +1,7 @@
 /**
  * What each vendor offers: models and voices, normalized to one shape so the admin UI can list and
  * filter them without knowing five APIs. Admin only — the agent never asks a catalog during a call;
- * a preset names a voice id, and that is all a call needs.
+ * a character names a voice id, and that is all a call needs.
  *
  * Every fetcher is injectable (`fetch`, the vendor SDK clients), so the tests run without network
  * or keys. A vendor that cannot be asked — no key, no network, an error answer — is reported as
@@ -38,7 +38,13 @@ export interface CatalogModel {
   maxOutput?: number;
   /** Characters of text per request (Kugel). */
   maxInput?: number;
-  capabilities?: { tools?: boolean; vision?: boolean; reasoning?: boolean; audioIn?: boolean; audioOut?: boolean };
+  capabilities?: {
+    tools?: boolean;
+    vision?: boolean;
+    reasoning?: boolean;
+    audioIn?: boolean;
+    audioOut?: boolean;
+  };
   /** USD per token, as OpenRouter lists it. */
   pricing?: { prompt?: number; completion?: number };
   /** ISO timestamp. */
@@ -46,16 +52,19 @@ export interface CatalogModel {
 }
 
 export interface CatalogVoice {
-  /** What a preset's `voice` takes. */
+  /** What a character's `voice` takes. */
   id: string;
   name: string;
   /** Set when the voice belongs to one model (OpenRouter). */
   model?: string;
   languages: string[];
-  gender?: string;
+  /** Only when the vendor states it, mapped to our three values; never guessed from a name. */
+  gender?: VoiceGender;
   description?: string;
   sampleUrl?: string;
 }
+
+export type VoiceGender = 'female' | 'male' | 'neutral';
 
 export interface Catalog {
   /** The vendor; `llm` answers with the chat models of Mistral, the one LLM vendor the agent uses. */
@@ -82,7 +91,16 @@ export interface KugelLike {
       total: number;
     }>;
   };
-  models: { list(): Promise<Array<{ id: string; name: string; description?: string; maxInputLength?: number }>> };
+  models: {
+    list(): Promise<
+      Array<{
+        id: string;
+        name: string;
+        description?: string;
+        maxInputLength?: number;
+      }>
+    >;
+  };
 }
 
 interface MistralModelCard {
@@ -180,7 +198,10 @@ function strings(value: unknown): string[] {
 }
 
 async function getJson(context: Context, url: string, headers: Record<string, string> = {}): Promise<unknown> {
-  const response = await context.fetch(url, { headers, signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS) });
+  const response = await context.fetch(url, {
+    headers,
+    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+  });
   if (!response.ok) throw new HttpStatusError(response.status);
   return response.json();
 }
@@ -191,12 +212,31 @@ function requireKey(context: Context, name: string): string {
   return key;
 }
 
-function voice(entry: CatalogVoice): CatalogVoice {
+/**
+ * The vendors spell it differently (Kugel `sex`, Mistral `gender`, Cartesia `feminine`/`masculine`).
+ * A value that is none of these stays unset: a voice of unknown gender is shown as such.
+ */
+export function normalizeGender(value: unknown): VoiceGender | undefined {
+  if (typeof value !== 'string') return undefined;
+  const word = value.trim().toLowerCase();
+  if (['f', 'female', 'feminine', 'woman'].includes(word)) return 'female';
+  if (['m', 'male', 'masculine', 'man'].includes(word)) return 'male';
+  if (['neutral', 'gender_neutral', 'gender-neutral', 'nonbinary', 'non-binary'].includes(word)) return 'neutral';
+  return undefined;
+}
+
+function voice(entry: Omit<CatalogVoice, 'gender'> & { gender?: string }): CatalogVoice {
   // Drop empty optionals so a response never carries `"gender": null`-style noise.
-  const result: CatalogVoice = { id: entry.id, name: entry.name, languages: entry.languages };
-  for (const key of ['model', 'gender', 'description', 'sampleUrl'] as const) {
+  const result: CatalogVoice = {
+    id: entry.id,
+    name: entry.name,
+    languages: entry.languages,
+  };
+  for (const key of ['model', 'description', 'sampleUrl'] as const) {
     if (entry[key]) result[key] = entry[key];
   }
+  const gender = normalizeGender(entry.gender);
+  if (gender) result.gender = gender;
   return result;
 }
 
@@ -347,7 +387,10 @@ async function fetchMistral(context: Context): Promise<Fetched> {
   const voices: CatalogVoice[] = [];
   // Presets and the account's own cloned voices, both addressed by id.
   for (let page = 0; page < MAX_PAGES; page++) {
-    const result = await client.audio.voices.list({ limit: PAGE_SIZE, offset: voices.length });
+    const result = await client.audio.voices.list({
+      limit: PAGE_SIZE,
+      offset: voices.length,
+    });
     for (const entry of result.items) {
       voices.push(
         voice({
@@ -390,7 +433,10 @@ function openRouterModel(entry: Record<string, unknown>, id: string): CatalogMod
     const prompt = num(entry.pricing.prompt);
     const completion = num(entry.pricing.completion);
     if (prompt !== undefined || completion !== undefined) {
-      model.pricing = { ...(prompt !== undefined && { prompt }), ...(completion !== undefined && { completion }) };
+      model.pricing = {
+        ...(prompt !== undefined && { prompt }),
+        ...(completion !== undefined && { completion }),
+      };
     }
   }
   const created = isoOf(num(entry.created));
@@ -532,7 +578,11 @@ export function createCatalog(deps: CatalogDeps = {}): CatalogService {
     kugel: deps.kugel ?? ((apiKey) => new KugelAudio({ apiKey })),
     mistral:
       deps.mistral ??
-      ((apiKey, environment) => new Mistral({ apiKey, ...mistralServer(environment) }) as unknown as MistralLike),
+      ((apiKey, environment) =>
+        new Mistral({
+          apiKey,
+          ...mistralServer(environment),
+        }) as unknown as MistralLike),
     ...(language && { language }),
   });
   const cache = new Map<string, { at: number; catalog: Catalog }>();
@@ -546,7 +596,13 @@ export function createCatalog(deps: CatalogDeps = {}): CatalogService {
       const fetchedAt = new Date(now()).toISOString();
       try {
         const { models, voices } = await FETCHERS[target](context(request.language));
-        const catalog: Catalog = { provider: target, available: true, models, voices, fetchedAt };
+        const catalog: Catalog = {
+          provider: target,
+          available: true,
+          models,
+          voices,
+          fetchedAt,
+        };
         cache.set(key, { at: now(), catalog });
         return catalog;
       } catch (error) {

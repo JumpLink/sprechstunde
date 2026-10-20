@@ -40,9 +40,9 @@ export function modelsInUse(state: AdminState): Use[] {
   if (state.settings.llm.fallbackModel) {
     uses.push({ target: 'llm', id: state.settings.llm.fallbackModel, role: 'fallback' });
   }
+  const character = state.settings.characters.find((candidate) => candidate.id === state.settings.defaultCharacter);
   for (const role of ['primary', 'fallback'] as const) {
-    const preset = state.settings.presets.find((candidate) => candidate.id === state.settings.active[role]);
-    const choice = preset ?? state.envVoice[role];
+    const choice = character ? (role === 'primary' ? character.voice : character.fallbackVoice) : state.envVoice[role];
     if (choice?.model) uses.push({ target: choice.provider, id: choice.model, role });
   }
   return uses;

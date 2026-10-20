@@ -36,6 +36,9 @@
   let previewTimer: ReturnType<typeof setTimeout> | undefined;
 
   const profiles = $derived(app.profiles);
+  const defaultName = $derived(
+    app.state?.settings.characters.find((entry) => entry.id === app.state?.settings.defaultCharacter)?.name ?? _('none'),
+  );
   const editable = $derived(Boolean(knowledge?.editable && draft));
   const snapshot = (): string => JSON.stringify({ draft, target });
   const dirty = $derived(editable && snapshot() !== saved);
@@ -255,6 +258,23 @@
         <div class="space-y-4">
           <Field label={_('Name of the assistant')} for="k-name">
             <input id="k-name" class={controlClass} bind:value={draft.assistantName} />
+          </Field>
+          <Field
+            label={_('Character')}
+            for="k-character"
+            hint={_('Its voice, name and manner replace the name above on calls.')}
+          >
+            <select
+              id="k-character"
+              class={controlClass}
+              value={draft.character ?? ''}
+              onchange={(e) => draft && (draft.character = e.currentTarget.value === '' ? null : e.currentTarget.value)}
+            >
+              <option value="">{fill(_('Default character (%s)'), defaultName)}</option>
+              {#each app.state?.settings.characters ?? [] as option (option.id)}
+                <option value={option.id}>{option.name}</option>
+              {/each}
+            </select>
           </Field>
           <Field label={_('Greeting')} for="k-greeting" hint={_('Must say that the caller talks to an AI (EU AI Act, Art. 50). It cannot be empty.')}>
             <textarea id="k-greeting" class="{controlClass} min-h-20" bind:value={draft.greeting}></textarea>

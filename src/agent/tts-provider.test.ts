@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { parseSettings } from '../core/settings.js';
-import { choiceFromPreset, kugelApiKey, ttsChoice, ttsChoices, ttsFallbackChoice } from './tts-provider.js';
+import { choiceFromVoice, kugelApiKey, ttsChoice, ttsChoices, ttsFallbackChoice } from './tts-provider.js';
 
 test('ttsChoice: Mistral by default, voice from the profile', () => {
   assert.deepEqual(ttsChoice({}), {
@@ -15,18 +15,28 @@ test('ttsChoice: Mistral by default, voice from the profile', () => {
 
 test('ttsChoice: another vendor needs its own voice', () => {
   assert.throws(() => ttsChoice({ SPRECHSTUNDE_TTS_PROVIDER: 'cartesia' }), /SPRECHSTUNDE_TTS_VOICE/);
-  assert.deepEqual(ttsChoice({ SPRECHSTUNDE_TTS_PROVIDER: 'cartesia', SPRECHSTUNDE_TTS_VOICE: 'v' }), {
-    provider: 'cartesia',
-    model: 'sonic-3.6',
-    voice: 'v',
-    refAudio: undefined,
-    name: undefined,
-  });
+  assert.deepEqual(
+    ttsChoice({
+      SPRECHSTUNDE_TTS_PROVIDER: 'cartesia',
+      SPRECHSTUNDE_TTS_VOICE: 'v',
+    }),
+    {
+      provider: 'cartesia',
+      model: 'sonic-3.6',
+      voice: 'v',
+      refAudio: undefined,
+      name: undefined,
+    },
+  );
 });
 
 test('ttsChoice: OpenRouter has no default model', () => {
   assert.throws(
-    () => ttsChoice({ SPRECHSTUNDE_TTS_PROVIDER: 'openrouter', SPRECHSTUNDE_TTS_VOICE: 'v' }),
+    () =>
+      ttsChoice({
+        SPRECHSTUNDE_TTS_PROVIDER: 'openrouter',
+        SPRECHSTUNDE_TTS_VOICE: 'v',
+      }),
     /SPRECHSTUNDE_TTS_MODEL/,
   );
 });
@@ -38,20 +48,34 @@ test('ttsChoice: an unknown vendor fails instead of falling back', () => {
 test('ttsChoice: a kugel voice is a number, not a name', () => {
   assert.throws(() => ttsChoice({ SPRECHSTUNDE_TTS_PROVIDER: 'kugel' }), /SPRECHSTUNDE_TTS_VOICE/);
   assert.throws(
-    () => ttsChoice({ SPRECHSTUNDE_TTS_PROVIDER: 'kugel', SPRECHSTUNDE_TTS_VOICE: 'ernst' }),
+    () =>
+      ttsChoice({
+        SPRECHSTUNDE_TTS_PROVIDER: 'kugel',
+        SPRECHSTUNDE_TTS_VOICE: 'ernst',
+      }),
     /SPRECHSTUNDE_TTS_VOICE/,
   );
   assert.throws(
-    () => ttsChoice({ SPRECHSTUNDE_TTS_PROVIDER: 'kugel', SPRECHSTUNDE_TTS_VOICE: '1234567890' }),
+    () =>
+      ttsChoice({
+        SPRECHSTUNDE_TTS_PROVIDER: 'kugel',
+        SPRECHSTUNDE_TTS_VOICE: '1234567890',
+      }),
     /SPRECHSTUNDE_TTS_VOICE/,
   );
-  assert.deepEqual(ttsChoice({ SPRECHSTUNDE_TTS_PROVIDER: 'kugel', SPRECHSTUNDE_TTS_VOICE: '7' }), {
-    provider: 'kugel',
-    model: 'kugel-3.5',
-    voice: '7',
-    refAudio: undefined,
-    name: undefined,
-  });
+  assert.deepEqual(
+    ttsChoice({
+      SPRECHSTUNDE_TTS_PROVIDER: 'kugel',
+      SPRECHSTUNDE_TTS_VOICE: '7',
+    }),
+    {
+      provider: 'kugel',
+      model: 'kugel-3.5',
+      voice: '7',
+      refAudio: undefined,
+      name: undefined,
+    },
+  );
   // The fallback slot reads its own key and says so.
   assert.throws(
     () =>
@@ -66,11 +90,23 @@ test('ttsChoice: a kugel voice is a number, not a name', () => {
 test('kugelApiKey: the EU endpoint unless asked otherwise', () => {
   assert.equal(kugelApiKey({ KUGELAUDIO_API_KEY: 'k' }), 'eu-k');
   assert.equal(kugelApiKey({ KUGELAUDIO_API_KEY: 'k', SPRECHSTUNDE_KUGEL_REGION: 'eu' }), 'eu-k');
-  assert.equal(kugelApiKey({ KUGELAUDIO_API_KEY: 'k', SPRECHSTUNDE_KUGEL_REGION: 'global' }), 'global-k');
+  assert.equal(
+    kugelApiKey({
+      KUGELAUDIO_API_KEY: 'k',
+      SPRECHSTUNDE_KUGEL_REGION: 'global',
+    }),
+    'global-k',
+  );
   // A key that names its own region is left alone, whatever the variable says.
   for (const key of ['eu-k', 'us-k', 'global-k']) {
     assert.equal(kugelApiKey({ KUGELAUDIO_API_KEY: key }), key);
-    assert.equal(kugelApiKey({ KUGELAUDIO_API_KEY: key, SPRECHSTUNDE_KUGEL_REGION: 'global' }), key);
+    assert.equal(
+      kugelApiKey({
+        KUGELAUDIO_API_KEY: key,
+        SPRECHSTUNDE_KUGEL_REGION: 'global',
+      }),
+      key,
+    );
   }
   assert.throws(() => kugelApiKey({}), /KUGELAUDIO_API_KEY/);
   assert.throws(() => kugelApiKey({ KUGELAUDIO_API_KEY: 'k', SPRECHSTUNDE_KUGEL_REGION: 'us' }), /KUGEL_REGION/);
@@ -115,75 +151,84 @@ test('ttsChoice: the reference clip is part of the choice', () => {
   );
 });
 
-test('choiceFromPreset: the vendor default fills in the model', () => {
-  assert.deepEqual(choiceFromPreset({ id: 'house', label: 'House', provider: 'mistral', name: 'Alex' }), {
+test('choiceFromVoice: the vendor default fills in the model', () => {
+  assert.deepEqual(choiceFromVoice({ provider: 'mistral' }, { id: 'house', name: 'Alex' }), {
     provider: 'mistral',
     model: 'voxtral-mini-tts-latest',
     voice: undefined,
     refAudio: undefined,
     name: 'Alex',
-    preset: 'house',
+    character: 'house',
   });
-  assert.equal(choiceFromPreset({ id: 'p', label: 'P', provider: 'pocket', voice: 'juergen' }).model, 'pocket-tts');
-  // The message is translated; the preset and the vendor are in it whatever the locale.
-  assert.throws(() => choiceFromPreset({ id: 'r', label: 'R', provider: 'openrouter', voice: 'v' }), /openrouter/);
+  assert.equal(choiceFromVoice({ provider: 'pocket', voice: 'juergen' }, { id: 'p' }).model, 'pocket-tts');
+  // The message is translated; the character and the vendor are in it whatever the locale.
+  assert.throws(() => choiceFromVoice({ provider: 'openrouter', voice: 'v' }, { id: 'r' }), /openrouter/);
 });
 
-test('choiceFromPreset: a kugel preset carries the numeric voice id', () => {
-  assert.deepEqual(choiceFromPreset({ id: 'berlin', label: 'Berlin', provider: 'kugel', voice: '7' }), {
+test('choiceFromVoice: a kugel voice carries the numeric voice id', () => {
+  assert.deepEqual(choiceFromVoice({ provider: 'kugel', voice: '7' }, { id: 'berlin' }), {
     provider: 'kugel',
     model: 'kugel-3.5',
     voice: '7',
     refAudio: undefined,
     name: undefined,
-    preset: 'berlin',
+    character: 'berlin',
   });
-  // The message is translated, quotation marks and all; only the preset id is in every locale.
-  assert.throws(
-    () => choiceFromPreset({ id: 'berlin', label: 'Berlin', provider: 'kugel', voice: 'a-name' }),
-    /berlin/,
-  );
+  // The message is translated, quotation marks and all; only the character id is in every locale.
+  assert.throws(() => choiceFromVoice({ provider: 'kugel', voice: 'a-name' }, { id: 'berlin' }), /berlin/);
 });
 
-test('ttsChoices: the environment decides while no preset is active', () => {
-  const env = { SPRECHSTUNDE_TTS_PROVIDER: 'pocket', SPRECHSTUNDE_TTS_FALLBACK_PROVIDER: 'mistral' };
-  assert.deepEqual(ttsChoices(undefined, env).primary.provider, 'pocket');
-  assert.deepEqual(ttsChoices(parseSettings({}), env).fallback?.provider, 'mistral');
-  // Presets that exist but are not active change nothing.
-  const idle = parseSettings({ presets: [{ id: 'c', label: 'C', provider: 'cartesia', voice: 'v' }] });
-  assert.equal(ttsChoices(idle, env).primary.provider, 'pocket');
-});
-
-test('ttsChoices: an active preset wins over the environment, as a pair', () => {
-  const settings = parseSettings({
-    presets: [
-      { id: 'house', label: 'House', provider: 'pocket', voice: 'juergen', name: 'Alex' },
-      { id: 'cloud', label: 'Cloud', provider: 'mistral', voice: 'm' },
+const aCharacter = (overrides: Record<string, unknown> = {}) =>
+  parseSettings({
+    schemaVersion: 2,
+    characters: [
+      {
+        id: 'house',
+        name: 'Alex',
+        gender: 'male',
+        voice: { provider: 'pocket', voice: 'juergen' },
+        ...overrides,
+      },
     ],
-    active: { primary: 'house', fallback: 'cloud' },
+  }).characters[0]!;
+
+test('ttsChoices: the environment decides while there is no character', () => {
+  const env = {
+    SPRECHSTUNDE_TTS_PROVIDER: 'pocket',
+    SPRECHSTUNDE_TTS_FALLBACK_PROVIDER: 'mistral',
+  };
+  assert.deepEqual(ttsChoices(undefined, env).primary.provider, 'pocket');
+  assert.deepEqual(ttsChoices(undefined, env).fallback?.provider, 'mistral');
+});
+
+test('ttsChoices: a character wins over the environment, voice and fallback as a pair', () => {
+  const character = aCharacter({
+    fallbackVoice: { provider: 'mistral', voice: 'm' },
   });
-  const env = { SPRECHSTUNDE_TTS_PROVIDER: 'cartesia', SPRECHSTUNDE_TTS_VOICE: 'from-env' };
-  const choices = ttsChoices(settings, env);
-  assert.equal(choices.primary.preset, 'house');
+  const env = {
+    SPRECHSTUNDE_TTS_PROVIDER: 'cartesia',
+    SPRECHSTUNDE_TTS_VOICE: 'from-env',
+  };
+  const choices = ttsChoices(character, env);
+  assert.equal(choices.primary.character, 'house');
   assert.equal(choices.primary.voice, 'juergen');
   assert.equal(choices.primary.name, 'Alex');
-  assert.equal(choices.fallback?.preset, 'cloud');
+  assert.equal(choices.fallback?.provider, 'mistral');
+  assert.equal(choices.fallback?.character, 'house');
 });
 
-test('ttsChoices: an active primary without a fallback leaves the env fallback out', () => {
-  const settings = parseSettings({
-    presets: [{ id: 'house', label: 'House', provider: 'pocket' }],
-    active: { primary: 'house' },
+test('ttsChoices: a character without a fallback voice leaves the env fallback out', () => {
+  const choices = ttsChoices(aCharacter(), {
+    SPRECHSTUNDE_TTS_FALLBACK_PROVIDER: 'mistral',
   });
-  const choices = ttsChoices(settings, { SPRECHSTUNDE_TTS_FALLBACK_PROVIDER: 'mistral' });
   assert.equal(choices.fallback, undefined);
 });
 
-test('choiceFromPreset: a preset clip resolves into the voices directory', () => {
+test('choiceFromVoice: a clip resolves into the voices directory', () => {
   const before = process.env.SPRECHSTUNDE_VOICES_DIR;
   process.env.SPRECHSTUNDE_VOICES_DIR = '/srv/voices';
   try {
-    const choice = choiceFromPreset({ id: 'a', label: 'A', provider: 'mistral', refAudio: 'clip.wav' });
+    const choice = choiceFromVoice({ provider: 'mistral', refAudio: 'clip.wav' }, { id: 'a' });
     assert.equal(choice.refAudio, '/srv/voices/clip.wav');
   } finally {
     if (before === undefined) delete process.env.SPRECHSTUNDE_VOICES_DIR;

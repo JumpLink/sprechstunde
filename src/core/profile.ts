@@ -1,6 +1,6 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
-import { PROFILE_FILE } from './settings.js';
+import { CHARACTER_ID, PROFILE_FILE } from './settings.js';
 
 /**
  * JSON.parse, but `undefined` instead of V8's SyntaxError: its message quotes a snippet of the
@@ -42,6 +42,8 @@ export interface Profile {
    * file (absolute after `loadProfile`). At most one of them.
    */
   voice?: { ttsVoice?: string; refAudio?: string };
+  /** Id of the character (who speaks) this venue uses; the default character when absent. */
+  character?: string;
 }
 
 export const DEFAULT_PROFILE_PATH = 'profiles/example/profile.de.json';
@@ -101,10 +103,19 @@ export function parseProfile(raw: unknown, path = '<profile>'): Profile {
     if (!isRecord(raw.transfer)) fail(path, '"transfer" must be an object');
     const target = str(raw.transfer, 'target', `${path} transfer`);
     if (!/^(tel:|sip:)/.test(target)) fail(path, '"transfer.target" must start with tel: or sip:');
-    profile.transfer = { target, announce: str(raw.transfer, 'announce', `${path} transfer`) };
+    profile.transfer = {
+      target,
+      announce: str(raw.transfer, 'announce', `${path} transfer`),
+    };
   }
 
   if (raw.fallback !== undefined) profile.fallback = str(raw, 'fallback', path);
+
+  if (raw.character !== undefined) {
+    const character = str(raw, 'character', path);
+    if (!CHARACTER_ID.test(character)) fail(path, `"character" is not a character id: ${character}`);
+    profile.character = character;
+  }
 
   if (raw.voice !== undefined) {
     if (!isRecord(raw.voice)) fail(path, '"voice" must be an object');
@@ -157,7 +168,12 @@ export function withAssistantName(profile: Profile, name: string | undefined): P
     assistantName: name,
     greeting: rename(profile.greeting),
     instructions: rename(profile.instructions),
-    ...(profile.transfer && { transfer: { ...profile.transfer, announce: rename(profile.transfer.announce) } }),
+    ...(profile.transfer && {
+      transfer: {
+        ...profile.transfer,
+        announce: rename(profile.transfer.announce),
+      },
+    }),
   };
 }
 
@@ -168,6 +184,8 @@ export interface ProfileEntry {
   /** What the assistant is called in this profile. */
   name?: string;
   locale?: string;
+  /** The character this venue picked; none means the default one. */
+  character?: string;
   /** Why the file does not load. */
   error?: string;
 }
@@ -184,9 +202,19 @@ export function listProfiles(dir: string): ProfileEntry[] {
   return files.sort().map((file): ProfileEntry => {
     try {
       const profile = loadProfile(join(dir, file));
-      return { file, id: profile.id, name: profile.assistantName, locale: profile.locale };
+      return {
+        file,
+        id: profile.id,
+        name: profile.assistantName,
+        locale: profile.locale,
+        ...(profile.character && { character: profile.character }),
+      };
     } catch (error) {
-      return { file, id: file.replace(/\.json$/, ''), error: (error as Error).message };
+      return {
+        file,
+        id: file.replace(/\.json$/, ''),
+        error: (error as Error).message,
+      };
     }
   });
 }

@@ -111,7 +111,13 @@ async function start(
   await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
   servers.push(server);
   const { port } = server.address() as AddressInfo;
-  return { url: `http://127.0.0.1:${port}`, settingsPath, profilesDir, metricsDir, asked };
+  return {
+    url: `http://127.0.0.1:${port}`,
+    settingsPath,
+    profilesDir,
+    metricsDir,
+    asked,
+  };
 }
 
 /** A request as the page makes it: same origin, JSON body. */
@@ -119,7 +125,11 @@ function call(harness: Harness, method: string, path: string, body?: unknown, he
   const origin = harness.url;
   return fetch(`${harness.url}${path}`, {
     method,
-    headers: { origin, ...(body === undefined ? {} : { 'content-type': 'application/json' }), ...headers },
+    headers: {
+      origin,
+      ...(body === undefined ? {} : { 'content-type': 'application/json' }),
+      ...headers,
+    },
     body: body === undefined ? undefined : JSON.stringify(body),
   });
 }
@@ -137,12 +147,58 @@ function statusWithHost(harness: Harness, host: string): Promise<number> {
   });
 }
 
-const PRESET = { id: 'jane', label: 'Jane', provider: 'mistral', voice: 'gb_jane_neutral' };
+const CHARACTER = {
+  id: 'jane',
+  name: 'Jane',
+  gender: 'female',
+  voice: { provider: 'mistral', voice: 'gb_jane_neutral' },
+};
+const PAUL = {
+  id: 'paul',
+  name: 'Paul',
+  gender: 'male',
+  voice: { provider: 'pocket' },
+};
+
+/** A settings file as the current version writes it. */
+const stored = (characters: unknown[], extra: Record<string, unknown> = {}) => ({
+  schemaVersion: 2,
+  characters,
+  ...extra,
+});
+
+interface CharactersView {
+  tenantId: string;
+  revision: string;
+  default: string | null;
+  characters: Array<{
+    id: string;
+    tenantId: string;
+    name: string;
+    color?: string;
+    voice: { provider: string };
+    usedBy: Array<{ file: string | null; id: string; explicit: boolean }>;
+  }>;
+  created?: { id: string };
+}
+
+const viewOf = async (harness: Harness): Promise<CharactersView> =>
+  (await (await fetch(`${harness.url}/api/characters`)).json()) as CharactersView;
 
 async function settingsOf(harness: Harness, response: Response): Promise<Settings> {
   const payload = (await response.json()) as Settings;
   // What the route answers and what the next call will read must be the same thing.
   assert.deepEqual(readSettings(harness.settingsPath), payload);
+  return payload;
+}
+
+/** What a characters route answers must list what the next call will read. */
+async function viewAfter(harness: Harness, response: Response): Promise<CharactersView> {
+  const payload = (await response.json()) as CharactersView;
+  assert.deepEqual(
+    payload.characters.map((entry) => entry.id),
+    readSettings(harness.settingsPath)?.characters.map((entry) => entry.id),
+  );
   return payload;
 }
 
@@ -249,14 +305,16 @@ test('the state no longer carries UI strings', async () => {
 
 test('a state-changing request must come from this page', async () => {
   const harness = await start();
-  const noOrigin = await fetch(`${harness.url}/api/presets`, {
+  const noOrigin = await fetch(`${harness.url}/api/characters`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify(PRESET),
+    body: JSON.stringify(CHARACTER),
   });
   assert.equal(noOrigin.status, 403);
 
-  const foreign = await call(harness, 'POST', '/api/presets', PRESET, { origin: 'http://evil.example' });
+  const foreign = await call(harness, 'POST', '/api/characters', CHARACTER, {
+    origin: 'http://evil.example',
+  });
   assert.equal(foreign.status, 403);
 
   // Neither attempt may have created the file.
@@ -270,68 +328,251 @@ test('a Host that is not loopback is refused (DNS rebinding)', async () => {
   assert.equal(await statusWithHost(harness, 'localhost'), 200);
 });
 
-test('presets: create, change, rename and delete', async () => {
+test('characters: create, change and delete', async () => {
   const harness = await start();
-  const created = await call(harness, 'POST', '/api/presets', PRESET);
+  const created = await call(harness, 'POST', '/api/characters', CHARACTER);
   assert.equal(created.status, 201);
-  assert.deepEqual((await settingsOf(harness, created)).presets, [PRESET]);
+  const first = await viewAfter(harness, created);
+  assert.equal(first.created?.id, 'jane');
+  assert.equal(first.tenantId, 'default');
+  // The first character is the default one until another is picked.
+  assert.equal(first.default, 'jane');
+  assert.equal(first.characters[0]!.tenantId, 'default');
+  assert.match(first.characters[0]!.color ?? '', /^#[0-9a-f]{6}$/);
 
-  const changed = await call(harness, 'PUT', '/api/presets/jane', { ...PRESET, label: 'Jane (warm)' });
+  const changed = await call(harness, 'PUT', '/api/characters/jane', {
+    ...CHARACTER,
+    name: 'Jane (warm)',
+    tone: 'Warm.',
+    revision: first.revision,
+  });
   assert.equal(changed.status, 200);
-  assert.equal((await settingsOf(harness, changed)).presets[0]!.label, 'Jane (warm)');
+  const after = await viewAfter(harness, changed);
+  assert.equal(after.characters[0]!.name, 'Jane (warm)');
+  // The colour is kept when an edit does not send one.
+  assert.equal(after.characters[0]!.color, first.characters[0]!.color);
+  assert.equal(readSettings(harness.settingsPath)?.characters[0]!.tone, 'Warm.');
 
-  await call(harness, 'PUT', '/api/active', { primary: 'jane' });
-  const renamed = await call(harness, 'PUT', '/api/presets/jane', { ...PRESET, id: 'jane-2' });
-  const afterRename = await settingsOf(harness, renamed);
-  // The active voice follows the rename instead of silently falling back to another preset.
-  assert.equal(afterRename.active.primary, 'jane-2');
-
-  const deleted = await call(harness, 'DELETE', '/api/presets/jane-2');
+  const second = await call(harness, 'POST', '/api/characters', PAUL);
+  const both = await viewAfter(harness, second);
+  const deleted = await call(harness, 'DELETE', '/api/characters/paul', {
+    revision: both.revision,
+  });
   assert.equal(deleted.status, 200);
-  const empty = await settingsOf(harness, deleted);
-  assert.deepEqual(empty.presets, []);
-  assert.deepEqual(empty.active, {});
+  assert.deepEqual(
+    (await viewAfter(harness, deleted)).characters.map((entry) => entry.id),
+    ['jane'],
+  );
 });
 
-test('presets: an invalid one is refused and the file stays as it was', async () => {
-  const harness = await start({ settings: { presets: [PRESET], active: { primary: 'jane' } } });
+test('characters: the id comes from the name when none is given, and stays unique', async () => {
+  const harness = await start();
+  const { id: _id, ...noId } = CHARACTER;
+  for (const expected of ['jane', 'jane-2']) {
+    const view = (await (await call(harness, 'POST', '/api/characters', noId)).json()) as CharactersView;
+    assert.equal(view.created?.id, expected);
+  }
+  const accented = (await (
+    await call(harness, 'POST', '/api/characters', {
+      ...noId,
+      name: 'Zoë Müller',
+    })
+  ).json()) as CharactersView;
+  assert.equal(accented.created?.id, 'zoe-muller');
+  const reserved = (await (
+    await call(harness, 'POST', '/api/characters', { ...noId, name: 'Default' })
+  ).json()) as CharactersView;
+  assert.equal(reserved.created?.id, 'default-2');
+});
+
+test('characters: an invalid one is refused and the file stays as it was', async () => {
+  const harness = await start({
+    settings: stored([CHARACTER], { defaultCharacter: 'jane' }),
+  });
   const before = readFileSync(harness.settingsPath, 'utf8');
+  const view = await viewOf(harness);
 
-  const duplicate = await call(harness, 'POST', '/api/presets', PRESET);
-  assert.equal(duplicate.status, 400);
-  assert.match(((await duplicate.json()) as { error: string }).error, /duplicate preset id/);
+  const duplicate = await call(harness, 'POST', '/api/characters', CHARACTER);
+  assert.equal(duplicate.status, 409);
 
-  const noVoice = await call(harness, 'POST', '/api/presets', { id: 'c', label: 'C', provider: 'cartesia' });
-  assert.equal(noVoice.status, 400);
-  assert.match(((await noVoice.json()) as { error: string }).error, /"voice" is required/);
+  const bad: Array<[string, Record<string, unknown>, RegExp]> = [
+    ['no voice', { ...PAUL, id: 'c', voice: { provider: 'cartesia' } }, /"voice" is required/],
+    ['provider', { ...PAUL, id: 'c', voice: { provider: 'elevenlabs' } }, /"provider"/],
+    ['gender', { ...PAUL, id: 'c', gender: 'x' }, /"gender"/],
+    ['name', { ...PAUL, id: 'c', name: 'a\nb' }, /"name"/],
+    ['long name', { ...PAUL, id: 'c', name: 'n'.repeat(61) }, /"name"/],
+    ['tone', { ...PAUL, id: 'c', tone: 'a\u0000b' }, /"tone"/],
+    ['long tone', { ...PAUL, id: 'c', tone: 't'.repeat(301) }, /"tone"/],
+    ['reserved id', { ...PAUL, id: 'default' }, /"id"/],
+    ['id', { ...PAUL, id: 'a b' }, /id/],
+  ];
+  for (const [label, body, error] of bad) {
+    const response = await call(harness, 'POST', '/api/characters', body);
+    assert.equal(response.status, 400, label);
+    assert.match(((await response.json()) as { error: string }).error, error, label);
+  }
 
-  const missing = await call(harness, 'PUT', '/api/presets/nope', PRESET);
+  const missing = await call(harness, 'PUT', '/api/characters/nope', {
+    ...CHARACTER,
+    revision: view.revision,
+  });
   assert.equal(missing.status, 404);
+  const renamed = await call(harness, 'PUT', '/api/characters/jane', {
+    ...CHARACTER,
+    id: 'other',
+    revision: view.revision,
+  });
+  assert.equal(renamed.status, 400);
   assert.equal(readFileSync(harness.settingsPath, 'utf8'), before);
 });
 
-test('deleting the active primary drops the fallback with it', async () => {
-  const harness = await start({
-    settings: {
-      presets: [PRESET, { id: 'paul', label: 'Paul', provider: 'pocket' }],
-      active: { primary: 'jane', fallback: 'paul' },
-    },
+test('characters: a tenant id from the client is ignored', async () => {
+  const harness = await start();
+  const response = await call(harness, 'POST', '/api/characters', {
+    ...CHARACTER,
+    tenantId: 'other',
   });
-  const response = await call(harness, 'DELETE', '/api/presets/jane');
-  assert.deepEqual((await settingsOf(harness, response)).active, {});
+  assert.equal(response.status, 201);
+  assert.equal(readSettings(harness.settingsPath)?.characters[0]!.tenantId, 'default');
 });
 
-test('active and llm are written, the pair is validated', async () => {
-  const harness = await start({ settings: { presets: [PRESET, { id: 'paul', label: 'Paul', provider: 'pocket' }] } });
+test('characters: a change from a stale page is a 409', async () => {
+  const harness = await start({
+    settings: stored([CHARACTER, PAUL], { defaultCharacter: 'jane' }),
+  });
+  const stale = (await viewOf(harness)).revision;
+  const first = await call(harness, 'PUT', '/api/characters/paul', {
+    ...PAUL,
+    name: 'Paulus',
+    revision: stale,
+  });
+  assert.equal(first.status, 200);
+  const before = readFileSync(harness.settingsPath, 'utf8');
 
-  const active = await call(harness, 'PUT', '/api/active', { primary: 'jane', fallback: 'paul' });
-  assert.deepEqual((await settingsOf(harness, active)).active, { primary: 'jane', fallback: 'paul' });
+  for (const [method, path, body] of [
+    ['PUT', '/api/characters/paul', { ...PAUL, name: 'Again', revision: stale }],
+    ['DELETE', '/api/characters/paul', { revision: stale }],
+    ['PUT', '/api/characters/default', { id: 'paul', revision: stale }],
+  ] as const) {
+    assert.equal((await call(harness, method, path, body)).status, 409, `${method} ${path}`);
+  }
+  for (const [method, path, body] of [
+    ['PUT', '/api/characters/paul', PAUL],
+    ['DELETE', '/api/characters/paul', {}],
+  ] as const) {
+    assert.equal((await call(harness, method, path, body)).status, 400, `${method} ${path} without revision`);
+  }
+  assert.equal(readFileSync(harness.settingsPath, 'utf8'), before);
+});
 
-  const same = await call(harness, 'PUT', '/api/active', { primary: 'jane', fallback: 'jane' });
-  assert.equal(same.status, 400);
+test('characters: PUT /api/characters/default picks the default, an unknown one is a 404', async () => {
+  const harness = await start({
+    settings: stored([CHARACTER, PAUL], { defaultCharacter: 'jane' }),
+  });
+  const { revision } = await viewOf(harness);
+  const missing = await call(harness, 'PUT', '/api/characters/default', {
+    id: 'nope',
+    revision,
+  });
+  assert.equal(missing.status, 404);
+  const picked = await call(harness, 'PUT', '/api/characters/default', {
+    id: 'paul',
+    revision,
+  });
+  assert.equal(picked.status, 200);
+  assert.equal((await viewAfter(harness, picked)).default, 'paul');
+  assert.equal(readSettings(harness.settingsPath)?.defaultCharacter, 'paul');
+});
 
-  const orphan = await call(harness, 'PUT', '/api/active', { fallback: 'paul' });
-  assert.equal(orphan.status, 400);
+test('characters: the default character cannot be deleted', async () => {
+  const harness = await start({
+    settings: stored([CHARACTER, PAUL], { defaultCharacter: 'jane' }),
+  });
+  const { revision } = await viewOf(harness);
+  const response = await call(harness, 'DELETE', '/api/characters/jane', {
+    revision,
+  });
+  assert.equal(response.status, 409);
+  assert.equal((await viewOf(harness)).characters.length, 2);
+});
+
+test('characters: one a venue uses cannot be deleted, the venue is listed under it', async () => {
+  const harness = await start({
+    profiles: {
+      'b.json': venue('beta', { character: 'paul' }),
+      'c.json': venue('gamma'),
+    },
+    settings: stored([CHARACTER, PAUL], { defaultCharacter: 'jane' }),
+  });
+  const view = await viewOf(harness);
+  const byId = Object.fromEntries(view.characters.map((entry) => [entry.id, entry.usedBy]));
+  assert.deepEqual(
+    byId.paul!.map((entry) => [entry.id, entry.explicit]),
+    [['beta', true]],
+  );
+  // A venue without a pick speaks as the default character.
+  assert.ok(byId.jane!.some((entry) => entry.id === 'gamma' && !entry.explicit));
+
+  const refused = await call(harness, 'DELETE', '/api/characters/paul', {
+    revision: view.revision,
+  });
+  assert.equal(refused.status, 409);
+  assert.equal((await viewOf(harness)).characters.length, 2);
+
+  // Free again once the venue picks another character.
+  writeFileSync(join(harness.profilesDir, 'b.json'), venue('beta'));
+  const again = await call(harness, 'DELETE', '/api/characters/paul', {
+    revision: view.revision,
+  });
+  assert.equal(again.status, 200);
+});
+
+test('characters: a character id in the URL is decoded and must match the id pattern', async () => {
+  const harness = await start({
+    settings: stored([CHARACTER, PAUL], { defaultCharacter: 'paul' }),
+  });
+  const { revision } = await viewOf(harness);
+  for (const bad of ['..%2Fx', '%E0%A4%A', 'a%20b', '.hidden']) {
+    const response = await call(harness, 'DELETE', `/api/characters/${bad}`, {
+      revision,
+    });
+    assert.equal(response.status, 400, bad);
+  }
+  const ok = await call(harness, 'DELETE', '/api/characters/%6Aane', {
+    revision,
+  });
+  assert.equal(ok.status, 200);
+});
+
+test('characters: a file from before characters is served migrated and written back in the new shape', async () => {
+  const harness = await start({
+    settings: {
+      presets: [
+        { id: 'house', label: 'House', provider: 'pocket', name: 'Alex' },
+        { id: 'cloud', label: 'Cloud', provider: 'mistral', voice: 'm' },
+      ],
+      active: { primary: 'house', fallback: 'cloud' },
+      llm: { model: 'small' },
+    },
+  });
+  const view = await viewOf(harness);
+  assert.equal(view.default, 'house');
+  assert.deepEqual(
+    view.characters.map((entry) => [entry.id, entry.tenantId]),
+    [
+      ['house', 'default'],
+      ['cloud', 'default'],
+    ],
+  );
+  const llm = await call(harness, 'PUT', '/api/llm', { model: 'medium' });
+  const written = await settingsOf(harness, llm);
+  assert.equal(written.schemaVersion, 2);
+  assert.equal(written.characters.length, 2);
+  assert.equal(written.llm.model, 'medium');
+});
+
+test('llm is written and validated', async () => {
+  const harness = await start({ settings: stored([CHARACTER, PAUL]) });
 
   // The form sends strings; the seconds must arrive as a number.
   const llm = await call(harness, 'PUT', '/api/llm', {
@@ -345,13 +586,18 @@ test('active and llm are written, the pair is validated', async () => {
     attemptTimeoutS: 2.5,
   });
 
-  const bad = await call(harness, 'PUT', '/api/llm', { attemptTimeoutS: 'soon' });
+  const bad = await call(harness, 'PUT', '/api/llm', {
+    attemptTimeoutS: 'soon',
+  });
   assert.equal(bad.status, 400);
 });
 
-test('preview: a WAV, the time to first audio in a header, the preset in the choice', async () => {
-  const harness = await start({ settings: { presets: [PRESET] } });
-  const response = await call(harness, 'POST', '/api/preview', { preset: 'jane', text: 'Guten Abend.' });
+test('preview: a WAV, the time to first audio in a header, the character in the choice', async () => {
+  const harness = await start({ settings: stored([CHARACTER]) });
+  const response = await call(harness, 'POST', '/api/preview', {
+    character: 'jane',
+    text: 'Guten Abend.',
+  });
   assert.equal(response.status, 200);
   assert.equal(response.headers.get('content-type'), 'audio/wav');
   assert.equal(response.headers.get('x-ttfa-ms'), '123');
@@ -365,84 +611,98 @@ test('preview: a WAV, the time to first audio in a header, the preset in the cho
     model: 'voxtral-mini-tts-latest',
     voice: 'gb_jane_neutral',
     refAudio: undefined,
-    name: undefined,
-    preset: 'jane',
+    name: 'Jane',
+    character: 'jane',
   });
   assert.equal(harness.asked.at(-1)!.text, 'Guten Abend.');
 });
 
-test('preview: "phone" is 8 kHz, and no preset means the environment voice', async () => {
+test('preview: "phone" is 8 kHz, and no character means the environment voice', async () => {
   const harness = await start();
   const response = await call(harness, 'POST', '/api/preview', { phone: true });
   assert.equal(response.headers.get('x-sample-rate'), '8000');
   assert.equal((await response.arrayBuffer()).byteLength, 44 + 160);
-  assert.equal(harness.asked.at(-1)!.choice.preset, undefined);
+  assert.equal(harness.asked.at(-1)!.choice.character, undefined);
   assert.equal(harness.asked.at(-1)!.choice.voice, 'gb_jane_neutral');
   // No text means the sample text the page starts with.
   assert.equal(harness.asked.at(-1)!.text, 'Guten Tag.');
 });
 
-test('preview: an unknown preset is a 404, not a silent environment voice', async () => {
+test('preview: an unknown character is a 404, not a silent environment voice', async () => {
   const harness = await start();
-  const response = await call(harness, 'POST', '/api/preview', { preset: 'nope' });
+  const response = await call(harness, 'POST', '/api/preview', {
+    character: 'nope',
+  });
   assert.equal(response.status, 404);
   assert.equal(harness.asked.length, 0);
 });
 
-test('the latency route groups the metrics by preset', async () => {
+test('the latency route groups the metrics by character', async () => {
   const ts = Date.parse('2026-10-19T10:00:00Z');
   const harness = await start({
     metrics: [
-      JSON.stringify({ type: 'call_config', ts, ttsPreset: 'jane', ttsProvider: 'mistral' }),
+      JSON.stringify({
+        type: 'call_config',
+        ts,
+        character: 'jane',
+        ttsProvider: 'mistral',
+      }),
       JSON.stringify({ type: 'tts_metrics', ts: ts + 500, ttfbMs: 600 }),
       JSON.stringify({ type: 'llm_metrics', ts: ts + 600, ttftMs: 400 }),
     ].join('\n'),
   });
   const payload = (await (await fetch(`${harness.url}/api/latency`)).json()) as {
-    presets: Array<{ preset: string; calls: number; summary: Record<string, { p50: number }> }>;
-    calls: Array<{ preset: string; lines: number }>;
+    characters: Array<{
+      character: string;
+      calls: number;
+      summary: Record<string, { p50: number }>;
+    }>;
+    calls: Array<{ character: string; lines: number }>;
   };
-  assert.equal(payload.presets.length, 1);
-  assert.equal(payload.presets[0]!.preset, 'jane');
-  assert.equal(payload.presets[0]!.summary['tts.ttfbMs']!.p50, 600);
+  assert.equal(payload.characters.length, 1);
+  assert.equal(payload.characters[0]!.character, 'jane');
+  assert.equal(payload.characters[0]!.summary['tts.ttfbMs']!.p50, 600);
   assert.equal(payload.calls[0]!.lines, 2);
 });
 
 test('a broken settings file is reported, not hidden', async () => {
-  const harness = await start({ settings: '{ "presets": [ {} ] }' });
-  const state = (await (await fetch(`${harness.url}/api/state`)).json()) as { settingsError?: string };
+  const harness = await start({
+    settings: '{ "schemaVersion": 2, "characters": [ {} ] }',
+  });
+  const state = (await (await fetch(`${harness.url}/api/state`)).json()) as {
+    settingsError?: string;
+  };
   assert.match(state.settingsError ?? '', /"id" must be a non-empty string/);
 
-  const change = await call(harness, 'PUT', '/api/active', { primary: 'jane' });
+  const change = await call(harness, 'PUT', '/api/llm', { model: 'x' });
   assert.equal(change.status, 400);
 });
 
 test('no response ever carries an API key', async () => {
-  const harness = await start({ settings: { presets: [PRESET], active: { primary: 'jane' } } });
+  const harness = await start({
+    settings: stored([CHARACTER], { defaultCharacter: 'jane' }),
+  });
   const bodies = await Promise.all(
     ['/', '/app.js', '/api/state', '/api/latency'].map(async (path) => (await fetch(`${harness.url}${path}`)).text()),
   );
   for (const text of bodies) assert.ok(!text.includes(KEY), `a response leaked the API key: ${text.slice(0, 200)}`);
 
-  const state = (await (await fetch(`${harness.url}/api/state`)).json()) as { keys: Record<string, boolean> };
+  const state = (await (await fetch(`${harness.url}/api/state`)).json()) as {
+    keys: Record<string, boolean>;
+  };
   // Whether a vendor can be previewed is useful; the key itself never is.
   // `kugel` has no key in this environment: the UI marks such a vendor instead of hiding it.
-  assert.deepEqual(state.keys, { mistral: true, cartesia: true, openrouter: true, kugel: false });
+  assert.deepEqual(state.keys, {
+    mistral: true,
+    cartesia: true,
+    openrouter: true,
+    kugel: false,
+  });
 });
 
 test('unknown routes are a 404', async () => {
   const harness = await start();
   assert.equal((await fetch(`${harness.url}/api/nope`)).status, 404);
-});
-
-test('a preset id in the URL is decoded and must match the id pattern', async () => {
-  const harness = await start({ settings: { presets: [PRESET] } });
-  for (const bad of ['..%2Fx', '%E0%A4%A', 'a%20b', '.hidden']) {
-    const response = await call(harness, 'DELETE', `/api/presets/${bad}`);
-    assert.equal(response.status, 400, bad);
-  }
-  const ok = await call(harness, 'DELETE', '/api/presets/%6Aane');
-  assert.equal(ok.status, 200);
 });
 
 const venue = (id: string, extra: Record<string, unknown> = {}) =>
@@ -459,10 +719,21 @@ const venue = (id: string, extra: Record<string, unknown> = {}) =>
 
 test('GET /api/profiles lists every json file, broken ones with an error', async () => {
   const harness = await start({
-    profiles: { 'b.json': venue('beta'), 'a.json': '{ nope', 'notes.txt': 'x', '../x.json': 'y' },
+    profiles: {
+      'b.json': venue('beta'),
+      'a.json': '{ nope',
+      'notes.txt': 'x',
+      '../x.json': 'y',
+    },
   });
   const data = (await (await fetch(`${harness.url}/api/profiles`)).json()) as {
-    profiles: Array<{ file: string; id: string; name?: string; locale?: string; error?: string }>;
+    profiles: Array<{
+      file: string;
+      id: string;
+      name?: string;
+      locale?: string;
+      error?: string;
+    }>;
     active: string | null;
     default: { id: string };
   };
@@ -480,13 +751,16 @@ test('GET /api/profiles lists every json file, broken ones with an error', async
 });
 
 test('PUT /api/profile picks a file and null goes back to the default', async () => {
-  const harness = await start({ profiles: { 'b.json': venue('beta') }, settings: { presets: [PRESET] } });
+  const harness = await start({
+    profiles: { 'b.json': venue('beta') },
+    settings: stored([CHARACTER]),
+  });
   const picked = await call(harness, 'PUT', '/api/profile', { file: 'b.json' });
   assert.equal(picked.status, 200);
   const settings = readSettings(harness.settingsPath);
   assert.equal(settings?.profile, 'b.json');
   // The rest of the settings survives the change.
-  assert.equal(settings?.presets.length, 1);
+  assert.equal(settings?.characters.length, 1);
   const listed = (await (await fetch(`${harness.url}/api/profiles`)).json()) as { active: string | null };
   assert.equal(listed.active, 'b.json');
 
@@ -507,7 +781,9 @@ test('PUT /api/profile refuses paths, missing and broken files', async () => {
 test('GET /api/profiles without a directory is an empty list', async () => {
   const harness = await start();
   rmSync(harness.profilesDir, { recursive: true });
-  const data = (await (await fetch(`${harness.url}/api/profiles`)).json()) as { profiles: unknown[] };
+  const data = (await (await fetch(`${harness.url}/api/profiles`)).json()) as {
+    profiles: unknown[];
+  };
   assert.deepEqual(data.profiles, []);
 });
 
@@ -517,7 +793,13 @@ test('GET /api/catalog/<target> answers from the catalog; bad input is refused',
     catalog: {
       get: async (target, request) => {
         asked.push([target, request]);
-        return { provider: target, available: true, models: [], voices: [], fetchedAt: '2026-01-01T00:00:00.000Z' };
+        return {
+          provider: target,
+          available: true,
+          models: [],
+          voices: [],
+          fetchedAt: '2026-01-01T00:00:00.000Z',
+        };
       },
     },
   });
@@ -552,7 +834,12 @@ interface KnowledgeAnswer {
   facts: Array<{ topic: string; answer: string }>;
   transfer: { announce: string; targetMasked: string } | null;
   systemPrompt: string;
-  tools: Array<{ name: string; description: string; parameters: { type: string }; availableWhen: string }>;
+  tools: Array<{
+    name: string;
+    description: string;
+    parameters: { type: string };
+    availableWhen: string;
+  }>;
 }
 
 const WITH_TRANSFER = {
@@ -593,7 +880,11 @@ test('GET /api/knowledge masks the transfer target, also when the deployment ove
 
   const overridden = await start({
     profiles,
-    env: { ...ENV, TRANSFER_TARGET_NUMBER: '+4915112345678', TRANSFER_SIP_HOST: 'pbx.example:5060' },
+    env: {
+      ...ENV,
+      TRANSFER_TARGET_NUMBER: '+4915112345678',
+      TRANSFER_SIP_HOST: 'pbx.example:5060',
+    },
   });
   const overriddenText = await (await fetch(`${overridden.url}/api/knowledge?file=b.json`)).text();
   assert.equal((JSON.parse(overriddenText) as KnowledgeAnswer).transfer?.targetMasked, 'sip:+•••••••••••78');
@@ -603,7 +894,7 @@ test('GET /api/knowledge masks the transfer target, also when the deployment ove
 test('GET /api/knowledge without a file follows the active profile, as a call does', async () => {
   const harness = await start({
     profiles: { 'b.json': venue('beta'), 'bad.json': '{}' },
-    settings: { presets: [], active: {}, profile: 'b.json' },
+    settings: { profile: 'b.json' },
   });
   const active = (await (await fetch(`${harness.url}/api/knowledge`)).json()) as KnowledgeAnswer;
   assert.equal(active.profile.id, 'beta');
@@ -612,18 +903,53 @@ test('GET /api/knowledge without a file follows the active profile, as a call do
 
   // An active profile that no longer loads: the call falls back to the start profile, so does the view.
   await call(harness, 'PUT', '/api/profile', { file: null });
-  writeFileSync(harness.settingsPath, JSON.stringify({ presets: [], active: {}, profile: 'bad.json' }));
+  writeFileSync(harness.settingsPath, JSON.stringify({ profile: 'bad.json' }));
   const fallback = (await (await fetch(`${harness.url}/api/knowledge`)).json()) as KnowledgeAnswer;
   assert.equal(fallback.profile.id, 'start');
 });
 
-test('GET /api/knowledge speaks with the name of the active voice', async () => {
+test('GET /api/knowledge speaks as the default character: its name, tone and gender', async () => {
   const harness = await start({
-    settings: { presets: [{ ...PRESET, name: 'Lena' }], active: { primary: 'jane' } },
+    settings: stored([{ ...CHARACTER, name: 'Lena', tone: 'Calm and warm.' }], {
+      defaultCharacter: 'jane',
+    }),
   });
   const data = (await (await fetch(`${harness.url}/api/knowledge`)).json()) as KnowledgeAnswer;
   assert.equal(data.profile.assistantName, 'Lena');
   assert.match(data.systemPrompt, /You are Lena,/);
+  assert.match(data.systemPrompt, /Speaking style: Calm and warm\./);
+  assert.match(data.systemPrompt, /eine KI-Assistentin/);
+});
+
+test('GET /api/knowledge follows the character the venue picked', async () => {
+  const harness = await start({
+    profiles: { 'b.json': venue('beta', { character: 'paul' }) },
+    settings: stored(
+      [
+        { ...CHARACTER, name: 'Lena' },
+        { ...PAUL, name: 'Pablo' },
+      ],
+      { defaultCharacter: 'jane' },
+    ),
+  });
+  const data = (await (await fetch(`${harness.url}/api/knowledge?file=b.json`)).json()) as KnowledgeAnswer;
+  assert.equal(data.profile.assistantName, 'Pablo');
+  assert.match(data.systemPrompt, /"ein KI-Assistent"/);
+  const unknown = await start({
+    profiles: { 'b.json': venue('beta', { character: 'gone' }) },
+    settings: stored([{ ...CHARACTER, name: 'Lena' }], {
+      defaultCharacter: 'jane',
+    }),
+  });
+  const fallback = (await (await fetch(`${unknown.url}/api/knowledge?file=b.json`)).json()) as KnowledgeAnswer;
+  assert.equal(fallback.profile.assistantName, 'Lena');
+});
+
+test('GET /api/knowledge without a character keeps the profile as it is, prompt included', async () => {
+  const harness = await start({ settings: stored([]) });
+  const data = (await (await fetch(`${harness.url}/api/knowledge`)).json()) as KnowledgeAnswer;
+  assert.equal(data.profile.assistantName, 'Test');
+  assert.doesNotMatch(data.systemPrompt, /Speaking style|KI-Assistent/);
 });
 
 test('GET /api/knowledge refuses paths, missing and broken files', async () => {
@@ -634,7 +960,7 @@ test('GET /api/knowledge refuses paths, missing and broken files', async () => {
   }
 });
 
-test('preview: a voice that is not a preset is validated like one and synthesized as given', async () => {
+test('preview: a voice that is not a character is validated like one and synthesized as given', async () => {
   const harness = await start();
   const response = await call(harness, 'POST', '/api/preview', {
     text: 'Hello.',
@@ -654,7 +980,9 @@ test('preview: a voice that is not a preset is validated like one and synthesize
 
 test('preview: a text over 1000 characters is refused before any vendor is asked', async () => {
   const harness = await start();
-  const response = await call(harness, 'POST', '/api/preview', { text: 'x'.repeat(1001) });
+  const response = await call(harness, 'POST', '/api/preview', {
+    text: 'x'.repeat(1001),
+  });
   assert.equal(response.status, 400);
   assert.equal(harness.asked.length, 0);
   assert.equal((await call(harness, 'POST', '/api/preview', { text: 'x'.repeat(1000) })).status, 200);
@@ -686,10 +1014,25 @@ const SAMPLE_CATALOG: CatalogService = {
     available: true,
     models: [],
     voices: [
-      { id: 'a', name: 'A', languages: ['de'], sampleUrl: 'https://vendor.invalid/a.mp3' },
+      {
+        id: 'a',
+        name: 'A',
+        languages: ['de'],
+        sampleUrl: 'https://vendor.invalid/a.mp3',
+      },
       { id: 'b', name: 'B', languages: ['de'] },
-      { id: 'c', name: 'C', languages: ['de'], sampleUrl: 'http://vendor.invalid/c.mp3' },
-      { id: 'd', name: 'D', languages: ['de'], sampleUrl: 'https://vendor.invalid/d.html' },
+      {
+        id: 'c',
+        name: 'C',
+        languages: ['de'],
+        sampleUrl: 'http://vendor.invalid/c.mp3',
+      },
+      {
+        id: 'd',
+        name: 'D',
+        languages: ['de'],
+        sampleUrl: 'https://vendor.invalid/d.html',
+      },
     ],
     fetchedAt: '2026-01-01T00:00:00.000Z',
   }),
@@ -766,7 +1109,11 @@ interface Edit {
   editable: boolean;
   revision?: string;
   file: string | null;
-  draft?: { greeting: string; transfer: { announce: string; targetMasked: string } | null };
+  draft?: {
+    greeting: string;
+    character: string | null;
+    transfer: { announce: string; targetMasked: string } | null;
+  };
 }
 
 const edit = async (harness: Harness, file: string): Promise<Edit> =>
@@ -837,7 +1184,11 @@ test('profile save: edits land, everything else stays, the target is kept, the o
     (saved.facts as Array<{ topic: string }>).map((fact) => fact.topic),
     ['Parking', 'Hours'],
   );
-  assert.deepEqual(saved.transfer, { target: TARGET, announce: 'Please hold.', futureTransferKey: 1 });
+  assert.deepEqual(saved.transfer, {
+    target: TARGET,
+    announce: 'Please hold.',
+    futureTransferKey: 1,
+  });
   assert.equal('fallback' in saved, false);
   // Untouched fields, including one this code has never heard of.
   assert.deepEqual(saved.voice, { ttsVoice: 'jane' });
@@ -946,7 +1297,13 @@ test('profile files and versions: names cannot leave the profiles directory', as
     assert.ok([400, 404].includes((await save(harness, file, revision, draftOf())).status), file);
     assert.ok([400, 404].includes((await fetch(`${harness.url}/api/profiles/${file}/history`)).status), file);
     assert.ok(
-      [400, 404].includes((await call(harness, 'POST', `/api/profiles/${file}/restore`, { version: 'x' })).status),
+      [400, 404].includes(
+        (
+          await call(harness, 'POST', `/api/profiles/${file}/restore`, {
+            version: 'x',
+          })
+        ).status,
+      ),
       file,
     );
   }
@@ -970,7 +1327,11 @@ test('profile files and versions: names cannot leave the profiles directory', as
     assert.equal(response.status, 400, String(version));
   }
   assert.equal(
-    (await call(harness, 'POST', '/api/profiles/b.json/restore', { version: '2020-01-01T00-00-00.000Z' })).status,
+    (
+      await call(harness, 'POST', '/api/profiles/b.json/restore', {
+        version: '2020-01-01T00-00-00.000Z',
+      })
+    ).status,
     404,
   );
   // Another profile's history is not reachable by this file's name.
@@ -1008,7 +1369,9 @@ test('profile restore: brings a version back and versions what it replaces; .his
   const edited = readFileSync(join(harness.profilesDir, 'b.json'), 'utf8');
   const [entry] = await versions(harness, 'b.json');
 
-  const response = await call(harness, 'POST', '/api/profiles/b.json/restore', { version: entry!.version });
+  const response = await call(harness, 'POST', '/api/profiles/b.json/restore', {
+    version: entry!.version,
+  });
   assert.equal(response.status, 200);
   assert.equal(readFileSync(join(harness.profilesDir, 'b.json'), 'utf8'), original);
   assert.equal(((await response.json()) as { revision: string }).revision, (await edit(harness, 'b.json')).revision);
@@ -1026,7 +1389,11 @@ test('profile restore: brings a version back and versions what it replaces; .his
   // A version that is no longer a profile is refused, not written over a good file.
   writeFileSync(join(harness.profilesDir, '.history', `b.json.${after[0]!.version}.json`), '{}');
   assert.equal(
-    (await call(harness, 'POST', '/api/profiles/b.json/restore', { version: after[0]!.version })).status,
+    (
+      await call(harness, 'POST', '/api/profiles/b.json/restore', {
+        version: after[0]!.version,
+      })
+    ).status,
     400,
   );
   assert.equal(readFileSync(join(harness.profilesDir, 'b.json'), 'utf8'), original);
@@ -1034,11 +1401,17 @@ test('profile restore: brings a version back and versions what it replaces; .his
 
 test('duplicate: a copy of a profile or of the read-only start profile, never over an existing name', async () => {
   const harness = await start({ profiles: { 'b.json': EDITABLE } });
-  const fromFile = await call(harness, 'POST', '/api/profiles', { from: 'b.json', file: 'copy.json' });
+  const fromFile = await call(harness, 'POST', '/api/profiles', {
+    from: 'b.json',
+    file: 'copy.json',
+  });
   assert.equal(fromFile.status, 201);
   assert.deepEqual(profileJson(harness, 'copy.json'), profileJson(harness, 'b.json'));
 
-  const fromStart = await call(harness, 'POST', '/api/profiles', { from: null, file: 'mine.json' });
+  const fromStart = await call(harness, 'POST', '/api/profiles', {
+    from: null,
+    file: 'mine.json',
+  });
   assert.equal(fromStart.status, 201);
   const mine = profileJson(harness, 'mine.json');
   assert.equal(mine.id, 'start');
@@ -1048,7 +1421,15 @@ test('duplicate: a copy of a profile or of the read-only start profile, never ov
   assert.equal((await edit(harness, 'mine.json')).editable, true);
 
   const before = readFileSync(join(harness.profilesDir, 'b.json'), 'utf8');
-  assert.equal((await call(harness, 'POST', '/api/profiles', { from: null, file: 'b.json' })).status, 409);
+  assert.equal(
+    (
+      await call(harness, 'POST', '/api/profiles', {
+        from: null,
+        file: 'b.json',
+      })
+    ).status,
+    409,
+  );
   assert.equal(readFileSync(join(harness.profilesDir, 'b.json'), 'utf8'), before);
 
   for (const body of [
@@ -1083,15 +1464,31 @@ test('knowledge preview: the prompt of an edited draft, nothing written', async 
   assert.equal(readFileSync(join(harness.profilesDir, 'b.json'), 'utf8'), before);
   assert.deepEqual(await versions(harness, 'b.json'), []);
   assert.equal(
-    (await call(harness, 'POST', '/api/knowledge/preview', { file: 'b.json', draft: draftOf({ greeting: '' }) }))
-      .status,
+    (
+      await call(harness, 'POST', '/api/knowledge/preview', {
+        file: 'b.json',
+        draft: draftOf({ greeting: '' }),
+      })
+    ).status,
     400,
   );
   assert.equal(
-    (await call(harness, 'POST', '/api/knowledge/preview', { file: '../b.json', draft: draftOf() })).status,
+    (
+      await call(harness, 'POST', '/api/knowledge/preview', {
+        file: '../b.json',
+        draft: draftOf(),
+      })
+    ).status,
     400,
   );
-  assert.equal((await call(harness, 'POST', '/api/knowledge/preview', { draft: draftOf() })).status, 400);
+  assert.equal(
+    (
+      await call(harness, 'POST', '/api/knowledge/preview', {
+        draft: draftOf(),
+      })
+    ).status,
+    400,
+  );
 });
 
 test('every profile write needs the page as its origin', async () => {
@@ -1108,7 +1505,10 @@ test('every profile write needs the page as its origin', async () => {
     for (const origin of [undefined, 'http://evil.example']) {
       const response = await fetch(`${harness.url}${path}`, {
         method,
-        headers: { 'content-type': 'application/json', ...(origin && { origin }) },
+        headers: {
+          'content-type': 'application/json',
+          ...(origin && { origin }),
+        },
         body: JSON.stringify(payload),
       });
       assert.equal(response.status, 403, `${method} ${path} ${origin}`);
@@ -1121,7 +1521,9 @@ test('every profile write needs the page as its origin', async () => {
 
 test('a broken profile file never puts its content into a response', async () => {
   const broken = '{"transfer": {"target": "tel:+4930123456"} oops';
-  const harness = await start({ profiles: { 'b.json': EDITABLE, 'bad.json': broken } });
+  const harness = await start({
+    profiles: { 'b.json': EDITABLE, 'bad.json': broken },
+  });
   mkdirSync(join(harness.profilesDir, '.history'), { recursive: true });
   const stamp = '2026-01-01T00-00-00.000Z';
   writeFileSync(join(harness.profilesDir, '.history', `b.json.${stamp}.json`), broken);
@@ -1130,10 +1532,28 @@ test('a broken profile file never puts its content into a response', async () =>
     await (await fetch(`${harness.url}/api/knowledge?file=bad.json`)).text(),
     await (await fetch(`${harness.url}/api/profiles`)).text(),
     await (await save(harness, 'bad.json', 'x', draftOf())).text(),
-    await (await call(harness, 'POST', '/api/profiles/b.json/restore', { version: stamp })).text(),
-    await (await call(harness, 'POST', '/api/profiles', { from: 'bad.json', file: 'n.json' })).text(),
-    await (await call(harness, 'POST', '/api/knowledge/preview', { file: 'bad.json', draft: draftOf() })).text(),
-    await (await call(harness, 'POST', '/api/profiles/bad.json/restore', { version: stamp })).text(),
+    await (
+      await call(harness, 'POST', '/api/profiles/b.json/restore', {
+        version: stamp,
+      })
+    ).text(),
+    await (
+      await call(harness, 'POST', '/api/profiles', {
+        from: 'bad.json',
+        file: 'n.json',
+      })
+    ).text(),
+    await (
+      await call(harness, 'POST', '/api/knowledge/preview', {
+        file: 'bad.json',
+        draft: draftOf(),
+      })
+    ).text(),
+    await (
+      await call(harness, 'POST', '/api/profiles/bad.json/restore', {
+        version: stamp,
+      })
+    ).text(),
   ];
   for (const text of bodies) assert.doesNotMatch(text, /4930123456|30123456|oops/);
   assert.match(bodies[0]!, /not valid JSON/);
@@ -1150,7 +1570,10 @@ test('profile save: keys of a fact the page does not edit survive a reorder', as
   });
   const harness = await start({ profiles: { 'b.json': withKeys } });
   const view = await (await fetch(`${harness.url}/api/knowledge?file=b.json`)).json();
-  const { revision, draft } = view as { revision: string; draft: { facts: Array<Record<string, unknown>> } };
+  const { revision, draft } = view as {
+    revision: string;
+    draft: { facts: Array<Record<string, unknown>> };
+  };
   const [first, second] = draft.facts;
   const response = await save(harness, 'b.json', revision, {
     ...draftOf(),
@@ -1166,15 +1589,49 @@ test('profile save: keys of a fact the page does not edit survive a reorder', as
   ]);
 });
 
+test('profile save: the character is picked, kept when absent, taken off with null, unknown ids refused', async () => {
+  const harness = await start({
+    profiles: { 'b.json': venue('beta', { futureKey: 'keep' }) },
+    settings: stored([CHARACTER, PAUL], { defaultCharacter: 'jane' }),
+  });
+  const plain = (extra: Record<string, unknown>) => draftOf({ transfer: null, fallback: null, ...extra });
+  const revisionNow = async () => (await edit(harness, 'b.json')).revision;
+
+  const picked = await save(harness, 'b.json', await revisionNow(), plain({ character: 'paul' }));
+  assert.equal(picked.status, 200);
+  assert.equal(profileJson(harness, 'b.json').character, 'paul');
+  assert.equal(profileJson(harness, 'b.json').futureKey, 'keep');
+
+  // A save that does not mention it leaves the pick alone.
+  await save(harness, 'b.json', await revisionNow(), plain({ greeting: 'Neu, ich bin eine KI.' }));
+  assert.equal(profileJson(harness, 'b.json').character, 'paul');
+  assert.equal((await edit(harness, 'b.json')).draft?.character, 'paul');
+
+  const unknown = await save(harness, 'b.json', await revisionNow(), plain({ character: 'gone' }));
+  assert.equal(unknown.status, 400);
+  assert.equal(profileJson(harness, 'b.json').character, 'paul');
+
+  const off = await save(harness, 'b.json', await revisionNow(), plain({ character: null }));
+  assert.equal(off.status, 200);
+  assert.equal('character' in profileJson(harness, 'b.json'), false);
+  assert.equal(profileJson(harness, 'b.json').futureKey, 'keep');
+});
+
 test('profile restore: a stale revision is a 409', async () => {
   const harness = await start({ profiles: { 'b.json': EDITABLE } });
   const { revision } = await edit(harness, 'b.json');
   await save(harness, 'b.json', revision, draftOf({ greeting: 'Second, KI.' }));
   const [entry] = await versions(harness, 'b.json');
-  const stale = await call(harness, 'POST', '/api/profiles/b.json/restore', { version: entry!.version, revision });
+  const stale = await call(harness, 'POST', '/api/profiles/b.json/restore', {
+    version: entry!.version,
+    revision,
+  });
   assert.equal(stale.status, 409);
   const fresh = (await edit(harness, 'b.json')).revision;
-  const ok = await call(harness, 'POST', '/api/profiles/b.json/restore', { version: entry!.version, revision: fresh });
+  const ok = await call(harness, 'POST', '/api/profiles/b.json/restore', {
+    version: entry!.version,
+    revision: fresh,
+  });
   assert.equal(ok.status, 200);
 });
 
@@ -1182,7 +1639,10 @@ test('GET /api/sample refuses a redirect and enforces the size cap while streami
   const redirect = (async () =>
     new Response(null, {
       status: 302,
-      headers: { location: 'http://127.0.0.1:1/x', 'content-type': 'audio/mpeg' },
+      headers: {
+        location: 'http://127.0.0.1:1/x',
+        'content-type': 'audio/mpeg',
+      },
     })) as unknown as typeof fetch;
   const seen: unknown[] = [];
   const spy = (async (address: string, init?: RequestInit) => {
@@ -1199,4 +1659,13 @@ test('GET /api/sample refuses a redirect and enforces the size cap while streami
     })) as unknown as typeof fetch;
   const two = await start({ catalog: SAMPLE_CATALOG, fetch: lying });
   assert.equal((await fetch(`${two.url}/api/sample?provider=kugel&voice=a`)).status, 502);
+});
+
+test('GET /api/state: kugelEu tells whether the configured key speaks from the EU', async () => {
+  const eu = await start({ env: { ...ENV, KUGELAUDIO_API_KEY: 'k' } });
+  assert.equal(((await (await fetch(`${eu.url}/api/state`)).json()) as { kugelEu: boolean }).kugelEu, true);
+  const global = await start({ env: { ...ENV, KUGELAUDIO_API_KEY: 'k', SPRECHSTUNDE_KUGEL_REGION: 'global' } });
+  assert.equal(((await (await fetch(`${global.url}/api/state`)).json()) as { kugelEu: boolean }).kugelEu, false);
+  const none = await start();
+  assert.equal(((await (await fetch(`${none.url}/api/state`)).json()) as { kugelEu: boolean }).kugelEu, false);
 });

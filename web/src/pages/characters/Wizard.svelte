@@ -1,0 +1,484 @@
+<script lang="ts">
+  import { ArrowLeft, ArrowRight, CircleDot, Mars, Play, RefreshCw, Venus } from '@lucide/svelte';
+  import { onDestroy, untrack } from 'svelte';
+  import { toast } from 'svelte-sonner';
+  import { api, message } from '$lib/api';
+  import {
+    type Candidate,
+    candidatesFrom,
+    defaultFallback,
+    greetingWithName,
+    type Heard,
+    loadGreeting,
+    mixOf,
+    poolFor,
+    previewCache,
+    specKey,
+    specOf,
+  } from '$lib/casting';
+  import { _, fill } from '$lib/i18n.svelte';
+  import { catalogOf, ensureCatalogs } from '$lib/models.svelte';
+  import { app, reload } from '$lib/store.svelte';
+  import type { Character, CharactersView, Gender, Knowledge, VoiceSpec } from '$lib/types';
+  import { genderLabel } from '$lib/voices';
+  import Avatar from '$lib/ui/Avatar.svelte';
+  import Badge from '$lib/ui/Badge.svelte';
+  import Button from '$lib/ui/Button.svelte';
+  import Card from '$lib/ui/Card.svelte';
+  import ChoiceLine from '$lib/ui/ChoiceLine.svelte';
+  import Field from '$lib/ui/Field.svelte';
+  import Skeleton from '$lib/ui/Skeleton.svelte';
+  import { cn, controlClass } from '$lib/utils';
+  import CastCard from './CastCard.svelte';
+
+  interface Props {
+    /** The character being edited; unset when casting a new one. */
+    initial?: Character;
+    /** A voice picked in the catalog browser. */
+    seed?: VoiceSpec;
+    onclose: () => void;
+  }
+
+  let { initial, seed, onclose }: Props = $props();
+
+  type Step = 'who' | 'casting' | 'compare' | 'done';
+
+  const MAX_NAME = 60;
+  const MAX_TONE = 300;
+  const SHOWN = 5;
+  const SHOWN_UNKNOWN = 4;
+
+  // The wizard is keyed by what it was opened with, so reading the props once is what is wanted.
+  /* svelte-ignore state_referenced_locally */
+  let name = $state(initial?.name ?? '');
+  /* svelte-ignore state_referenced_locally */
+  let gender = $state<Gender | undefined>(initial && !initial.genderUnknown ? initial.gender : undefined);
+  /* svelte-ignore state_referenced_locally */
+  let tone = $state(initial?.tone ?? '');
+  let step = $state<Step>('who');
+  let phone = $state(false);
+  let showUnknown = $state(false);
+  let shown = $state<Candidate[]>([]);
+  let shownUnknown = $state<Candidate[]>([]);
+  let favourites = $state<Candidate[]>([]);
+  let chosen = $state<Candidate>();
+  let fallbackKey = $state('');
+  let assignFile = $state('');
+  let plays = $state<Record<string, { busy?: boolean; ttfaMs?: number; error?: string }>>({});
+  let busy = $state(false);
+  let shuffledFor = -1;
+  const seen = new Set<string>();
+  const seenUnknown = new Set<string>();
+  const cache = previewCache();
+
+  onDestroy(() => cache.clear());
+
+  const suggestions = $derived([
+    _('Warm and calm'),
+    _('Friendly and brisk'),
+    _('Formal and polite'),
+    _('Relaxed, like a neighbour'),
+    _('Short and to the point'),
+  ]);
+
+  const providers = $derived((app.state?.providers ?? []).filter((provider) => app.state?.keys[provider] !== false));
+  $effect(() => ensureCatalogs(providers));
+  const loading = $derived(providers.some((provider) => !catalogOf(provider)));
+  const candidates = $derived(candidatesFrom(providers.map((provider) => catalogOf(provider)), 'de'));
+  const pool = $derived(poolFor(candidates, gender ?? 'neutral'));
+
+  /** A saved or picked voice as a card, with the vendor's name for it when the catalog knows it. */
+  function candidateOf(spec: VoiceSpec): Candidate {
+    const listed = catalogOf(spec.provider)?.voices.find((voice) => voice.id === (spec.voice ?? ''));
+    return {
+      provider: spec.provider,
+      ...(spec.model && { model: spec.model }),
+      voice: spec.voice ?? '',
+      name: listed?.name ?? spec.voice ?? spec.provider,
+      ...(listed?.gender && { gender: listed.gender }),
+    };
+  }
+
+  const startVoice = $derived(seed ?? initial?.voice);
+  /* svelte-ignore state_referenced_locally */
+  const pinned = $derived(startVoice ? candidateOf(startVoice) : undefined);
+  const same = (a: Candidate, b: Candidate): boolean => specKey(specOf(a)) === specKey(specOf(b));
+  const cards = $derived(pinned && !shown.some((card) => same(card, pinned)) ? [pinned, ...shown] : shown);
+
+  $effect(() => {
+    if (startVoice && favourites.length === 0) favourites = [untrack(() => candidateOf(startVoice))];
+  });
+
+  function reshuffle(): void {
+    shown = mixOf(pool.known, SHOWN, seen);
+    // With nobody reporting the gender there is nothing else to show, so the other group opens by itself.
+    if (pool.known.length === 0) showUnknown = true;
+    shownUnknown = showUnknown ? mixOf(pool.unknown, SHOWN_UNKNOWN, seenUnknown) : [];
+  }
+
+  $effect(() => {
+    if (step === 'casting' && candidates.length > 0 && candidates.length !== shuffledFor) {
+      shuffledFor = candidates.length;
+      untrack(reshuffle);
+    }
+  });
+
+  function toggleUnknown(): void {
+    shownUnknown = showUnknown ? mixOf(pool.unknown, SHOWN_UNKNOWN, seenUnknown) : [];
+  }
+
+  const isFavourite = (candidate: Candidate): boolean => favourites.some((favourite) => same(favourite, candidate));
+
+  function pick(candidate: Candidate): void {
+    favourites = isFavourite(candidate)
+      ? favourites.filter((favourite) => !same(favourite, candidate))
+      : [...favourites, candidate].slice(-2);
+  }
+
+  async function hear(spec: VoiceSpec): Promise<Heard | undefined> {
+    const key = specKey(spec);
+    plays[key] = { busy: true };
+    try {
+      const venue = await loadGreeting();
+      const text = greetingWithName(venue.greeting, venue.assistantName, name || venue.assistantName);
+      const result = await cache.hear(spec, text, phone);
+      plays[key] = { ttfaMs: Math.round(result.ttfaMs) };
+      return result;
+    } catch (error) {
+      plays[key] = { error: message(error) };
+      return undefined;
+    }
+  }
+
+  async function play(spec: VoiceSpec): Promise<void> {
+    const result = await hear(spec);
+    if (result) await cache.play(result.url);
+  }
+
+  async function playBoth(): Promise<void> {
+    const [first, second] = favourites;
+    if (!first || !second) return;
+    const [a, b] = await Promise.all([hear(specOf(first)), hear(specOf(second))]);
+    if (a) await cache.play(a.url);
+    if (b) await cache.play(b.url);
+  }
+
+  const steps = $derived<Step[]>(favourites.length > 1 ? ['who', 'casting', 'compare', 'done'] : ['who', 'casting', 'done']);
+  const titles = $derived<Record<Step, string>>({
+    who: _('Who?'),
+    casting: _('Casting'),
+    compare: _('Compare'),
+    done: _('Done'),
+  });
+
+  const primary = $derived(favourites.length > 1 ? chosen : favourites[0]);
+  const nameOk = $derived(name.trim().length > 0 && name.trim().length <= MAX_NAME);
+  const canNext = $derived(
+    step === 'who'
+      ? nameOk && gender !== undefined && tone.length <= MAX_TONE
+      : step === 'casting'
+        ? favourites.length > 0
+        : step === 'compare'
+          ? Boolean(chosen)
+          : true,
+  );
+
+  function go(to: Step): void {
+    cache.stop();
+    if (to === 'done') {
+      chosen = favourites.length > 1 ? chosen : favourites[0];
+      if (!fallbackKey && chosen) {
+        const current = initial?.fallbackVoice;
+        const suggestion = current ? undefined : defaultFallback(chosen, candidates);
+        fallbackKey = current ? specKey(current) : suggestion ? specKey(specOf(suggestion)) : '';
+      }
+    }
+    step = to;
+  }
+
+  function next(event?: SubmitEvent): void {
+    event?.preventDefault();
+    if (!canNext) return;
+    if (step === 'who') {
+      shuffledFor = -1;
+      go('casting');
+    } else if (step === 'casting') {
+      if (favourites.length > 1) {
+        chosen = chosen && favourites.some((favourite) => same(favourite, chosen!)) ? chosen : undefined;
+        go('compare');
+      } else go('done');
+    } else if (step === 'compare') go('done');
+  }
+
+  function back(): void {
+    const index = steps.indexOf(step);
+    if (index > 0) go(steps[index - 1]!);
+  }
+
+  /** Every voice the fallback may be, plus the saved one when the catalogs do not list it. */
+  const fallbackOptions = $derived.by(() => {
+    const options = candidates.map((candidate) => ({ key: specKey(specOf(candidate)), candidate }));
+    const saved = initial?.fallbackVoice;
+    if (saved && !options.some((option) => option.key === specKey(saved))) {
+      options.unshift({ key: specKey(saved), candidate: candidateOf(saved) });
+    }
+    return options;
+  });
+  const fallbackSpec = $derived<VoiceSpec | undefined>(
+    fallbackKey === ''
+      ? undefined
+      : initial?.fallbackVoice && specKey(initial.fallbackVoice) === fallbackKey
+        ? initial.fallbackVoice
+        : (() => {
+            const option = fallbackOptions.find((entry) => entry.key === fallbackKey);
+            return option ? specOf(option.candidate) : undefined;
+          })(),
+  );
+  const optionLabel = (candidate: Candidate): string =>
+    [candidate.name, candidate.provider, candidate.gender && genderLabel(candidate.gender)].filter(Boolean).join(' · ');
+
+  const venues = $derived((app.profiles?.profiles ?? []).filter((entry) => !entry.error));
+
+  async function save(): Promise<void> {
+    if (!primary || !gender) return;
+    busy = true;
+    const voice = initial && specKey(initial.voice) === specKey(specOf(primary)) ? initial.voice : specOf(primary);
+    const body = {
+      name: name.trim(),
+      gender,
+      voice,
+      ...(fallbackSpec && { fallbackVoice: fallbackSpec }),
+      ...(tone.trim() && { tone: tone.trim() }),
+    };
+    try {
+      const revision = app.characters?.revision;
+      const view = initial
+        ? await api<CharactersView>('PUT', `/api/characters/${encodeURIComponent(initial.id)}`, { ...body, revision })
+        : await api<CharactersView>('POST', '/api/characters', body);
+      const id = initial?.id ?? view.created?.id;
+      if (assignFile && id) {
+        const venue = await api<Knowledge>('GET', `/api/knowledge?file=${encodeURIComponent(assignFile)}`);
+        await api('PUT', `/api/profiles/${encodeURIComponent(assignFile)}`, {
+          revision: venue.revision,
+          draft: { ...venue.draft, character: id },
+        });
+      }
+      await reload();
+      toast.success(fill(_('%s saved'), name.trim()));
+      onclose();
+    } catch (error) {
+      toast.error(message(error));
+    } finally {
+      busy = false;
+    }
+  }
+
+  const genders = $derived<Array<{ value: Gender; label: string; hint: string; icon: typeof Venus }>>([
+    { value: 'female', label: _('Female'), hint: _('She says “eine KI-Assistentin”'), icon: Venus },
+    { value: 'male', label: _('Male'), hint: _('He says “ein KI-Assistent”'), icon: Mars },
+    { value: 'neutral', label: _('Neutral'), hint: _('Says “eine KI”'), icon: CircleDot },
+  ]);
+</script>
+
+<div class="space-y-4">
+  <ol class="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm" aria-label={_('Steps')}>
+    {#each steps as entry, index (entry)}
+      <li
+        class={cn('flex items-center gap-2 rounded-full px-3 py-1', entry === step ? 'bg-primary text-primary-foreground' : 'text-muted-foreground')}
+        aria-current={entry === step ? 'step' : undefined}
+      >
+        <span class="font-semibold">{index + 1}</span>{titles[entry]}
+      </li>
+    {/each}
+  </ol>
+
+  {#if step === 'who'}
+    <form onsubmit={next}>
+      <Card title={initial ? fill(_('Edit %s'), initial.name) : _('Who is answering?')} description={_('Name, gender and manner of the new character')}>
+        <div class="space-y-5">
+          <Field label={_('Name')} for="c-name" hint={fill(_('Up to %s characters'), MAX_NAME)}>
+            <!-- svelte-ignore a11y_autofocus -->
+            <input id="c-name" class={controlClass} bind:value={name} maxlength={MAX_NAME} required autofocus autocomplete="off" />
+          </Field>
+          <fieldset class="space-y-1.5">
+            <legend class="text-sm font-medium">{_('Gender')}</legend>
+            {#if initial?.genderUnknown && gender === undefined}
+              <p class="text-xs text-amber-700 dark:text-amber-300">{_('This character came from an old preset, so its gender was never stated. Choose it once.')}</p>
+            {/if}
+            <div class="grid gap-3 sm:grid-cols-3">
+              {#each genders as option (option.value)}
+                <label
+                  class={cn(
+                    'flex cursor-pointer flex-col items-center gap-1 rounded-xl border bg-card p-4 text-center shadow-xs transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring hover:bg-muted',
+                    gender === option.value && 'border-primary bg-primary/5 ring-2 ring-primary/30',
+                  )}
+                >
+                  <input type="radio" class="sr-only" name="gender" value={option.value} bind:group={gender} required />
+                  <option.icon class="size-6" />
+                  <span class="font-medium">{option.label}</span>
+                  <span class="text-xs text-muted-foreground">{option.hint}</span>
+                </label>
+              {/each}
+            </div>
+          </fieldset>
+          <Field label={_('Manner of speaking')} for="c-tone" hint={fill(_('Optional, one to three sentences (%1 of %2)'), tone.length, MAX_TONE)}>
+            <textarea id="c-tone" class="{controlClass} min-h-20" bind:value={tone} maxlength={MAX_TONE}></textarea>
+            <div class="flex flex-wrap gap-2 pt-1" role="group" aria-label={_('Suggestions')}>
+              {#each suggestions as suggestion (suggestion)}
+                <button
+                  type="button"
+                  class="rounded-full border bg-card px-3 py-1 text-xs hover:bg-muted"
+                  onclick={() => (tone = (tone.trim() ? `${tone.trim()} ${suggestion}.` : `${suggestion}.`).slice(0, MAX_TONE))}
+                >
+                  {suggestion}
+                </button>
+              {/each}
+            </div>
+          </Field>
+        </div>
+      </Card>
+      <div class="mt-4 flex flex-wrap justify-end gap-2">
+        <Button variant="outline" onclick={onclose}>{_('Cancel')}</Button>
+        <Button type="submit" disabled={!canNext}>{_('Next')}<ArrowRight class="size-4" /></Button>
+      </div>
+    </form>
+  {:else if step === 'casting'}
+    <Card
+      title={_('Casting')}
+      description={fill(_('German voices from every vendor. Each one reads your greeting as %s.'), name.trim())}
+    >
+      {#snippet actions()}
+        <label class="flex items-center gap-2 text-sm">
+          <input type="checkbox" class="size-4 accent-primary" bind:checked={phone} />
+          {_('Phone quality (8 kHz)')}
+        </label>
+        <Button variant="outline" size="sm" onclick={reshuffle}><RefreshCw class="size-4" />{_('Other voices')}</Button>
+      {/snippet}
+      {#if loading && candidates.length === 0}
+        <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {#each [1, 2, 3] as n (n)}<Skeleton class="h-48" />{/each}
+        </div>
+      {:else if candidates.length === 0}
+        <p class="text-sm text-muted-foreground">{_('No vendor offers a German voice right now. Check the API keys.')}</p>
+      {:else}
+        {#if pool.known.length === 0 && gender !== 'neutral'}
+          <p class="mb-3 text-sm text-muted-foreground">{_('No vendor says which of its voices match this gender. Listen and choose.')}</p>
+        {/if}
+        <ul class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {#each cards as candidate (specKey(specOf(candidate)))}
+            <CastCard
+              {candidate}
+              heard={plays[specKey(specOf(candidate))]}
+              selected={isFavourite(candidate)}
+              selectLabel={isFavourite(candidate) ? _('Chosen') : _('Pick')}
+              onplay={() => play(specOf(candidate))}
+              onselect={() => pick(candidate)}
+            />
+          {/each}
+        </ul>
+        {#if pool.unknown.length > 0}
+          <div class="mt-4 border-t pt-3">
+            <label class="flex items-center gap-2 text-sm">
+              <input type="checkbox" class="size-4 accent-primary" bind:checked={showUnknown} onchange={toggleUnknown} />
+              {fill(_('Show voices of unknown gender (%s)'), pool.unknown.length)}
+            </label>
+            {#if showUnknown}
+              <h3 class="mt-3 mb-2 text-sm font-medium">{_('Gender unknown')}</h3>
+              <ul class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {#each shownUnknown as candidate (specKey(specOf(candidate)))}
+                  <CastCard
+                    {candidate}
+                    heard={plays[specKey(specOf(candidate))]}
+                    selected={isFavourite(candidate)}
+                    selectLabel={isFavourite(candidate) ? _('Chosen') : _('Pick')}
+                    onplay={() => play(specOf(candidate))}
+                    onselect={() => pick(candidate)}
+                  />
+                {/each}
+              </ul>
+            {/if}
+          </div>
+        {/if}
+      {/if}
+      <p class="mt-4 text-sm text-muted-foreground" aria-live="polite">
+        {favourites.length > 1
+          ? fill(_('Two favourites picked: %1 and %2. Next, hear them back to back.'), favourites[0]!.name, favourites[1]!.name)
+          : favourites.length === 1
+            ? fill(_('Picked: %s. Pick a second one to compare, or continue.'), favourites[0]!.name)
+            : _('Pick one or two voices.')}
+      </p>
+    </Card>
+    <div class="flex flex-wrap justify-between gap-2">
+      <Button variant="outline" onclick={back}><ArrowLeft class="size-4" />{_('Back')}</Button>
+      <Button onclick={() => next()} disabled={!canNext}>{_('Next')}<ArrowRight class="size-4" /></Button>
+    </div>
+  {:else if step === 'compare'}
+    <Card title={_('Compare')} description={_('The same sentence in both voices. Choose the one that fits.')}>
+      {#snippet actions()}
+        <Button size="sm" onclick={playBoth}><Play class="size-4" />{_('Play A, then B')}</Button>
+      {/snippet}
+      <ul class="grid gap-3 sm:grid-cols-2">
+        {#each favourites as candidate, index (specKey(specOf(candidate)))}
+          <CastCard
+            {candidate}
+            tag={index === 0 ? 'A' : 'B'}
+            heard={plays[specKey(specOf(candidate))]}
+            selected={chosen !== undefined && same(chosen, candidate)}
+            selectLabel={chosen !== undefined && same(chosen, candidate) ? _('Chosen') : _('This one')}
+            onplay={() => play(specOf(candidate))}
+            onselect={() => (chosen = candidate)}
+          />
+        {/each}
+      </ul>
+    </Card>
+    <div class="flex flex-wrap justify-between gap-2">
+      <Button variant="outline" onclick={back}><ArrowLeft class="size-4" />{_('Back')}</Button>
+      <Button onclick={() => next()} disabled={!canNext}>{_('Next')}<ArrowRight class="size-4" /></Button>
+    </div>
+  {:else if primary}
+    <Card title={_('Done')} description={_('Check it, choose the voice that takes over when the first one fails, and save')}>
+      <div class="space-y-5">
+        <div class="flex items-center gap-3">
+          <Avatar name={name} color={initial?.color} />
+          <div class="min-w-0">
+            <p class="font-medium break-words">{name.trim()}</p>
+            <p class="text-sm break-words text-muted-foreground">
+              {gender ? genderLabel(gender) : ''} · <ChoiceLine provider={primary.provider} model={primary.model} voice={primary.name} />
+            </p>
+            {#if tone.trim()}<p class="mt-1 text-sm text-muted-foreground italic">{tone.trim()}</p>{/if}
+          </div>
+        </div>
+        <Field label={_('Fallback voice')} for="c-fallback" hint={_('Takes over when the first voice fails. Preselected: another vendor, a local voice if there is one.')}>
+          <div class="flex flex-wrap gap-2">
+            <select id="c-fallback" class="{controlClass} min-w-0 flex-1" bind:value={fallbackKey}>
+              <option value="">{_('None')}</option>
+              {#each fallbackOptions as option (option.key)}
+                <option value={option.key}>{optionLabel(option.candidate)}</option>
+              {/each}
+            </select>
+            {#if fallbackSpec}
+              <Button variant="outline" onclick={() => play(fallbackSpec)} aria-label={_('Hear the fallback voice')}>
+                <Play class="size-4" />
+              </Button>
+            {/if}
+          </div>
+          {#if fallbackSpec && plays[specKey(fallbackSpec)]?.error}
+            <p class="text-xs text-destructive" role="alert">{plays[specKey(fallbackSpec)]?.error}</p>
+          {/if}
+        </Field>
+        <Field label={_('Assign to a venue')} for="c-assign" hint={_('Optional. Until then the venue speaks as the default character.')}>
+          <select id="c-assign" class={controlClass} bind:value={assignFile}>
+            <option value="">{_('Not now')}</option>
+            {#each venues as venue (venue.file)}
+              <option value={venue.file}>{venue.name ?? venue.id}</option>
+            {/each}
+          </select>
+        </Field>
+      </div>
+    </Card>
+    <div class="flex flex-wrap justify-between gap-2">
+      <Button variant="outline" onclick={back}><ArrowLeft class="size-4" />{_('Back')}</Button>
+      <Button onclick={save} disabled={busy}>{_('Save')}</Button>
+    </div>
+  {/if}
+</div>

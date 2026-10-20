@@ -8,11 +8,12 @@
   import { isDark, toggleTheme } from '$lib/theme.svelte';
   import Button from '$lib/ui/Button.svelte';
   import Calls from './pages/Calls.svelte';
+  import Characters from './pages/Characters.svelte';
   import Knowledge from './pages/Knowledge.svelte';
   import Llm from './pages/Llm.svelte';
   import Models from './pages/Models.svelte';
   import Overview from './pages/Overview.svelte';
-  import Voices from './pages/Voices.svelte';
+  
 
   const items = $derived(navItems());
   const path = $derived(currentPath().replace(/(.)\/+$/, '$1'));
@@ -74,8 +75,8 @@
         <p class="text-muted-foreground">{_('There is no such page.')}</p>
       {:else if current.path === '/'}
         <Overview />
-      {:else if current.path === '/voices'}
-        <Voices />
+      {:else if current.path === '/characters'}
+        <Characters />
       {:else if current.path === '/llm'}
         <Llm />
       {:else if current.path === '/models'}

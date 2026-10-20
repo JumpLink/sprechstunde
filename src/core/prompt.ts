@@ -1,8 +1,52 @@
 import type { Profile } from './profile.js';
+import type { Gender } from './settings.js';
 import { TRANSFER_TOOL } from './tools.js';
 
-/** Build the system prompt. Pure: same profile and time, same text. */
-export function buildInstructions(profile: Profile, now: Date): string {
+/** What a character adds to the prompt: how it speaks, and which grammatical gender it uses for itself. */
+export interface Persona {
+  tone?: string;
+  gender?: Gender;
+}
+
+const GENDER_LINE: Record<Gender, string> = {
+  female: 'You are a woman: where the language marks gender, use the feminine form when you speak about yourself.',
+  male: 'You are a man: where the language marks gender, use the masculine form when you speak about yourself.',
+  neutral: 'Where the language marks gender, avoid gendered forms when you speak about yourself.',
+};
+
+/** How a German-speaking assistant names what it is, once the persona has a stated gender. */
+const GERMAN_SELF: Record<Gender, string> = {
+  female: 'eine KI-Assistentin',
+  male: 'ein KI-Assistent',
+  neutral: 'eine KI',
+};
+
+/** The persona of a character; a gender nobody has stated stays out, so the prompt is as it was. */
+export function personaOf(
+  character: { tone?: string; gender: Gender; genderUnknown?: true } | undefined,
+): Persona | undefined {
+  if (!character) return undefined;
+  return {
+    tone: character.tone,
+    ...(!character.genderUnknown && { gender: character.gender }),
+  };
+}
+
+/** The speaking-style lines; none for a persona without tone and without a stated gender. */
+function styleLines(persona: Persona | undefined, locale: string): string[] {
+  const lines: string[] = [];
+  if (persona?.tone) lines.push(`Speaking style: ${persona.tone}`);
+  if (persona?.gender) {
+    lines.push(GENDER_LINE[persona.gender]);
+    if (locale.toLowerCase().startsWith('de')) {
+      lines.push(`If you say what you are, say "${GERMAN_SELF[persona.gender]}".`);
+    }
+  }
+  return lines;
+}
+
+/** Build the system prompt. Pure: same profile, time and persona, same text. */
+export function buildInstructions(profile: Profile, now: Date, persona?: Persona): string {
   // Without this the model answers "are you open tonight?" from a guessed date.
   const localNow = new Intl.DateTimeFormat(profile.locale, {
     timeZone: profile.timeZone,
@@ -19,6 +63,7 @@ export function buildInstructions(profile: Profile, now: Date): string {
     `Speak the language of locale ${profile.locale}.`,
     `The call starts at ${localNow} (venue time, ${profile.timeZone}).`,
     profile.instructions,
+    ...styleLines(persona, profile.locale),
     '',
     'Rules:',
     '- Answer directly from the facts below, without calling a tool. Only if no listed fact fits, say you do not know.',

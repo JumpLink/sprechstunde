@@ -5,7 +5,5 @@
 </script>
 
 <span class="break-words">
-  {provider}{#if model}
-    · <ModelName target={provider} id={model} />{/if}{#if voice}
-    · {voice}{/if}
+  {provider}{#if model}{' · '}<ModelName target={provider} id={model} />{/if}{#if voice}{' · '}{voice}{/if}
 </span>

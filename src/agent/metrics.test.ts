@@ -54,15 +54,34 @@ test('an unwritable metrics directory does not end the call', () => {
 
 test('metricsLine keeps only numbers, ids and timestamps', () => {
   // Real metric objects carry more fields; a text field must never reach the file.
-  const extra = { label: 'mistral', metadata: { modelName: 'x' }, text: 'never stored', requestId: 'r' };
+  const extra = {
+    label: 'mistral',
+    metadata: { modelName: 'x' },
+    text: 'never stored',
+    requestId: 'r',
+  };
   const cases: [Record<string, unknown>, string[]][] = [
     [{ ...eouMetrics, ...extra }, ['type', 'ts', 'speechId', 'endOfUtteranceDelayMs', 'transcriptionDelayMs']],
     [
-      { ...extra, type: 'llm_metrics', timestamp: 1, speechId: 's', ttftMs: 1, durationMs: 2 },
+      {
+        ...extra,
+        type: 'llm_metrics',
+        timestamp: 1,
+        speechId: 's',
+        ttftMs: 1,
+        durationMs: 2,
+      },
       ['type', 'ts', 'speechId', 'ttftMs', 'durationMs'],
     ],
     [
-      { ...extra, type: 'tts_metrics', timestamp: 1, speechId: 's', ttfbMs: 1, durationMs: 2 },
+      {
+        ...extra,
+        type: 'tts_metrics',
+        timestamp: 1,
+        speechId: 's',
+        ttfbMs: 1,
+        durationMs: 2,
+      },
       ['type', 'ts', 'speechId', 'ttfbMs', 'durationMs'],
     ],
   ];
@@ -74,7 +93,13 @@ test('metricsLine keeps only numbers, ids and timestamps', () => {
       assert.equal(typeof value, 'number', key);
     }
   }
-  assert.equal(metricsLine({ ...extra, type: 'stt_metrics' } as unknown as metrics.AgentMetrics), null);
+  assert.equal(
+    metricsLine({
+      ...extra,
+      type: 'stt_metrics',
+    } as unknown as metrics.AgentMetrics),
+    null,
+  );
 });
 
 test('callConfigLine: ids and names only, no text', () => {
@@ -82,7 +107,7 @@ test('callConfigLine: ids and names only, no text', () => {
     {
       jobId: 'job-1',
       profile: 'venue',
-      ttsPreset: 'house',
+      character: 'house',
       ttsProvider: 'pocket',
       llmModel: 'small',
       llmFallbackModel: 'big',
@@ -94,7 +119,7 @@ test('callConfigLine: ids and names only, no text', () => {
     ts: 42,
     jobId: 'job-1',
     profile: 'venue',
-    ttsPreset: 'house',
+    character: 'house',
     ttsProvider: 'pocket',
     llmModel: 'small',
     llmFallbackModel: 'big',

@@ -1,5 +1,12 @@
 import { loadProfile, type Profile } from '../core/profile.js';
-import { profileFilePath, readSettings, type Settings, settingsFile } from '../core/settings.js';
+import {
+  type Character,
+  characterFor,
+  profileFilePath,
+  readSettings,
+  type Settings,
+  settingsFile,
+} from '../core/settings.js';
 import { _ } from '../i18n.js';
 
 /**
@@ -39,4 +46,15 @@ export function profileForCall(
     console.warn(_('ignoring the selected profile, using the start profile instead:'), file, (error as Error).message);
     return start;
   }
+}
+
+/**
+ * The character this call speaks as: the venue's, else the default one. An id the venue names but
+ * the settings do not know is reported (the id only) and the default character answers, because a
+ * typo in a profile must not cost the call its voice.
+ */
+export function characterForCall(settings: Settings | undefined, venue: Profile): Character | undefined {
+  const { character, unknown } = characterFor(settings, venue.character);
+  if (unknown) console.warn(_('ignoring an unknown character, using the default one instead:'), unknown);
+  return character;
 }

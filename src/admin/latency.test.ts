@@ -3,20 +3,39 @@ import { mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
-import { byPreset, callsFrom, type Line, parseLines, readMetrics, summarizeCall } from './latency.js';
+import { byCharacter, callsFrom, type Line, parseLines, readMetrics, summarizeCall } from './latency.js';
 
 const T0 = 1_760_000_000_000;
 
 function lines(...entries: Array<Record<string, unknown>>): Line[] {
-  return entries.map((entry) => ({ ts: entry.ts as number, type: entry.type as string, values: entry }));
+  return entries.map((entry) => ({
+    ts: entry.ts as number,
+    type: entry.type as string,
+    values: entry,
+  }));
 }
 
 function config(ts: number, preset: string | undefined, provider: string): Record<string, unknown> {
-  return { type: 'call_config', ts, ttsPreset: preset, ttsProvider: provider, llmModel: 'mistral-small-latest' };
+  return {
+    type: 'call_config',
+    ts,
+    character: preset,
+    ttsProvider: provider,
+    llmModel: 'mistral-small-latest',
+  };
 }
 
-const tts = (ts: number, ttfbMs: number) => ({ type: 'tts_metrics', ts, ttfbMs, durationMs: 900 });
-const eou = (ts: number, delay: number) => ({ type: 'eou_metrics', ts, endOfUtteranceDelayMs: delay });
+const tts = (ts: number, ttfbMs: number) => ({
+  type: 'tts_metrics',
+  ts,
+  ttfbMs,
+  durationMs: 900,
+});
+const eou = (ts: number, delay: number) => ({
+  type: 'eou_metrics',
+  ts,
+  endOfUtteranceDelayMs: delay,
+});
 
 test('parseLines: keeps well-formed lines and counts the rest', () => {
   const parsed = parseLines(
@@ -26,7 +45,7 @@ test('parseLines: keeps well-formed lines and counts the rest', () => {
   assert.equal(parsed.skipped, 2);
 });
 
-test('callsFrom: a call_config line starts a call and names its preset', () => {
+test('callsFrom: a call_config line starts a call and names its character', () => {
   const calls = callsFrom(
     lines(
       config(T0, 'pocket-juergen', 'pocket'),
@@ -37,17 +56,22 @@ test('callsFrom: a call_config line starts a call and names its preset', () => {
   );
   assert.equal(calls.length, 2);
   // Newest first.
-  assert.equal(calls[0]!.preset, 'mistral-jane');
-  assert.equal(calls[1]!.preset, 'pocket-juergen');
+  assert.equal(calls[0]!.character, 'mistral-jane');
+  assert.equal(calls[1]!.character, 'pocket-juergen');
   assert.equal(calls[1]!.provider, 'pocket');
   assert.equal(calls[1]!.llmModel, 'mistral-small-latest');
   assert.deepEqual(calls[1]!.values['tts.ttfbMs'], [120]);
 });
 
+test('callsFrom: a line from before characters names its preset as the character', () => {
+  const calls = callsFrom(lines({ type: 'call_config', ts: T0, ttsPreset: 'old-one' }, tts(T0 + 1, 100)));
+  assert.equal(calls[0]!.character, 'old-one');
+});
+
 test('callsFrom: lines without a call_config still form calls, split by the gap', () => {
   const calls = callsFrom(lines(tts(T0, 100), tts(T0 + 1000, 200), tts(T0 + 120_000, 300)));
   assert.equal(calls.length, 2);
-  assert.equal(calls[0]!.preset, undefined);
+  assert.equal(calls[0]!.character, undefined);
   assert.deepEqual(calls[1]!.values['tts.ttfbMs'], [100, 200]);
 });
 
@@ -66,7 +90,7 @@ test('summarizeCall: percentiles per metric, nothing measured stays null', () =>
   assert.equal(summary['llm.ttftMs']!.p50, null);
 });
 
-test('byPreset: one row per preset over all its calls, most calls first', () => {
+test('byCharacter: one row per preset over all its calls, most calls first', () => {
   const calls = callsFrom(
     lines(
       config(T0, 'a', 'pocket'),
@@ -77,9 +101,9 @@ test('byPreset: one row per preset over all its calls, most calls first', () => 
       tts(T0 + 20_001, 300),
     ),
   );
-  const rows = byPreset(calls);
+  const rows = byCharacter(calls);
   assert.deepEqual(
-    rows.map((row) => [row.preset, row.calls]),
+    rows.map((row) => [row.character, row.calls]),
     [
       ['a', 2],
       ['b', 1],
