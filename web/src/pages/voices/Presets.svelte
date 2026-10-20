@@ -7,6 +7,7 @@
   import type { Preset, Settings } from '$lib/types';
   import { describeChoice } from '$lib/voices';
   import Badge from '$lib/ui/Badge.svelte';
+  import ChoiceLine from '$lib/ui/ChoiceLine.svelte';
   import Button from '$lib/ui/Button.svelte';
   import Card from '$lib/ui/Card.svelte';
   import Confirm from '$lib/ui/Confirm.svelte';
@@ -136,7 +137,7 @@
                   {#if snapshot?.settings.active.fallback === preset.id}<Badge>{_('Fallback')}</Badge>{/if}
                 </p>
                 <p class="text-sm break-words text-muted-foreground">
-                  <code>{preset.id}</code> · {[preset.provider, preset.model, preset.voice].filter(Boolean).join(' · ')}
+                  <code>{preset.id}</code> · <ChoiceLine provider={preset.provider} model={preset.model} voice={preset.voice} />
                 </p>
               </div>
               <div class="flex gap-1">

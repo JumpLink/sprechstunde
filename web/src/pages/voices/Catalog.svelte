@@ -5,6 +5,7 @@
   import { api, message, preview, revoke, sampleUrl } from '$lib/api';
   import { when } from '$lib/format';
   import { _, currentLanguage, fill } from '$lib/i18n.svelte';
+  import { modelOption } from '$lib/models.svelte';
   import { app } from '$lib/store.svelte';
   import type { Catalog, CatalogVoice, Preset, Provider } from '$lib/types';
   import Audio from '$lib/ui/Audio.svelte';
@@ -135,7 +136,7 @@
         <label class="text-sm font-medium" for="cat-model">{_('Model')}</label>
         <select id="cat-model" class={controlClass} bind:value={model} disabled={!catalog || catalog.models.length === 0}>
           <option value="">{_('All models')}</option>
-          {#each catalog?.models ?? [] as option (option.id)}<option value={option.id}>{option.label}</option>{/each}
+          {#each catalog?.models ?? [] as option (option.id)}<option value={option.id}>{modelOption(option)}</option>{/each}
         </select>
       </div>
       <div class="space-y-1.5">

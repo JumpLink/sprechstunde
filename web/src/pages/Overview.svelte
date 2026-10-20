@@ -3,11 +3,14 @@
   import { api } from '$lib/api';
   import { ms } from '$lib/format';
   import { _, fill } from '$lib/i18n.svelte';
+  import { ensureCatalogs, findModel, modelsInUse, DEFAULT_LLM } from '$lib/models.svelte';
   import { app } from '$lib/store.svelte';
   import type { Latency } from '$lib/types';
   import Badge from '$lib/ui/Badge.svelte';
   import Card from '$lib/ui/Card.svelte';
+  import ChoiceLine from '$lib/ui/ChoiceLine.svelte';
   import Empty from '$lib/ui/Empty.svelte';
+  import ModelName from '$lib/ui/ModelName.svelte';
   import Skeleton from '$lib/ui/Skeleton.svelte';
   import { resolveSlot } from '$lib/voices';
 
@@ -28,6 +31,14 @@
     const selected = profiles.profiles.find((entry) => entry.file === profiles.active);
     return selected ? (selected.name ?? selected.id) : (profiles.default?.name ?? profiles.default?.id ?? '');
   });
+  const uses = $derived(snapshot ? modelsInUse(snapshot) : []);
+  $effect(() => ensureCatalogs([...new Set(uses.map((use) => use.target))]));
+  const outdated = $derived(
+    uses.flatMap((use) => {
+      const model = findModel(use.target, use.id);
+      return model?.deprecated ? [{ use, model }] : [];
+    }),
+  );
   const recent = $derived(latency?.calls.slice(0, 10) ?? []);
 
   /** Median of the per-call medians: a number for "how fast are the last calls". */
@@ -54,6 +65,13 @@
 {:else}
   {@const primary = resolveSlot(snapshot, 'primary')}
   {@const fallback = resolveSlot(snapshot, 'fallback')}
+  {#each outdated as { use, model } (use.target + use.id + use.role)}
+    <div role="alert" class="rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-amber-800 dark:text-amber-200">
+      {fill(_('%s is deprecated.'), model.label)}
+      {#if model.replacement}{fill(_('The vendor suggests %s instead.'), model.replacement)}{/if}
+      <a class="underline" href="/models">{_('Show models')}</a>
+    </div>
+  {/each}
   <div class="grid gap-4 sm:grid-cols-2">
     <Card title={_('Active profile')} description={_('What the assistant knows and says on the next call')}>
       <p class="text-lg font-medium">{profileName || _('Start profile')}</p>
@@ -71,12 +89,16 @@
         <div>
           <dt class="text-muted-foreground">{_('Primary')}</dt>
           <dd class="font-medium">{primary.label}</dd>
-          <dd class="break-words text-muted-foreground">{primary.detail}</dd>
+          <dd class="text-muted-foreground">
+            {#if primary.choice}<ChoiceLine {...primary.choice} />{/if}
+          </dd>
         </div>
         <div>
           <dt class="text-muted-foreground">{_('Fallback')}</dt>
           <dd class="font-medium">{fallback.label}</dd>
-          <dd class="break-words text-muted-foreground">{fallback.detail}</dd>
+          <dd class="text-muted-foreground">
+            {#if fallback.choice}<ChoiceLine {...fallback.choice} />{/if}
+          </dd>
         </div>
       </dl>
       <a class="mt-3 inline-block text-sm text-primary underline-offset-4 hover:underline" href="/voices">
@@ -88,11 +110,20 @@
       <dl class="space-y-3 text-sm">
         <div>
           <dt class="text-muted-foreground">{_('Model')}</dt>
-          <dd class="font-medium">{snapshot?.settings.llm.model ?? _('Default (mistral-small-latest)')}</dd>
+          <dd>
+            <ModelName target="llm" id={snapshot.settings.llm.model ?? DEFAULT_LLM} />
+            {#if !snapshot.settings.llm.model}<span class="text-xs text-muted-foreground">({_('default')})</span>{/if}
+          </dd>
         </div>
         <div>
           <dt class="text-muted-foreground">{_('Fallback')}</dt>
-          <dd class="font-medium">{snapshot?.settings.llm.fallbackModel ?? _('None')}</dd>
+          <dd>
+            {#if snapshot.settings.llm.fallbackModel}
+              <ModelName target="llm" id={snapshot.settings.llm.fallbackModel} />
+            {:else}
+              <span class="font-medium">{_('None')}</span>
+            {/if}
+          </dd>
         </div>
       </dl>
       <a class="mt-3 inline-block text-sm text-primary underline-offset-4 hover:underline" href="/llm">

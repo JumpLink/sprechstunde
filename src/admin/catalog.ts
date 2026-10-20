@@ -294,7 +294,7 @@ function mistralModels(cards: MistralModelCard[]): CatalogModel[] {
   const groupOf = new Map<string, Set<string>>();
   for (const card of cards) {
     const group = new Set([card.id, ...(card.aliases ?? []).filter((alias) => byId.has(alias))]);
-    for (const id of [...group]) for (const other of groupOf.get(id) ?? []) group.add(other);
+    for (const id of group) for (const other of groupOf.get(id) ?? []) group.add(other);
     for (const id of group) groupOf.set(id, group);
   }
   const canonicalOf = new Map<Set<string>, string>();

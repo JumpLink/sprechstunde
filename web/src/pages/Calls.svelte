@@ -4,8 +4,10 @@
   import { ms, when } from '$lib/format';
   import { _, currentLanguage, fill } from '$lib/i18n.svelte';
   import { app } from '$lib/store.svelte';
+  import { presetLabel } from '$lib/voices';
   import type { Latency } from '$lib/types';
   import Card from '$lib/ui/Card.svelte';
+  import ModelName from '$lib/ui/ModelName.svelte';
   import Empty from '$lib/ui/Empty.svelte';
   import Skeleton from '$lib/ui/Skeleton.svelte';
 
@@ -46,7 +48,7 @@
         <tbody class="divide-y">
           {#each latency.presets as row, index (index)}
             <tr>
-              <td class="{td} font-medium">{row.preset ?? row.provider ?? '–'}</td>
+              <td class="{td} font-medium">{row.preset ? presetLabel(app.state, row.preset) : (row.provider ?? '–')}</td>
               <td class={td}>{row.calls}</td>
               {#each names as name (name)}<td class={td}>{ms(row.summary[name]?.p50)}</td>{/each}
             </tr>
@@ -73,8 +75,8 @@
             <tr>
               <td class={td}>{when(call.start, currentLanguage())}</td>
               <td class={td}>{Math.round(call.seconds)}</td>
-              <td class={td}>{call.preset ?? call.provider ?? '–'}</td>
-              <td class={td}>{call.llmModel ?? '–'}</td>
+              <td class={td}>{call.preset ? presetLabel(app.state, call.preset) : (call.provider ?? '–')}</td>
+              <td class={td}>{#if call.llmModel}<ModelName target="llm" id={call.llmModel} />{:else}–{/if}</td>
               {#each names as name (name)}<td class={td}>{ms(call.summary[name]?.p50)}</td>{/each}
             </tr>
           {/each}
