@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-20 14:35+0200\n"
+"POT-Creation-Date: 2026-10-20 14:55+0200\n"
 "PO-Revision-Date: 2026-10-19 23:10+0200\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -26,63 +26,63 @@ msgstr "der Anbieter antwortete mit %s"
 msgid "the request failed: %s"
 msgstr "die Anfrage ist fehlgeschlagen: %s"
 
-#: src/admin/fetch-safe.ts:196 src/admin/knowledge-service.ts:119
+#: src/admin/fetch-safe.ts:202 src/admin/knowledge-service.ts:119
 msgid "only http and https addresses can be fetched"
 msgstr "es können nur http- und https-Adressen abgerufen werden"
 
-#: src/admin/fetch-safe.ts:199
+#: src/admin/fetch-safe.ts:205
 msgid "an address with a user name or password is not accepted"
 msgstr "eine Adresse mit Benutzername oder Passwort wird nicht angenommen"
 
-#: src/admin/fetch-safe.ts:203
+#: src/admin/fetch-safe.ts:209
 msgid "only the default web ports are accepted"
 msgstr "es werden nur die Standard-Webports angenommen"
 
-#: src/admin/fetch-safe.ts:215 src/admin/fetch-safe.ts:218
+#: src/admin/fetch-safe.ts:221 src/admin/fetch-safe.ts:224
 msgid "the host name could not be resolved"
 msgstr "der Hostname konnte nicht aufgelöst werden"
 
-#: src/admin/fetch-safe.ts:221
+#: src/admin/fetch-safe.ts:227
 msgid "this address leads to a private or internal network"
 msgstr "diese Adresse führt in ein privates oder internes Netz"
 
-#: src/admin/fetch-safe.ts:241 src/admin/fetch-safe.ts:247
+#: src/admin/fetch-safe.ts:247 src/admin/fetch-safe.ts:253
 msgid "the page is too large"
 msgstr "die Seite ist zu groß"
 
-#: src/admin/fetch-safe.ts:301 src/admin/fetch-safe.ts:327
+#: src/admin/fetch-safe.ts:307 src/admin/fetch-safe.ts:334
 msgid "the page took too long to answer"
 msgstr "die Seite hat zu lange nicht geantwortet"
 
-#: src/admin/fetch-safe.ts:302 src/admin/fetch-safe.ts:328
+#: src/admin/fetch-safe.ts:308 src/admin/fetch-safe.ts:335
 msgid "the page could not be fetched"
 msgstr "die Seite konnte nicht abgerufen werden"
 
-#: src/admin/fetch-safe.ts:306
+#: src/admin/fetch-safe.ts:312
 msgid "the page answered with a redirect without a target"
 msgstr "die Seite antwortete mit einer Weiterleitung ohne Ziel"
 
-#: src/admin/fetch-safe.ts:307
+#: src/admin/fetch-safe.ts:313
 msgid "the page redirects too often"
 msgstr "die Seite leitet zu oft weiter"
 
-#: src/admin/fetch-safe.ts:311
+#: src/admin/fetch-safe.ts:317
 msgid "the page redirects to an invalid address"
 msgstr "die Seite leitet auf eine ungültige Adresse weiter"
 
-#: src/admin/fetch-safe.ts:316
+#: src/admin/fetch-safe.ts:322
 msgid "the page answered with an error"
 msgstr "die Seite antwortete mit einem Fehler"
 
-#: src/admin/fetch-safe.ts:320
+#: src/admin/fetch-safe.ts:326
 msgid "the page is not a kind of document that can be read"
 msgstr "die Seite ist kein Dokument, das sich lesen lässt"
 
-#: src/admin/fetch-safe.ts:375 src/admin/knowledge-service.ts:116
+#: src/admin/fetch-safe.ts:382 src/admin/knowledge-service.ts:116
 msgid "this is not a valid web address"
 msgstr "das ist keine gültige Webadresse"
 
-#: src/admin/fetch-safe.ts:384
+#: src/admin/fetch-safe.ts:391
 msgid "the site asks robots not to fetch this page"
 msgstr "die Website bittet Roboter, diese Seite nicht abzurufen"
 
