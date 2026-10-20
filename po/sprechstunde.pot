@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-20 14:04+0200\n"
+"POT-Creation-Date: 2026-10-20 14:06+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -316,19 +316,19 @@ msgstr ""
 msgid "unknown route"
 msgstr ""
 
-#: src/agent/assistant.ts:75
+#: src/agent/assistant.ts:76
 msgid "CPU profile written to"
 msgstr ""
 
-#: src/agent/assistant.ts:150
+#: src/agent/assistant.ts:151
 msgid "Pocket TTS has no free session, this call uses the fallback voice"
 msgstr ""
 
-#: src/agent/assistant.ts:194
+#: src/agent/assistant.ts:198
 msgid "transfer failed"
 msgstr ""
 
-#: src/agent/assistant.ts:247
+#: src/agent/assistant.ts:251
 msgid "CPU profile failed"
 msgstr ""
 

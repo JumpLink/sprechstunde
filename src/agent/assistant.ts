@@ -8,6 +8,7 @@ import * as silero from '@livekit/agents-plugin-silero';
 import { ParticipantKind } from '@livekit/rtc-node';
 import { buildInstructions, personaOf } from '../core/prompt.js';
 import { type Profile, withAssistantName } from '../core/profile.js';
+import { readSnapshot, snapshotPath } from '../core/knowledge-snapshot.js';
 import type { Character } from '../core/settings.js';
 import { TRANSFER_TOOL, transferOverride, transferRequest } from '../core/tools.js';
 import { _ } from '../i18n.js';
@@ -175,6 +176,9 @@ export async function runAssistant(ctx: JobContext, startProfile: Profile): Prom
   const speech = await voiceForCall(client, venue, character);
   // Each character carries its own name; greeting, prompt and announcements follow it.
   const profile = withAssistantName(venue, speech.choice.name);
+  // The live text of the venue's knowledge sources, published by the admin next to the profile.
+  const published = settings?.profile ? snapshotPath(settings.profile) : null;
+  const reference = published ? readSnapshot(published) : undefined;
 
   // No fact lookup tool: the facts are in the instructions, and a tool call costs a second LLM
   // round (0.4–0.9 s measured 2026-10-16).
@@ -251,7 +255,7 @@ export async function runAssistant(ctx: JobContext, startProfile: Profile): Prom
 
   await session.start({
     agent: new voice.Agent({
-      instructions: buildInstructions(profile, new Date(), personaOf(character)),
+      instructions: buildInstructions(profile, new Date(), personaOf(character), reference),
       tools,
     }),
     room: ctx.room,

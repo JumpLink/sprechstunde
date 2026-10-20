@@ -1,5 +1,6 @@
 import type { Profile } from './profile.js';
 import type { Gender } from './settings.js';
+import { referenceBlock } from './knowledge-snapshot.js';
 import { TRANSFER_TOOL } from './tools.js';
 
 /** What a character adds to the prompt: how it speaks, and which grammatical gender it uses for itself. */
@@ -45,8 +46,8 @@ function styleLines(persona: Persona | undefined, locale: string): string[] {
   return lines;
 }
 
-/** Build the system prompt. Pure: same profile, time and persona, same text. */
-export function buildInstructions(profile: Profile, now: Date, persona?: Persona): string {
+/** Build the system prompt. Pure: same profile, time, persona and reference text, same text. */
+export function buildInstructions(profile: Profile, now: Date, persona?: Persona, reference?: string): string {
   // Without this the model answers "are you open tonight?" from a guessed date.
   const localNow = new Intl.DateTimeFormat(profile.locale, {
     timeZone: profile.timeZone,
@@ -75,5 +76,6 @@ export function buildInstructions(profile: Profile, now: Date, persona?: Persona
     '',
     'Facts:',
     facts,
+    ...(reference ? ['', referenceBlock(reference)] : []),
   ].join('\n');
 }
