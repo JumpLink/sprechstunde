@@ -245,3 +245,18 @@ test('describeKnowledge masks the transfer target and uses the real prompt', () 
   const { transfer: _transfer, ...withoutTransfer } = example;
   assert.equal(describeKnowledge(withoutTransfer, now).transfer, null);
 });
+
+test('prompt: the allergen rule is always there, with and without reference data', () => {
+  for (const text of [
+    buildInstructions(example, NOW),
+    buildInstructions(example, NOW, undefined, 'Soup: contains celery'),
+  ]) {
+    assert.match(text, /allergens, ingredients and diets, only repeat what the facts or reference data state/);
+    assert.match(text, /Never say a dish is guaranteed free of anything/);
+    assert.match(text, /say you do not know and offer a person/);
+  }
+  // the rule sits in the fixed rules, above the facts and the untrusted reference block
+  const text = buildInstructions(example, NOW, undefined, 'Soup: contains celery');
+  assert.ok(text.indexOf('allergens') < text.indexOf('Facts:'));
+  assert.ok(text.indexOf('allergens') < text.indexOf('<reference-data>'));
+});
