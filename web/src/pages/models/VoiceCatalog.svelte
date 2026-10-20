@@ -1,20 +1,18 @@
 <script lang="ts">
-  import { Play, Plus, RefreshCw } from '@lucide/svelte';
+  import { RefreshCw } from '@lucide/svelte';
   import { onDestroy } from 'svelte';
   import { toast } from 'svelte-sonner';
-  import { api, message, preview, revoke, sampleUrl } from '$lib/api';
-  import { when } from '$lib/format';
-  import { _, currentLanguage, fill } from '$lib/i18n.svelte';
-  import { modelOption } from '$lib/models.svelte';
+  import { message, preview, revoke } from '$lib/api';
+  import { type Candidate, candidatesFrom, previewCache, specKey, specOf } from '$lib/casting';
+  import { _ } from '$lib/i18n.svelte';
+  import { catalogOf, ensureCatalogs, refreshCatalogs } from '$lib/models.svelte';
   import { app } from '$lib/store.svelte';
-  import type { Catalog, CatalogVoice, Provider, VoiceSpec } from '$lib/types';
-  import Audio from '$lib/ui/Audio.svelte';
-  import Badge from '$lib/ui/Badge.svelte';
+  import type { VoiceSpec } from '$lib/types';
   import Button from '$lib/ui/Button.svelte';
   import Card from '$lib/ui/Card.svelte';
-  import Empty from '$lib/ui/Empty.svelte';
-  import Skeleton from '$lib/ui/Skeleton.svelte';
+  import VendorBadge from '$lib/ui/VendorBadge.svelte';
   import { controlClass } from '$lib/utils';
+  import VoiceBrowser from '../voices/VoiceBrowser.svelte';
 
   interface Props {
     onsave: (voice: VoiceSpec) => void;
@@ -22,193 +20,82 @@
 
   let { onsave }: Props = $props();
 
-  const PAGE = 24;
+  let ownText = $state('');
+  let picked = $state<Candidate>();
+  let heard = $state<Record<string, { busy?: boolean; ttfaMs?: number; error?: string }>>({});
+  let refreshing = $state(false);
+  const cache = previewCache();
 
-  let provider = $state<Provider>('mistral');
-  let catalog = $state<Catalog>();
-  let loading = $state(false);
-  let model = $state('');
-  let language = $state('');
-  let gender = $state('');
-  let search = $state('');
-  let shown = $state(PAGE);
-  let ownText = $state(app.state?.sampleText ?? '');
-  let tested = $state<Record<string, { url?: string; ttfaMs?: number; error?: string; busy?: boolean }>>({});
+  onDestroy(() => cache.clear());
 
   $effect(() => {
     if (!ownText && app.state) ownText = app.state.sampleText;
   });
 
-  const providers = $derived(app.state?.providers ?? []);
+  const providers = $derived((app.state?.providers ?? []).filter((provider) => app.state?.keys[provider] !== false));
+  $effect(() => ensureCatalogs(providers));
+  const catalogs = $derived(providers.map((provider) => catalogOf(provider)));
+  const loading = $derived(catalogs.some((catalog) => !catalog));
+  const candidates = $derived(candidatesFrom(catalogs, ''));
+  const unavailable = $derived(catalogs.filter((catalog) => catalog && !catalog.available));
 
-  async function load(refresh = false): Promise<void> {
-    loading = true;
+  async function hear(candidate: Candidate): Promise<void> {
+    const key = specKey(specOf(candidate));
+    cache.stop();
+    heard[key] = { busy: true };
     try {
-      catalog = await api<Catalog>('GET', `/api/catalog/${provider}${refresh ? '?refresh=1' : ''}`);
-      if (refresh) toast.success(_('Catalog refreshed'));
+      const result = await preview({ voice: specOf(candidate) }, ownText, false);
+      heard[key] = { ttfaMs: Math.round(result.ttfaMs) };
+      await cache.play(result.url);
+      revoke(result.url);
     } catch (error) {
-      catalog = undefined;
+      heard[key] = { error: message(error) };
+    }
+  }
+
+  async function refresh(): Promise<void> {
+    refreshing = true;
+    try {
+      await refreshCatalogs(providers);
+      toast.success(_('Catalog refreshed'));
+    } catch (error) {
       toast.error(message(error));
     } finally {
-      loading = false;
+      refreshing = false;
     }
-  }
-
-  function revokeAll(): void {
-    for (const entry of Object.values(tested)) revoke(entry.url);
-    tested = {};
-  }
-
-  onDestroy(revokeAll);
-
-  function pick(next: Provider): void {
-    provider = next;
-    model = language = gender = search = '';
-    shown = PAGE;
-    revokeAll();
-    void load();
-  }
-
-  $effect(() => {
-    if (!catalog && !loading) void load();
-  });
-
-  const voices = $derived(catalog?.voices ?? []);
-  const languages = $derived([...new Set(voices.flatMap((voice) => voice.languages))].sort());
-  const genders = $derived([...new Set(voices.map((voice) => voice.gender).filter((g) => g !== undefined))].sort());
-  const filtered = $derived(
-    voices.filter((voice) => {
-      if (model && voice.model && voice.model !== model) return false;
-      if (language && !voice.languages.some((tag) => tag === language || tag.startsWith(`${language}-`))) return false;
-      if (gender && voice.gender !== gender) return false;
-      const needle = search.trim().toLowerCase();
-      return !needle || `${voice.name} ${voice.id} ${voice.description ?? ''}`.toLowerCase().includes(needle);
-    }),
-  );
-
-  const key = (voice: CatalogVoice): string => `${voice.model ?? ''}|${voice.id}`;
-
-  async function test(voice: CatalogVoice): Promise<void> {
-    const id = key(voice);
-    revoke(tested[id]?.url);
-    tested[id] = { busy: true };
-    try {
-      const result = await preview(
-        { voice: { provider, model: voice.model || model || undefined, voice: voice.id } },
-        ownText,
-        false,
-      );
-      tested[id] = result;
-    } catch (error) {
-      tested[id] = { error: message(error) };
-    }
-  }
-
-  function save(voice: CatalogVoice): void {
-    onsave({ provider, model: voice.model || model || undefined, voice: voice.id });
   }
 </script>
 
 <div class="space-y-4">
   <Card title={_('Voice catalog')} description={_('What each provider offers, with the vendor samples')}>
     {#snippet actions()}
-      {#if catalog}<span class="text-xs text-muted-foreground">{fill(_('Fetched %s'), when(catalog.fetchedAt, currentLanguage()))}</span>{/if}
-      <Button variant="outline" size="sm" disabled={loading} onclick={() => load(true)}>
-        <RefreshCw class="size-4 {loading ? 'animate-spin' : ''}" />{_('Refresh')}
+      <Button variant="outline" size="sm" disabled={refreshing} onclick={refresh}>
+        <RefreshCw class="size-4 {refreshing ? 'animate-spin' : ''}" />{_('Refresh')}
       </Button>
     {/snippet}
-
-    <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+    <div class="space-y-4">
       <div class="space-y-1.5">
-        <label class="text-sm font-medium" for="cat-provider">{_('Provider')}</label>
-        <select id="cat-provider" class={controlClass} value={provider} onchange={(e) => pick(e.currentTarget.value as Provider)}>
-          {#each providers as option (option)}<option value={option}>{option}</option>{/each}
-        </select>
-      </div>
-      <div class="space-y-1.5">
-        <label class="text-sm font-medium" for="cat-model">{_('Model')}</label>
-        <select id="cat-model" class={controlClass} bind:value={model} disabled={!catalog || catalog.models.length === 0}>
-          <option value="">{_('All models')}</option>
-          {#each catalog?.models ?? [] as option (option.id)}<option value={option.id}>{modelOption(option)}</option>{/each}
-        </select>
-      </div>
-      <div class="space-y-1.5">
-        <label class="text-sm font-medium" for="cat-language">{_('Language')}</label>
-        <select id="cat-language" class={controlClass} bind:value={language}>
-          <option value="">{_('Any language')}</option>
-          {#each languages as option (option)}<option value={option}>{option}</option>{/each}
-        </select>
-      </div>
-      <div class="space-y-1.5">
-        <label class="text-sm font-medium" for="cat-gender">{_('Gender')}</label>
-        <select id="cat-gender" class={controlClass} bind:value={gender}>
-          <option value="">{_('Any')}</option>
-          {#each genders as option (option)}<option value={option}>{option}</option>{/each}
-        </select>
-      </div>
-      <div class="space-y-1.5 sm:col-span-2 lg:col-span-4">
-        <label class="text-sm font-medium" for="cat-search">{_('Search')}</label>
-        <input id="cat-search" type="search" class={controlClass} bind:value={search} placeholder={_('Name, id or description')} />
-      </div>
-      <div class="space-y-1.5 sm:col-span-2 lg:col-span-4">
         <label class="text-sm font-medium" for="cat-text">{_('Test with your own text')}</label>
         <textarea id="cat-text" rows="2" class={controlClass} bind:value={ownText}></textarea>
       </div>
+      {#each unavailable as catalog (catalog?.provider)}
+        {#if catalog}
+          <p class="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+            <VendorBadge provider={catalog.provider} />{catalog.reason ?? _('The provider did not answer.')}
+          </p>
+        {/if}
+      {/each}
+      <VoiceBrowser
+        {candidates}
+        {loading}
+        selected={picked ? [picked] : []}
+        {heard}
+        onpick={(candidate) => (picked = picked && specKey(specOf(picked)) === specKey(specOf(candidate)) ? undefined : candidate)}
+        onhear={hear}
+        onstop={() => cache.stop()}
+        actionLabel={_('Cast as a character')}
+        onaction={() => picked && onsave(specOf(picked))}
+      />
     </div>
   </Card>
-
-  {#if loading && !catalog}
-    <div class="grid gap-3 sm:grid-cols-2">
-      {#each [1, 2, 3, 4] as n (n)}<Skeleton class="h-36" />{/each}
-    </div>
-  {:else if catalog && !catalog.available}
-    <Empty title={_('This catalog is not available')}>
-      {catalog.reason ?? _('The provider did not answer.')}
-    </Empty>
-  {:else if catalog && filtered.length === 0}
-    <Empty title={_('No voice matches')}>{_('Loosen the filters.')}</Empty>
-  {:else}
-    <p class="text-sm text-muted-foreground" aria-live="polite">{fill(_('%s voices'), filtered.length)}</p>
-    <ul class="grid gap-3 sm:grid-cols-2">
-      {#each filtered.slice(0, shown) as voice (key(voice))}
-        {@const result = tested[key(voice)]}
-        <li class="flex flex-col gap-3 rounded-xl border bg-card p-4">
-          <div class="min-w-0">
-            <p class="font-medium break-words">{voice.name}</p>
-            <p class="text-xs break-all text-muted-foreground">{voice.id}{voice.model ? ` · ${voice.model}` : ''}</p>
-          </div>
-          <div class="flex flex-wrap gap-1">
-            {#each voice.languages.slice(0, 6) as tag (tag)}<Badge>{tag}</Badge>{/each}
-            {#if voice.gender}<Badge tone="neutral">{voice.gender}</Badge>{/if}
-          </div>
-          {#if voice.description}<p class="text-sm text-muted-foreground">{voice.description}</p>{/if}
-          {#if voice.sampleUrl}
-            <div>
-              <p class="mb-1 text-xs text-muted-foreground">{_('Vendor sample')}</p>
-              <Audio src={sampleUrl(provider, voice.id, voice.model)} />
-            </div>
-          {/if}
-          {#if result?.url}
-            <div>
-              <p class="mb-1 text-xs text-muted-foreground">{fill(_('Your text, first audio after %s ms'), result.ttfaMs ?? 0)}</p>
-              <Audio src={result.url} />
-            </div>
-          {:else if result?.error}
-            <p class="text-sm text-destructive" role="alert">{result.error}</p>
-          {/if}
-          <div class="mt-auto flex flex-wrap gap-2">
-            <Button variant="outline" size="sm" disabled={result?.busy} onclick={() => test(voice)}>
-              <Play class="size-4" />{result?.busy ? _('Synthesizing…') : _('Test with my text')}
-            </Button>
-            <Button size="sm" onclick={() => save(voice)}><Plus class="size-4" />{_('Cast as a character')}</Button>
-          </div>
-        </li>
-      {/each}
-    </ul>
-    {#if filtered.length > shown}
-      <div class="flex justify-center">
-        <Button variant="outline" onclick={() => (shown += PAGE)}>{_('Show more')}</Button>
-      </div>
-    {/if}
-  {/if}
 </div>

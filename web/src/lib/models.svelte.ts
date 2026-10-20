@@ -19,6 +19,17 @@ export function ensureCatalogs(targets: string[]): void {
   }
 }
 
+/** Ask each vendor again, past the server's one-hour cache. */
+export function refreshCatalogs(targets: string[]): Promise<unknown[]> {
+  return Promise.all(
+    targets.map((target) =>
+      api<Catalog>('GET', `/api/catalog/${encodeURIComponent(target)}?refresh=1`).then(
+        (catalog) => (catalogs[target] = catalog),
+      ),
+    ),
+  );
+}
+
 export const catalogOf = (target: string): Catalog | undefined => catalogs[target];
 
 export function findModel(target: string, id: string | undefined): CatalogModel | undefined {

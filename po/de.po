@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-20 09:35+0200\n"
+"POT-Creation-Date: 2026-10-20 09:42+0200\n"
 "PO-Revision-Date: 2026-10-19 23:10+0200\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -586,15 +586,15 @@ msgstr "Zwischen hell und dunkel wechseln"
 msgid "There is no such page."
 msgstr "Diese Seite gibt es nicht."
 
-#: web/src/lib/models.svelte.ts:67
+#: web/src/lib/models.svelte.ts:78
 msgid "newest version"
 msgstr "neueste Version"
 
-#: web/src/lib/models.svelte.ts:68 web/src/pages/models/ModelList.svelte:93
+#: web/src/lib/models.svelte.ts:79 web/src/pages/models/ModelList.svelte:93
 msgid "deprecated"
 msgstr "veraltet"
 
-#: web/src/lib/models.svelte.ts:69
+#: web/src/lib/models.svelte.ts:80
 #, javascript-format
 msgid "%s tokens"
 msgstr "%s Token"
@@ -625,7 +625,7 @@ msgstr "Wissen"
 msgid "Calls"
 msgstr "Anrufe"
 
-#: web/src/lib/ui/Confirm.svelte:28 web/src/pages/characters/Wizard.svelte:341
+#: web/src/lib/ui/Confirm.svelte:28 web/src/pages/characters/Wizard.svelte:310
 msgid "Cancel"
 msgstr "Abbrechen"
 
@@ -715,19 +715,19 @@ msgstr "Lokal"
 msgid "EU endpoint"
 msgstr "EU-Endpunkt"
 
-#: web/src/lib/vendor.ts:32
+#: web/src/lib/vendor.ts:38
 msgid "Pocket TTS (local)"
 msgstr "Pocket TTS (lokal)"
 
-#: web/src/lib/voices.ts:20 web/src/pages/characters/Wizard.svelte:277
+#: web/src/lib/voices.ts:20 web/src/pages/characters/Wizard.svelte:246
 msgid "Female"
 msgstr "Weiblich"
 
-#: web/src/lib/voices.ts:20 web/src/pages/characters/Wizard.svelte:278
+#: web/src/lib/voices.ts:20 web/src/pages/characters/Wizard.svelte:247
 msgid "Male"
 msgstr "Männlich"
 
-#: web/src/lib/voices.ts:20 web/src/pages/characters/Wizard.svelte:279
+#: web/src/lib/voices.ts:20 web/src/pages/characters/Wizard.svelte:248
 msgid "Neutral"
 msgstr "Neutral"
 
@@ -779,7 +779,6 @@ msgstr "Sekunden"
 
 #: web/src/pages/Calls.svelte:70 web/src/pages/Llm.svelte:56
 #: web/src/pages/Overview.svelte:113
-#: web/src/pages/models/VoiceCatalog.svelte:129
 msgid "Model"
 msgstr "Modell"
 
@@ -817,12 +816,12 @@ msgid "Voice"
 msgstr "Stimme"
 
 #: web/src/pages/Characters.svelte:110
-#: web/src/pages/characters/Wizard.svelte:451
+#: web/src/pages/characters/Wizard.svelte:385
 msgid "Fallback voice"
 msgstr "Ersatzstimme"
 
 #: web/src/pages/Characters.svelte:114 web/src/pages/Overview.svelte:125
-#: web/src/pages/characters/Wizard.svelte:454
+#: web/src/pages/characters/Wizard.svelte:388
 msgid "None"
 msgstr "Keines"
 
@@ -837,6 +836,9 @@ msgstr "Keinem Betrieb zugewiesen"
 
 #: web/src/pages/Characters.svelte:126
 #: web/src/pages/characters/CastCard.svelte:41
+#: web/src/pages/voices/VoiceRow.svelte:58
+#: web/src/pages/voices/VoiceTile.svelte:41
+#: web/src/pages/voices/VoiceTile.svelte:60
 msgid "Hear greeting"
 msgstr "Begrüßung anhören"
 
@@ -1106,7 +1108,7 @@ msgid "Discard"
 msgstr "Verwerfen"
 
 #: web/src/pages/Knowledge.svelte:477 web/src/pages/Llm.svelte:73
-#: web/src/pages/characters/Wizard.svelte:481
+#: web/src/pages/characters/Wizard.svelte:415
 msgid "Save"
 msgstr "Speichern"
 
@@ -1148,6 +1150,7 @@ msgid "Restore"
 msgstr "Wiederherstellen"
 
 #: web/src/pages/Knowledge.svelte:515
+#: web/src/pages/voices/VoiceBrowser.svelte:263
 msgid "Close"
 msgstr "Schließen"
 
@@ -1186,7 +1189,7 @@ msgstr "Die Modellliste ist nicht verfügbar; gib einen Modellnamen ein."
 msgid "Suggestions come from the provider; any model name works."
 msgstr "Die Vorschläge kommen vom Anbieter; jeder Modellname funktioniert."
 
-#: web/src/pages/Models.svelte:25 web/src/pages/models/VoiceCatalog.svelte:113
+#: web/src/pages/Models.svelte:25 web/src/pages/models/VoiceCatalog.svelte:70
 msgid "Voice catalog"
 msgstr "Stimmenkatalog"
 
@@ -1294,103 +1297,105 @@ msgid "no key"
 msgstr "kein Schlüssel"
 
 #: web/src/pages/characters/CastCard.svelte:41
-#: web/src/pages/models/VoiceCatalog.svelte:201
 msgid "Synthesizing…"
 msgstr "Wird synthetisiert …"
 
 #: web/src/pages/characters/CastCard.svelte:44
+#: web/src/pages/voices/VoiceRow.svelte:49
+#: web/src/pages/voices/VoiceTile.svelte:57
 #, javascript-format
 msgid "First audio after %s ms"
 msgstr "Erstes Audio nach %s ms"
 
-#: web/src/pages/characters/Wizard.svelte:77
+#: web/src/pages/characters/Wizard.svelte:67
 msgid "Warm and calm"
 msgstr "Warm und ruhig"
 
-#: web/src/pages/characters/Wizard.svelte:78
+#: web/src/pages/characters/Wizard.svelte:68
 msgid "Friendly and brisk"
 msgstr "Freundlich und flott"
 
-#: web/src/pages/characters/Wizard.svelte:79
+#: web/src/pages/characters/Wizard.svelte:69
 msgid "Formal and polite"
 msgstr "Förmlich und höflich"
 
-#: web/src/pages/characters/Wizard.svelte:80
+#: web/src/pages/characters/Wizard.svelte:70
 msgid "Relaxed, like a neighbour"
 msgstr "Entspannt, wie ein Nachbar"
 
-#: web/src/pages/characters/Wizard.svelte:81
+#: web/src/pages/characters/Wizard.svelte:71
 msgid "Short and to the point"
 msgstr "Kurz und auf den Punkt"
 
-#: web/src/pages/characters/Wizard.svelte:168
+#: web/src/pages/characters/Wizard.svelte:138
 msgid "Who?"
 msgstr "Wer?"
 
-#: web/src/pages/characters/Wizard.svelte:169
-#: web/src/pages/characters/Wizard.svelte:347
+#: web/src/pages/characters/Wizard.svelte:139
+#: web/src/pages/characters/Wizard.svelte:316
 msgid "Casting"
 msgstr "Casting"
 
-#: web/src/pages/characters/Wizard.svelte:170
-#: web/src/pages/characters/Wizard.svelte:416
+#: web/src/pages/characters/Wizard.svelte:140
+#: web/src/pages/characters/Wizard.svelte:334
+#: web/src/pages/characters/Wizard.svelte:350
 msgid "Compare"
 msgstr "Vergleich"
 
-#: web/src/pages/characters/Wizard.svelte:171
-#: web/src/pages/characters/Wizard.svelte:439
+#: web/src/pages/characters/Wizard.svelte:141
+#: web/src/pages/characters/Wizard.svelte:373
 msgid "Done"
 msgstr "Fertig"
 
-#: web/src/pages/characters/Wizard.svelte:267
+#: web/src/pages/characters/Wizard.svelte:236
 #, javascript-format
 msgid "%s saved"
 msgstr "%s gespeichert"
 
-#: web/src/pages/characters/Wizard.svelte:277
+#: web/src/pages/characters/Wizard.svelte:246
 msgid "She says “eine KI-Assistentin”"
 msgstr "Sie sagt „eine KI-Assistentin“"
 
-#: web/src/pages/characters/Wizard.svelte:278
+#: web/src/pages/characters/Wizard.svelte:247
 msgid "He says “ein KI-Assistent”"
 msgstr "Er sagt „ein KI-Assistent“"
 
-#: web/src/pages/characters/Wizard.svelte:279
+#: web/src/pages/characters/Wizard.svelte:248
 msgid "Says “eine KI”"
 msgstr "Sagt „eine KI“"
 
-#: web/src/pages/characters/Wizard.svelte:284
+#: web/src/pages/characters/Wizard.svelte:253
 msgid "Steps"
 msgstr "Schritte"
 
-#: web/src/pages/characters/Wizard.svelte:297
+#: web/src/pages/characters/Wizard.svelte:266
 #, javascript-format
 msgid "Edit %s"
 msgstr "%s bearbeiten"
 
-#: web/src/pages/characters/Wizard.svelte:297
+#: web/src/pages/characters/Wizard.svelte:266
 msgid "Who is answering?"
 msgstr "Wer meldet sich?"
 
-#: web/src/pages/characters/Wizard.svelte:297
+#: web/src/pages/characters/Wizard.svelte:266
 msgid "Name, gender and manner of the new character"
 msgstr "Name, Geschlecht und Art des neuen Charakters"
 
-#: web/src/pages/characters/Wizard.svelte:299
+#: web/src/pages/characters/Wizard.svelte:268
 msgid "Name"
 msgstr "Name"
 
-#: web/src/pages/characters/Wizard.svelte:299
+#: web/src/pages/characters/Wizard.svelte:268
 #, javascript-format
 msgid "Up to %s characters"
 msgstr "Bis zu %s Zeichen"
 
-#: web/src/pages/characters/Wizard.svelte:304
-#: web/src/pages/models/VoiceCatalog.svelte:143
+#: web/src/pages/characters/Wizard.svelte:273
+#: web/src/pages/voices/FilterPanel.svelte:26
 msgid "Gender"
 msgstr "Geschlecht"
 
-#: web/src/pages/characters/Wizard.svelte:306
+#: web/src/pages/characters/Wizard.svelte:275
 msgid ""
 "This character came from an old preset, so its gender was never stated. "
 "Choose it once."
@@ -1398,107 +1403,77 @@ msgstr ""
 "Dieser Charakter stammt aus einer alten Voreinstellung, sein Geschlecht "
 "wurde nie angegeben. Wähle es einmal aus."
 
-#: web/src/pages/characters/Wizard.svelte:324
+#: web/src/pages/characters/Wizard.svelte:293
 msgid "Manner of speaking"
 msgstr "Art zu sprechen"
 
-#: web/src/pages/characters/Wizard.svelte:324
+#: web/src/pages/characters/Wizard.svelte:293
 msgid "Optional, one to three sentences (%1 of %2)"
 msgstr "Optional, ein bis drei Sätze (%1 von %2)"
 
-#: web/src/pages/characters/Wizard.svelte:326
+#: web/src/pages/characters/Wizard.svelte:295
 msgid "Suggestions"
 msgstr "Vorschläge"
 
-#: web/src/pages/characters/Wizard.svelte:342
-#: web/src/pages/characters/Wizard.svelte:413
-#: web/src/pages/characters/Wizard.svelte:436
+#: web/src/pages/characters/Wizard.svelte:311
+#: web/src/pages/characters/Wizard.svelte:334
+#: web/src/pages/characters/Wizard.svelte:370
 msgid "Next"
 msgstr "Weiter"
 
-#: web/src/pages/characters/Wizard.svelte:348
+#: web/src/pages/characters/Wizard.svelte:317
 #, javascript-format
 msgid "German voices from every vendor. Each one reads your greeting as %s."
 msgstr "Deutsche Stimmen aller Anbieter. Jede spricht deine Begrüßung als %s."
 
-#: web/src/pages/characters/Wizard.svelte:353
+#: web/src/pages/characters/Wizard.svelte:322
 msgid "Phone quality (8 kHz)"
 msgstr "Telefonqualität (8 kHz)"
 
-#: web/src/pages/characters/Wizard.svelte:355
-msgid "Other voices"
-msgstr "Andere Stimmen"
-
-#: web/src/pages/characters/Wizard.svelte:362
-msgid "No vendor offers a German voice right now. Check the API keys."
-msgstr ""
-"Gerade bietet kein Anbieter eine deutsche Stimme an. Prüfe die API-Schlüssel."
-
-#: web/src/pages/characters/Wizard.svelte:365
-msgid ""
-"No vendor says which of its voices match this gender. Listen and choose."
-msgstr ""
-"Kein Anbieter sagt, welche seiner Stimmen zu diesem Geschlecht passen. Hör "
-"rein und wähle."
-
-#: web/src/pages/characters/Wizard.svelte:373
-#: web/src/pages/characters/Wizard.svelte:393
-#: web/src/pages/characters/Wizard.svelte:427
-msgid "Chosen"
-msgstr "Gewählt"
-
-#: web/src/pages/characters/Wizard.svelte:373
-#: web/src/pages/characters/Wizard.svelte:393
-msgid "Pick"
-msgstr "Wählen"
-
-#: web/src/pages/characters/Wizard.svelte:383
-#, javascript-format
-msgid "Show voices of unknown gender (%s)"
-msgstr "Stimmen mit unbekanntem Geschlecht zeigen (%s)"
-
-#: web/src/pages/characters/Wizard.svelte:386
-msgid "Gender unknown"
-msgstr "Geschlecht unbekannt"
-
-#: web/src/pages/characters/Wizard.svelte:405
+#: web/src/pages/characters/Wizard.svelte:340
 msgid "Two favourites picked: %1 and %2. Next, hear them back to back."
 msgstr ""
 "Zwei Favoriten gewählt: %1 und %2. Als Nächstes hörst du sie hintereinander."
 
-#: web/src/pages/characters/Wizard.svelte:407
+#: web/src/pages/characters/Wizard.svelte:342
 #, javascript-format
 msgid "Picked: %s. Pick a second one to compare, or continue."
 msgstr "Gewählt: %s. Wähle eine zweite zum Vergleichen oder mach weiter."
 
-#: web/src/pages/characters/Wizard.svelte:408
+#: web/src/pages/characters/Wizard.svelte:343
 msgid "Pick one or two voices."
 msgstr "Wähle eine oder zwei Stimmen."
 
-#: web/src/pages/characters/Wizard.svelte:412
-#: web/src/pages/characters/Wizard.svelte:435
-#: web/src/pages/characters/Wizard.svelte:480
+#: web/src/pages/characters/Wizard.svelte:347
+#: web/src/pages/characters/Wizard.svelte:369
+#: web/src/pages/characters/Wizard.svelte:414
 msgid "Back"
 msgstr "Zurück"
 
-#: web/src/pages/characters/Wizard.svelte:416
+#: web/src/pages/characters/Wizard.svelte:350
 msgid "The same sentence in both voices. Choose the one that fits."
 msgstr "Derselbe Satz in beiden Stimmen. Wähle die, die passt."
 
-#: web/src/pages/characters/Wizard.svelte:418
+#: web/src/pages/characters/Wizard.svelte:352
 msgid "Play A, then B"
 msgstr "A, dann B abspielen"
 
-#: web/src/pages/characters/Wizard.svelte:427
+#: web/src/pages/characters/Wizard.svelte:361
+#: web/src/pages/voices/VoiceRow.svelte:72
+#: web/src/pages/voices/VoiceTile.svelte:74
+msgid "Chosen"
+msgstr "Gewählt"
+
+#: web/src/pages/characters/Wizard.svelte:361
 msgid "This one"
 msgstr "Diese"
 
-#: web/src/pages/characters/Wizard.svelte:439
+#: web/src/pages/characters/Wizard.svelte:373
 msgid ""
 "Check it, choose the voice that takes over when the first one fails, and save"
 msgstr "Prüfen, die Ersatzstimme wählen und speichern"
 
-#: web/src/pages/characters/Wizard.svelte:451
+#: web/src/pages/characters/Wizard.svelte:385
 msgid ""
 "Takes over when the first voice fails. Preselected: another vendor, a local "
 "voice if there is one."
@@ -1506,19 +1481,19 @@ msgstr ""
 "Übernimmt, wenn die erste Stimme ausfällt. Vorgewählt: ein anderer Anbieter, "
 "wenn möglich eine lokale Stimme."
 
-#: web/src/pages/characters/Wizard.svelte:460
+#: web/src/pages/characters/Wizard.svelte:394
 msgid "Hear the fallback voice"
 msgstr "Ersatzstimme anhören"
 
-#: web/src/pages/characters/Wizard.svelte:469
+#: web/src/pages/characters/Wizard.svelte:403
 msgid "Assign to a venue"
 msgstr "Einem Betrieb zuweisen"
 
-#: web/src/pages/characters/Wizard.svelte:469
+#: web/src/pages/characters/Wizard.svelte:403
 msgid "Optional. Until then the venue speaks as the default character."
 msgstr "Optional. Bis dahin spricht der Betrieb als Standardcharakter."
 
-#: web/src/pages/characters/Wizard.svelte:471
+#: web/src/pages/characters/Wizard.svelte:405
 msgid "Not now"
 msgstr "Jetzt nicht"
 
@@ -1556,105 +1531,256 @@ msgstr "Aliase: %s"
 msgid "follows the newest version"
 msgstr "folgt der neuesten Version"
 
-#: web/src/pages/models/VoiceCatalog.svelte:48
+#: web/src/pages/models/VoiceCatalog.svelte:60
 msgid "Catalog refreshed"
 msgstr "Katalog aktualisiert"
 
-#: web/src/pages/models/VoiceCatalog.svelte:113
+#: web/src/pages/models/VoiceCatalog.svelte:70
 msgid "What each provider offers, with the vendor samples"
 msgstr "Was jeder Anbieter bietet, mit den Hörproben der Hersteller"
 
-#: web/src/pages/models/VoiceCatalog.svelte:115
-#, javascript-format
-msgid "Fetched %s"
-msgstr "Abgerufen %s"
-
-#: web/src/pages/models/VoiceCatalog.svelte:117
+#: web/src/pages/models/VoiceCatalog.svelte:73
 msgid "Refresh"
 msgstr "Aktualisieren"
 
-#: web/src/pages/models/VoiceCatalog.svelte:123
-msgid "Provider"
-msgstr "Anbieter"
-
-#: web/src/pages/models/VoiceCatalog.svelte:131
-msgid "All models"
-msgstr "Alle Modelle"
-
-#: web/src/pages/models/VoiceCatalog.svelte:136
-msgid "Language"
-msgstr "Sprache"
-
-#: web/src/pages/models/VoiceCatalog.svelte:138
-msgid "Any language"
-msgstr "Jede Sprache"
-
-#: web/src/pages/models/VoiceCatalog.svelte:145
-msgid "Any"
-msgstr "Beliebig"
-
-#: web/src/pages/models/VoiceCatalog.svelte:150
-msgid "Search"
-msgstr "Suche"
-
-#: web/src/pages/models/VoiceCatalog.svelte:151
-msgid "Name, id or description"
-msgstr "Name, ID oder Beschreibung"
-
-#: web/src/pages/models/VoiceCatalog.svelte:154
+#: web/src/pages/models/VoiceCatalog.svelte:78
 msgid "Test with your own text"
 msgstr "Mit eigenem Text testen"
 
-#: web/src/pages/models/VoiceCatalog.svelte:165
-msgid "This catalog is not available"
-msgstr "Dieser Katalog ist nicht verfügbar"
-
-#: web/src/pages/models/VoiceCatalog.svelte:166
+#: web/src/pages/models/VoiceCatalog.svelte:84
 msgid "The provider did not answer."
 msgstr "Der Anbieter hat nicht geantwortet."
 
-#: web/src/pages/models/VoiceCatalog.svelte:169
-msgid "No voice matches"
-msgstr "Keine Stimme passt"
+#: web/src/pages/models/VoiceCatalog.svelte:96
+msgid "Cast as a character"
+msgstr "Als Charakter besetzen"
 
-#: web/src/pages/models/VoiceCatalog.svelte:169
-msgid "Loosen the filters."
-msgstr "Lockere die Filter."
+#: web/src/pages/voices/FilterPanel.svelte:24
+msgid "Vendor"
+msgstr "Anbieter"
 
-#: web/src/pages/models/VoiceCatalog.svelte:171
+#: web/src/pages/voices/FilterPanel.svelte:25
+msgid "Language"
+msgstr "Sprache"
+
+#: web/src/pages/voices/FilterPanel.svelte:27
+msgid "Age"
+msgstr "Alter"
+
+#: web/src/pages/voices/FilterPanel.svelte:28
+msgid "Category"
+msgstr "Kategorie"
+
+#: web/src/pages/voices/FilterPanel.svelte:29
+msgid "Quality"
+msgstr "Qualität"
+
+#: web/src/pages/voices/FilterPanel.svelte:37
+msgid "Unknown"
+msgstr "Unbekannt"
+
+#: web/src/pages/voices/FilterPanel.svelte:69
+msgid "Where it runs"
+msgstr "Wo sie läuft"
+
+#: web/src/pages/voices/FilterPanel.svelte:73
+msgid "EU endpoint only"
+msgstr "Nur EU-Endpunkt"
+
+#: web/src/pages/voices/FilterPanel.svelte:79
+msgid "Local only"
+msgstr "Nur lokal"
+
+#: web/src/pages/voices/FilterPanel.svelte:84
+msgid "Reset"
+msgstr "Zurücksetzen"
+
+#: web/src/pages/voices/VoiceBrowser.svelte:90
+msgid "All"
+msgstr "Alle"
+
+#: web/src/pages/voices/VoiceBrowser.svelte:91
+msgid "Own voices"
+msgstr "Eigene Stimmen"
+
+#: web/src/pages/voices/VoiceBrowser.svelte:92
+#, javascript-format
+msgid "Favourites (%s)"
+msgstr "Favoriten (%s)"
+
+#: web/src/pages/voices/VoiceBrowser.svelte:134
+msgid "The vendor sample could not be played"
+msgstr "Die Hörprobe des Anbieters ließ sich nicht abspielen"
+
+#: web/src/pages/voices/VoiceBrowser.svelte:164
+#: web/src/pages/voices/VoiceBrowser.svelte:200
+#: web/src/pages/voices/VoiceBrowser.svelte:262
+msgid "Filter"
+msgstr "Filter"
+
+#: web/src/pages/voices/VoiceBrowser.svelte:172
+msgid "Which voices"
+msgstr "Welche Stimmen"
+
+#: web/src/pages/voices/VoiceBrowser.svelte:183
 #, javascript-format
 msgid "%s voices"
 msgstr "%s Stimmen"
 
-#: web/src/pages/models/VoiceCatalog.svelte:187
-msgid "Vendor sample"
-msgstr "Hörprobe des Herstellers"
+#: web/src/pages/voices/VoiceBrowser.svelte:194
+#: web/src/pages/voices/VoiceBrowser.svelte:195
+msgid "Search by name or description"
+msgstr "Nach Name oder Beschreibung suchen"
 
-#: web/src/pages/models/VoiceCatalog.svelte:193
+#: web/src/pages/voices/VoiceBrowser.svelte:210
+msgid "No voices"
+msgstr "Keine Stimmen"
+
+#: web/src/pages/voices/VoiceBrowser.svelte:210
+msgid "No vendor offers a voice right now. Check the API keys."
+msgstr ""
+"Gerade bietet kein Anbieter eine Stimme an. Prüfen Sie die API-"
+"Schlüssel.Gerade bietet kein Anbieter eine deutsche Stimme an. Prüfe die API-"
+"Schlüssel."
+
+#: web/src/pages/voices/VoiceBrowser.svelte:215
+msgid "Recommended"
+msgstr "Empfehlungen"
+
+#: web/src/pages/voices/VoiceBrowser.svelte:216
+msgid "Other voices"
+msgstr "Andere Stimmen"
+
+#: web/src/pages/voices/VoiceBrowser.svelte:227
+msgid "No favourites yet"
+msgstr "Noch keine Favoriten"
+
+#: web/src/pages/voices/VoiceBrowser.svelte:227
+msgid "No voice matches"
+msgstr "Keine Stimme passt"
+
+#: web/src/pages/voices/VoiceBrowser.svelte:228
+msgid "Tap the heart on a voice to keep it here."
+msgstr "Tippen Sie bei einer Stimme auf das Herz, um sie hier zu behalten."
+
+#: web/src/pages/voices/VoiceBrowser.svelte:228
+msgid "Loosen the filters."
+msgstr "Lockere die Filter."
+
+#: web/src/pages/voices/VoiceBrowser.svelte:238
 #, javascript-format
-msgid "Your text, first audio after %s ms"
-msgstr "Dein Text, erstes Audio nach %s ms"
+msgid "Load more (%s left)"
+msgstr "Mehr laden (noch %s)"
 
-#: web/src/pages/models/VoiceCatalog.svelte:201
-msgid "Test with my text"
-msgstr "Mit meinem Text testen"
+#: web/src/pages/voices/VoiceBrowser.svelte:245
+msgid "Selection"
+msgstr "Auswahl"
 
-#: web/src/pages/models/VoiceCatalog.svelte:203
-msgid "Cast as a character"
-msgstr "Als Charakter besetzen"
+#: web/src/pages/voices/VoiceBrowser.svelte:247
+#, javascript-format
+msgid "%s selected"
+msgstr "%s ausgewählt"
 
-#: web/src/pages/models/VoiceCatalog.svelte:210
-msgid "Show more"
-msgstr "Mehr anzeigen"
+#: web/src/pages/voices/VoiceBrowser.svelte:265
+msgid "Narrow the voices down"
+msgstr "Die Stimmen eingrenzen"
+
+#: web/src/pages/voices/VoiceBrowser.svelte:267
+#, javascript-format
+msgid "Show %s voices"
+msgstr "%s Stimmen anzeigen"
+
+#: web/src/pages/voices/VoiceRow.svelte:41
+#: web/src/pages/voices/VoiceTile.svelte:50
+msgid "Verified"
+msgstr "Verifiziert"
+
+#: web/src/pages/voices/VoiceRow.svelte:54
+#: web/src/pages/voices/VoiceTile.svelte:41
+msgid "Hear the vendor sample"
+msgstr "Hörprobe des Anbieters anhören"
+
+#: web/src/pages/voices/VoiceRow.svelte:66
+#: web/src/pages/voices/VoiceRow.svelte:67
+#: web/src/pages/voices/VoiceTile.svelte:68
+#: web/src/pages/voices/VoiceTile.svelte:69
+msgid "Remove from favourites"
+msgstr "Aus den Favoriten entfernen"
+
+#: web/src/pages/voices/VoiceRow.svelte:66
+#: web/src/pages/voices/VoiceRow.svelte:67
+#: web/src/pages/voices/VoiceTile.svelte:68
+#: web/src/pages/voices/VoiceTile.svelte:69
+msgid "Add to favourites"
+msgstr "Zu den Favoriten"
+
+#: web/src/pages/voices/VoiceRow.svelte:72
+#: web/src/pages/voices/VoiceTile.svelte:74
+msgid "Pick"
+msgstr "Wählen"
+
+#: web/src/pages/voices/facts.ts:4
+msgid "Young"
+msgstr "Jung"
+
+#: web/src/pages/voices/facts.ts:4
+msgid "Middle-aged"
+msgstr "Mittleren Alters"
+
+#: web/src/pages/voices/facts.ts:4
+msgid "Older"
+msgstr "Älter"
+
+#~ msgid ""
+#~ "No vendor says which of its voices match this gender. Listen and choose."
+#~ msgstr ""
+#~ "Kein Anbieter sagt, welche seiner Stimmen zu diesem Geschlecht passen. "
+#~ "Hör rein und wähle."
+
+#, javascript-format
+#~ msgid "Show voices of unknown gender (%s)"
+#~ msgstr "Stimmen mit unbekanntem Geschlecht zeigen (%s)"
+
+#~ msgid "Gender unknown"
+#~ msgstr "Geschlecht unbekannt"
+
+#, javascript-format
+#~ msgid "Fetched %s"
+#~ msgstr "Abgerufen %s"
+
+#~ msgid "Provider"
+#~ msgstr "Anbieter"
+
+#~ msgid "All models"
+#~ msgstr "Alle Modelle"
+
+#~ msgid "Any language"
+#~ msgstr "Jede Sprache"
+
+#~ msgid "Any"
+#~ msgstr "Beliebig"
+
+#~ msgid "Search"
+#~ msgstr "Suche"
+
+#~ msgid "This catalog is not available"
+#~ msgstr "Dieser Katalog ist nicht verfügbar"
+
+#, javascript-format
+#~ msgid "Your text, first audio after %s ms"
+#~ msgstr "Dein Text, erstes Audio nach %s ms"
+
+#~ msgid "Test with my text"
+#~ msgstr "Mit meinem Text testen"
+
+#~ msgid "Show more"
+#~ msgstr "Mehr anzeigen"
 
 #~ msgid "Voices"
 #~ msgstr "Stimmen"
 
 #~ msgid "By voice preset"
 #~ msgstr "Nach Stimmen-Preset"
-
-#~ msgid "Preset"
-#~ msgstr "Preset"
 
 #~ msgid "Primary"
 #~ msgstr "Primär"
@@ -1825,9 +1951,6 @@ msgstr "Mehr anzeigen"
 
 #~ msgid "Id"
 #~ msgstr "Id"
-
-#~ msgid "Vendor"
-#~ msgstr "Anbieter"
 
 #~ msgid "the vendor's default"
 #~ msgstr "Standard des Anbieters"

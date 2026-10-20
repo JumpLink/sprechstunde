@@ -43,7 +43,9 @@ src/mistral.ts
 src/sip/register.ts
 web/src/App.svelte
 web/src/lib/api.ts
+web/src/lib/browse.ts
 web/src/lib/casting.ts
+web/src/lib/favourites.svelte.ts
 web/src/lib/format.ts
 web/src/lib/i18n.svelte.ts
 web/src/lib/models.svelte.ts
@@ -81,3 +83,10 @@ web/src/pages/characters/CastCard.svelte
 web/src/pages/characters/Wizard.svelte
 web/src/pages/models/ModelList.svelte
 web/src/pages/models/VoiceCatalog.svelte
+web/src/pages/voices/FilterPanel.svelte
+web/src/pages/voices/GenderMark.svelte
+web/src/pages/voices/VoiceAvatar.svelte
+web/src/pages/voices/VoiceBrowser.svelte
+web/src/pages/voices/VoiceRow.svelte
+web/src/pages/voices/VoiceTile.svelte
+web/src/pages/voices/facts.ts
