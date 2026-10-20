@@ -2,6 +2,8 @@ src/admin/catalog.ts
 src/admin/fetch-safe.ts
 src/admin/html-markdown.ts
 src/admin/http-error.ts
+src/admin/knowledge-db.ts
+src/admin/knowledge-repo.ts
 src/admin/latency.ts
 src/admin/main.ts
 src/admin/net-guard.ts

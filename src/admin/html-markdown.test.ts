@@ -43,9 +43,9 @@ test('htmlToMarkdown: article beats main, body is the fallback, junk does not th
 
 test('checkSelectors: invalid or too many selectors are refused with a message', () => {
   assert.deepEqual(checkSelectors(['.a', ' ', '#b > p']), ['.a', '#b > p']);
-  assert.throws(() => checkSelectors(['div[']), /not a valid CSS selector/);
-  assert.throws(() => checkSelectors(Array.from({ length: 21 }, (_unused, i) => `.c${i}`)), /too many/);
-  assert.throws(() => htmlToMarkdown('<p>x</p>', { exclude: ['p['] }), /not a valid/);
+  assert.throws(() => checkSelectors(['div[']), /div\[/);
+  assert.throws(() => checkSelectors(Array.from({ length: 21 }, (_unused, i) => `.c${i}`)), /too many|zu viele/);
+  assert.throws(() => htmlToMarkdown('<p>x</p>', { exclude: ['p['] }), /p\[/);
 });
 
 test('parseSitemap: pages and nested sitemaps', () => {

@@ -43,6 +43,12 @@
       "recreate": "Only from the venue's own copy of each profile JSON; copy profiles/example/profile.de.json as a template."
     },
     {
+      "path": "var/db",
+      "class": "state",
+      "why": "The knowledge database (sources, sections, revisions with their approval history and hand edits) written by the settings UI. It holds the only copy of text a venue edited by hand and of the review history; a fetched page can be fetched again, an edit cannot.",
+      "recreate": "Not reproducible: web sources can be added and fetched again, hand-written text and edits are lost. Back up var/db (copy the .sqlite file while the admin is stopped, or use sqlite3 .backup)."
+    },
+    {
       "path": "deploy/asterisk/sounds/fallback.wav",
       "class": "derived",
       "recreate": "`npm run fallback` records the profile's `fallback` text with Mistral TTS (needs MISTRAL_API_KEY and, for the venue's voice, the same SPRECHSTUNDE_TTS_* as the agent). Without it Asterisk plays its English prompt."
