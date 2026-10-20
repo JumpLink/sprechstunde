@@ -4,7 +4,9 @@ src/admin/html-markdown.ts
 src/admin/http-error.ts
 src/admin/knowledge-db.ts
 src/admin/knowledge-repo.ts
+src/admin/knowledge-service.ts
 src/admin/latency.ts
+src/admin/line-diff.ts
 src/admin/main.ts
 src/admin/net-guard.ts
 src/admin/preview.ts

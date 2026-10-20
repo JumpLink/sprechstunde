@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-20 14:06+0200\n"
+"POT-Creation-Date: 2026-10-20 14:09+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -31,7 +31,7 @@ msgstr ""
 msgid "the request failed: %s"
 msgstr ""
 
-#: src/admin/fetch-safe.ts:184
+#: src/admin/fetch-safe.ts:184 src/admin/knowledge-service.ts:93
 msgid "only http and https addresses can be fetched"
 msgstr ""
 
@@ -83,7 +83,7 @@ msgstr ""
 msgid "the page is not a kind of document that can be read"
 msgstr ""
 
-#: src/admin/fetch-safe.ts:350
+#: src/admin/fetch-safe.ts:350 src/admin/knowledge-service.ts:90
 msgid "this is not a valid web address"
 msgstr ""
 
@@ -102,6 +102,52 @@ msgstr ""
 #: src/admin/html-markdown.ts:35
 #, javascript-format
 msgid "\"%s\" is not a valid CSS selector"
+msgstr ""
+
+#: src/admin/knowledge-service.ts:85
+msgid "\"url\" must be a web address"
+msgstr ""
+
+#: src/admin/knowledge-service.ts:122
+msgid "not found"
+msgstr ""
+
+#: src/admin/knowledge-service.ts:202
+#, javascript-format
+msgid "\"kind\" must be one of: %s"
+msgstr ""
+
+#: src/admin/knowledge-service.ts:205
+msgid "Notes"
+msgstr ""
+
+#: src/admin/knowledge-service.ts:205
+msgid "Web page"
+msgstr ""
+
+#: src/admin/knowledge-service.ts:208 src/admin/knowledge-service.ts:350
+msgid "the text is too long"
+msgstr ""
+
+#: src/admin/knowledge-service.ts:239 src/admin/knowledge-service.ts:413
+msgid "\"refreshHours\" must be a whole number of hours, or null"
+msgstr ""
+
+#: src/admin/knowledge-service.ts:260
+msgid "a text source has nothing to fetch"
+msgstr ""
+
+#: src/admin/knowledge-service.ts:325 src/admin/knowledge-service.ts:336
+msgid "this change was already decided: reload the page"
+msgstr ""
+
+#: src/admin/knowledge-service.ts:349
+msgid "\"markdown\" must be text"
+msgstr ""
+
+#: src/admin/knowledge-service.ts:352
+msgid ""
+"this section changed since you loaded it: reload and make the change again"
 msgstr ""
 
 #: src/admin/main.ts:22
