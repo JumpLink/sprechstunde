@@ -388,6 +388,9 @@ npm run typecheck && npm test && npm run build
 npm run i18n:extract && npm run i18n:compile   # English msgids, German in po/de.po
 ```
 
+Architecture decisions live in [docs/adr/](docs/adr/), starting with
+[the multi-tenant platform](docs/adr/0001-multi-tenant-platform.md).
+
 ## License
 
 Apache-2.0
