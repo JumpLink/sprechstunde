@@ -358,6 +358,8 @@ test('the API still answers 200 and says the publish is pending', async () => {
     path: '/api/knowledge/sources',
     query: new URLSearchParams(),
     body: async () => ({ venue: 'v.json', kind: 'manual', title: 'Notes', markdown: 'Hi' }),
+    raw: async () => Buffer.alloc(0),
+    header: () => undefined,
   });
   assert.equal(made?.status, 201);
   assert.equal((made!.payload as { publishFailed?: boolean }).publishFailed, true);
@@ -366,6 +368,8 @@ test('the API still answers 200 and says the publish is pending', async () => {
     path: '/api/knowledge/published',
     query: new URLSearchParams('venue=v.json'),
     body: async () => ({}),
+    raw: async () => Buffer.alloc(0),
+    header: () => undefined,
   });
   assert.equal((published!.payload as { stale: boolean }).stale, true);
 });
