@@ -421,21 +421,24 @@
                 </label>
                 <p class="text-xs text-muted-foreground">{_('The vendor tags these for another language. They may speak German with an accent.')}</p>
               </div>
-              <VoiceBrowser
-                candidates={fallbackPool}
-                {loading}
-                {gender}
-                hide={otherLanguages ? [] : ['language']}
-                preset={{ vendor: fallbackVendors }}
-                grouped
-                selected={fallbackCandidate ? [fallbackCandidate] : []}
-                heard={plays}
-                onpick={(candidate) => (fallbackKey = specKey(specOf(candidate)))}
-                onhear={(candidate) => play(specOf(candidate))}
-                onstop={() => cache.stop()}
-                actionLabel={_('Use this voice')}
-                onaction={() => (picking = false)}
-              />
+              <!-- The preset is read at mount; remounting applies the vendors that now have voices. -->
+              {#key otherLanguages}
+                <VoiceBrowser
+                  candidates={fallbackPool}
+                  {loading}
+                  {gender}
+                  hide={otherLanguages ? [] : ['language']}
+                  preset={{ vendor: fallbackVendors }}
+                  grouped
+                  selected={fallbackCandidate ? [fallbackCandidate] : []}
+                  heard={plays}
+                  onpick={(candidate) => (fallbackKey = specKey(specOf(candidate)))}
+                  onhear={(candidate) => play(specOf(candidate))}
+                  onstop={() => cache.stop()}
+                  actionLabel={_('Use this voice')}
+                  onaction={() => (picking = false)}
+                />
+              {/key}
             </div>
           {/if}
         </section>
