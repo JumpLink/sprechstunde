@@ -28,7 +28,7 @@
     {
       "path": "var",
       "class": "derived",
-      "recreate": "Test output only: latency metrics (JSONL, numbers only; the agent container bind-mounts `var/metrics`), debug transcripts of one's own test calls in `var/transcripts` (only with SPRECHSTUNDE_TRANSCRIPT_DIR; personal data, delete once read), TTS samples in `var/samples/` (one folder per test run, e.g. `npm run tts:try` writes `<date>_tts-try`; the folder has a README), voice reference clips (`dev/record-voice.sh` re-records one, `dev/fetch-thorsten-sample.sh` re-downloads the CC0 clip). Losing it loses old measurements and one's own recording, nothing else. The exceptions are `var/settings/voice.json` and `var/profiles`, declared below."
+      "recreate": "Test output only: latency metrics (JSONL, numbers only; the agent container bind-mounts `var/metrics`), debug transcripts of one's own test calls in `var/transcripts` (only with SPRECHSTUNDE_TRANSCRIPT_DIR; personal data, delete once read), TTS samples in `var/samples/` (one folder per test run, e.g. `npm run tts:try` writes `<date>_tts-try`; the folder has a README), voice reference clips (`dev/record-voice.sh` re-records one, `dev/fetch-thorsten-sample.sh` re-downloads the CC0 clip). Losing it loses old measurements and one's own recording, nothing else. The exceptions are `var/settings/voice.json`, `var/profiles` and `var/db`, declared below."
     },
     {
       "path": "var/settings/voice.json",
@@ -45,8 +45,8 @@
     {
       "path": "var/db",
       "class": "state",
-      "why": "The knowledge database (sources, sections, revisions with their approval history and hand edits) written by the settings UI. It holds the only copy of text a venue edited by hand and of the review history; a fetched page can be fetched again, an edit cannot.",
-      "recreate": "Not reproducible: web sources can be added and fetched again, hand-written text and edits are lost. Back up var/db (copy the .sqlite file while the admin is stopped, or use sqlite3 .backup)."
+      "why": "The knowledge database (sources, sections, revisions with their approval history and hand edits) written by the settings UI. It holds the only copy of text a venue edited by hand and of the review history; a fetched page can be fetched again, an edit cannot. `var/db/files/<tenant>/<sha256>` holds the ORIGINAL uploaded PDFs and pictures of document sources (content-addressed): an upload exists nowhere else, so losing it leaves the extracted text but not the document it came from or the means to read it again; an upload may be a venue's own document, so keep it out of the repo and out of unencrypted copies.",
+      "recreate": "Not reproducible: web sources can be added and fetched again, hand-written text and edits are lost. Back up var/db including its files/ directory (copy the .sqlite file while the admin is stopped, or use sqlite3 .backup); an uploaded document can only be uploaded again from the venue's own copy."
     },
     {
       "path": "deploy/asterisk/sounds/fallback.wav",
