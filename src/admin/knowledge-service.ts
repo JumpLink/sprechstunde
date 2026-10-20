@@ -317,7 +317,7 @@ export function createKnowledgeService(options: ServiceOptions) {
     const kind = source.kind as DocumentKind;
     const fail = (error: unknown): RefreshSummary => {
       const expected = error instanceof FetchRefused || error instanceof OcrFailed || error instanceof KnowledgeError;
-      if (!expected) log(`document reading failed: ${(error as Error).message}`);
+      if (!expected) log('document reading failed: ' + (error as Error).message);
       summary.error = expected ? (error as Error).message : _('internal error');
       summary.failed = 1;
       t.markChecked(source.id, stamp(), summary.error, false);
