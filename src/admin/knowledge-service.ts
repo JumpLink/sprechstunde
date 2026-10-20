@@ -353,7 +353,7 @@ export function createKnowledgeService(options: ServiceOptions) {
             url: source.url,
             title: source.title,
             markdown,
-            ...(pages.length >= MAX_OCR_PAGES && { note: `capped:${MAX_OCR_PAGES}` }),
+            ...(pages.length >= MAX_OCR_PAGES && { note: 'capped:' + MAX_OCR_PAGES }),
           },
           source.url ?? '',
         );
