@@ -5,6 +5,7 @@ import {
   type Context,
   emptyFilters,
   filtered,
+  groupByVendor,
   offered,
   options,
   recommend,
@@ -124,5 +125,17 @@ describe('browse', () => {
     assert.ok(score(pool[0]!) > score(pool[1]!));
     const many = [...pool, ...[1, 2, 3, 4].map((n) => voice(`Z${n}`))];
     assert.equal(recommend(many, 3, new Set()).length, 3);
+  });
+
+  it('groups voices under their vendor, the larger vendor first, keeping the order inside', () => {
+    const groups = groupByVendor(pool);
+    assert.deepEqual(
+      groups.map((group) => [group.provider, group.voices.map((entry) => entry.name)]),
+      [
+        ['alpha', ['Anna', 'Berta', 'Carl']],
+        ['beta', ['Dora']],
+      ],
+    );
+    assert.deepEqual(groupByVendor([]), []);
   });
 });

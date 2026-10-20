@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { RefreshCw, Search, SlidersHorizontal, X } from '@lucide/svelte';
+  import { ChevronDown, ChevronRight, RefreshCw, Search, SlidersHorizontal, X } from '@lucide/svelte';
   import { Dialog, Tabs } from 'bits-ui';
   import { onDestroy, untrack } from 'svelte';
   import { toast } from 'svelte-sonner';
@@ -11,6 +11,7 @@
     type Facet,
     type Filters,
     filtered,
+    groupByVendor,
     matches,
     recommend,
     type Tab,
@@ -23,6 +24,7 @@
   import Button from '$lib/ui/Button.svelte';
   import Empty from '$lib/ui/Empty.svelte';
   import Skeleton from '$lib/ui/Skeleton.svelte';
+  import VendorBadge from '$lib/ui/VendorBadge.svelte';
   import { controlClass } from '$lib/utils';
   import FilterPanel from './FilterPanel.svelte';
   import VoiceRow from './VoiceRow.svelte';
@@ -35,6 +37,10 @@
     gender?: Gender;
     /** Facets to leave out of the filter panel. */
     hide?: Facet[];
+    /** Values the facets start with; the person can change them. */
+    preset?: Partial<Record<Facet, string[]>>;
+    /** Whether the list starts as one section per vendor. */
+    grouped?: boolean;
     selected: Candidate[];
     heard: Record<string, { busy?: boolean; ttfaMs?: number; error?: string }>;
     onpick: (candidate: Candidate) => void;
@@ -46,7 +52,7 @@
     onaction: () => void;
   }
 
-  let { candidates, loading, gender, hide, selected, heard, onpick, onhear, onstop, actionLabel, actionDisabled = false, onaction }: Props =
+  let { candidates, loading, gender, hide, preset, grouped: groupedStart = false, selected, heard, onpick, onhear, onstop, actionLabel, actionDisabled = false, onaction }: Props =
     $props();
 
   const PAGE = 30;
@@ -58,11 +64,17 @@
     const filters = emptyFilters();
     // Neutral is no filter: any voice may be cast as a neutral character.
     if (gender && gender !== 'neutral') filters.facets.gender = new Set([gender]);
+    for (const [facet, values] of Object.entries(preset ?? {}) as Array<[Facet, string[]]>) {
+      if (values.length > 0) filters.facets[facet] = new Set(values);
+    }
     return filters;
   }
 
   let filters = $state<Filters>(untrack(initialFilters));
   let shown = $state(PAGE);
+  let grouped = $state(untrack(() => groupedStart));
+  let folded = $state<Set<string>>(new Set());
+  let groupShown = $state<Record<string, number>>({});
   let round = $state(0);
   let sheet = $state(false);
   let wide = $state(false);
@@ -89,13 +101,15 @@
   const anyOwn = $derived(
     filters.tab === 'own' || (ownInView > 0 && candidates.some((candidate) => !candidate.own)),
   );
-  const showRecommended = $derived(filters.tab === 'all' && filters.search.trim() === '' && list.length > RECOMMENDED);
+  const showRecommended = $derived(filters.tab === 'all' && filters.search.trim() === '' && !grouped && list.length > RECOMMENDED);
   const recommended = $derived.by(() => {
     void round;
     return showRecommended ? recommend(list, RECOMMENDED, seen) : [];
   });
   const recommendedKeys = $derived(new Set(recommended.map(key)));
   const rest = $derived(list.filter((candidate) => !recommendedKeys.has(key(candidate))));
+  const groups = $derived(grouped ? groupByVendor(rest) : []);
+  const vendorCount = $derived(new Set(candidates.map((candidate) => candidate.provider)).size);
   const tabs = $derived<Array<{ value: Tab; title: string }>>([
     { value: 'all', title: _('All') },
     ...(anyOwn ? [{ value: 'own' as const, title: _('Own voices') }] : []),
@@ -106,6 +120,7 @@
   function change(next: Partial<Filters>): void {
     filters = { ...filters, ...next };
     shown = PAGE;
+    groupShown = {};
     round = 0;
     seen.clear();
   }
@@ -117,6 +132,12 @@
   }
 
   const reset = (): void => change({ facets: emptyFilters().facets, eu: false, local: false });
+
+  function fold(provider: string): void {
+    const next = new Set(folded);
+    if (!next.delete(provider)) next.add(provider);
+    folded = next;
+  }
 
   function stopSample(): void {
     audio?.pause();
@@ -190,6 +211,12 @@
           {/each}
         </Tabs.List>
       </Tabs.Root>
+      {#if vendorCount > 1}
+        <label class="flex items-center gap-2 text-sm">
+          <input type="checkbox" class="size-4 accent-primary" bind:checked={grouped} />
+          {_('Group by vendor')}
+        </label>
+      {/if}
       <p class="ml-auto text-sm text-muted-foreground" aria-live="polite">{fill(_('%s voices'), list.length)}</p>
     </div>
 
@@ -237,6 +264,37 @@
         <Empty title={filters.tab === 'favourites' ? _('No favourites yet') : _('No voice matches')}>
           {filters.tab === 'favourites' ? _('Tap the heart on a voice to keep it here.') : _('Loosen the filters.')}
         </Empty>
+      {:else if grouped}
+        {#each groups as group (group.provider)}
+          {@const open = !folded.has(group.provider)}
+          {@const limit = groupShown[group.provider] ?? PAGE}
+          <section class="space-y-2" aria-label={group.provider}>
+            <button
+              type="button"
+              class="flex w-full items-center gap-2 rounded-lg px-1 py-1.5 text-left hover:bg-muted"
+              aria-expanded={open}
+              onclick={() => fold(group.provider)}
+            >
+              {#if open}<ChevronDown class="size-4 shrink-0" />{:else}<ChevronRight class="size-4 shrink-0" />{/if}
+              <VendorBadge provider={group.provider} />
+              <span class="text-sm text-muted-foreground">{group.voices.length}</span>
+            </button>
+            {#if open}
+              <ul class="space-y-2">
+                {#each group.voices.slice(0, limit) as candidate (key(candidate))}
+                  <VoiceRow {...rowProps(candidate)} />
+                {/each}
+              </ul>
+              {#if group.voices.length > limit}
+                <div class="flex justify-center">
+                  <Button variant="outline" onclick={() => (groupShown = { ...groupShown, [group.provider]: limit + PAGE })}>
+                    {fill(_('Load more (%s left)'), group.voices.length - limit)}
+                  </Button>
+                </div>
+              {/if}
+            {/if}
+          </section>
+        {/each}
       {:else}
         <ul class="space-y-2">
           {#each rest.slice(0, shown) as candidate (key(candidate))}

@@ -15,9 +15,10 @@
     /** `A` and `B` in the comparison. */
     tag?: string;
     selected?: boolean;
-    selectLabel: string;
+    /** Without a way to choose, the card only presents the voice. */
+    selectLabel?: string;
     onplay: () => void;
-    onselect: () => void;
+    onselect?: () => void;
   }
 
   let { candidate, heard, tag, selected = false, selectLabel, onplay, onselect }: Props = $props();
@@ -43,8 +44,10 @@
     <p class="min-h-4 text-xs {heard?.error ? 'text-destructive' : 'text-muted-foreground'}" aria-live="polite">
       {#if heard?.error}{heard.error}{:else if heard?.ttfaMs !== undefined}{fill(_('First audio after %s ms'), heard.ttfaMs)}{/if}
     </p>
-    <Button variant={selected ? 'default' : 'outline'} size="sm" class="w-full" aria-pressed={selected} onclick={onselect}>
-      {#if selected}<Check class="size-4" />{/if}{selectLabel}
-    </Button>
+    {#if onselect}
+      <Button variant={selected ? 'default' : 'outline'} size="sm" class="w-full" aria-pressed={selected} onclick={onselect}>
+        {#if selected}<Check class="size-4" />{/if}{selectLabel}
+      </Button>
+    {/if}
   </div>
 </li>
