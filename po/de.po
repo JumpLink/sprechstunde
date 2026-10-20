@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-20 11:16+0200\n"
+"POT-Creation-Date: 2026-10-20 11:20+0200\n"
 "PO-Revision-Date: 2026-10-19 23:10+0200\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -817,12 +817,11 @@ msgid "Voice"
 msgstr "Stimme"
 
 #: web/src/pages/Characters.svelte:110
-#: web/src/pages/characters/Wizard.svelte:386
+#: web/src/pages/characters/Wizard.svelte:389
 msgid "Fallback voice"
 msgstr "Ersatzstimme"
 
 #: web/src/pages/Characters.svelte:114 web/src/pages/Overview.svelte:125
-#: web/src/pages/characters/Wizard.svelte:389
 msgid "None"
 msgstr "Keines"
 
@@ -836,7 +835,7 @@ msgid "Not assigned to a venue"
 msgstr "Keinem Betrieb zugewiesen"
 
 #: web/src/pages/Characters.svelte:126
-#: web/src/pages/characters/CastCard.svelte:41
+#: web/src/pages/characters/CastCard.svelte:42
 #: web/src/pages/voices/VoiceRow.svelte:58
 #: web/src/pages/voices/VoiceTile.svelte:41
 #: web/src/pages/voices/VoiceTile.svelte:60
@@ -1109,7 +1108,7 @@ msgid "Discard"
 msgstr "Verwerfen"
 
 #: web/src/pages/Knowledge.svelte:477 web/src/pages/Llm.svelte:73
-#: web/src/pages/characters/Wizard.svelte:416
+#: web/src/pages/characters/Wizard.svelte:454
 msgid "Save"
 msgstr "Speichern"
 
@@ -1297,53 +1296,53 @@ msgstr "Schlüssel gesetzt"
 msgid "no key"
 msgstr "kein Schlüssel"
 
-#: web/src/pages/characters/CastCard.svelte:41
+#: web/src/pages/characters/CastCard.svelte:42
 msgid "Synthesizing…"
 msgstr "Wird synthetisiert …"
 
-#: web/src/pages/characters/CastCard.svelte:44
+#: web/src/pages/characters/CastCard.svelte:45
 #: web/src/pages/voices/VoiceRow.svelte:49
 #: web/src/pages/voices/VoiceTile.svelte:57
 #, javascript-format
 msgid "First audio after %s ms"
 msgstr "Erstes Audio nach %s ms"
 
-#: web/src/pages/characters/Wizard.svelte:67
+#: web/src/pages/characters/Wizard.svelte:70
 msgid "Warm and calm"
 msgstr "Warm und ruhig"
 
-#: web/src/pages/characters/Wizard.svelte:68
+#: web/src/pages/characters/Wizard.svelte:71
 msgid "Friendly and brisk"
 msgstr "Freundlich und flott"
 
-#: web/src/pages/characters/Wizard.svelte:69
+#: web/src/pages/characters/Wizard.svelte:72
 msgid "Formal and polite"
 msgstr "Förmlich und höflich"
 
-#: web/src/pages/characters/Wizard.svelte:70
+#: web/src/pages/characters/Wizard.svelte:73
 msgid "Relaxed, like a neighbour"
 msgstr "Entspannt, wie ein Nachbar"
 
-#: web/src/pages/characters/Wizard.svelte:71
+#: web/src/pages/characters/Wizard.svelte:74
 msgid "Short and to the point"
 msgstr "Kurz und auf den Punkt"
 
-#: web/src/pages/characters/Wizard.svelte:138
+#: web/src/pages/characters/Wizard.svelte:143
 msgid "Who?"
 msgstr "Wer?"
 
-#: web/src/pages/characters/Wizard.svelte:139
+#: web/src/pages/characters/Wizard.svelte:144
 #: web/src/pages/characters/Wizard.svelte:316
 msgid "Casting"
 msgstr "Casting"
 
-#: web/src/pages/characters/Wizard.svelte:140
+#: web/src/pages/characters/Wizard.svelte:145
 #: web/src/pages/characters/Wizard.svelte:335
 #: web/src/pages/characters/Wizard.svelte:351
 msgid "Compare"
 msgstr "Vergleich"
 
-#: web/src/pages/characters/Wizard.svelte:141
+#: web/src/pages/characters/Wizard.svelte:146
 #: web/src/pages/characters/Wizard.svelte:374
 msgid "Done"
 msgstr "Fertig"
@@ -1447,7 +1446,7 @@ msgstr "Wähle eine oder zwei Stimmen."
 
 #: web/src/pages/characters/Wizard.svelte:348
 #: web/src/pages/characters/Wizard.svelte:370
-#: web/src/pages/characters/Wizard.svelte:415
+#: web/src/pages/characters/Wizard.svelte:453
 msgid "Back"
 msgstr "Zurück"
 
@@ -1456,6 +1455,7 @@ msgid "The same sentence in both voices. Choose the one that fits."
 msgstr "Derselbe Satz in beiden Stimmen. Wähle die, die passt."
 
 #: web/src/pages/characters/Wizard.svelte:353
+#: web/src/pages/characters/Wizard.svelte:393
 msgid "Play A, then B"
 msgstr "A, dann B abspielen"
 
@@ -1474,7 +1474,7 @@ msgid ""
 "Check it, choose the voice that takes over when the first one fails, and save"
 msgstr "Prüfen, die Ersatzstimme wählen und speichern"
 
-#: web/src/pages/characters/Wizard.svelte:386
+#: web/src/pages/characters/Wizard.svelte:390
 msgid ""
 "Takes over when the first voice fails. Preselected: another vendor, a local "
 "voice if there is one."
@@ -1482,19 +1482,48 @@ msgstr ""
 "Übernimmt, wenn die erste Stimme ausfällt. Vorgewählt: ein anderer Anbieter, "
 "wenn möglich eine lokale Stimme."
 
-#: web/src/pages/characters/Wizard.svelte:395
-msgid "Hear the fallback voice"
-msgstr "Ersatzstimme anhören"
+#: web/src/pages/characters/Wizard.svelte:403
+#: web/src/pages/characters/Wizard.svelte:412
+msgid "No fallback voice"
+msgstr "Keine Ersatzstimme"
 
-#: web/src/pages/characters/Wizard.svelte:404
+#: web/src/pages/characters/Wizard.svelte:409
+msgid "Close the list"
+msgstr "Liste schließen"
+
+#: web/src/pages/characters/Wizard.svelte:409
+msgid "Change the fallback voice"
+msgstr "Ersatzstimme ändern"
+
+#: web/src/pages/characters/Wizard.svelte:409
+msgid "Choose a fallback voice"
+msgstr "Ersatzstimme wählen"
+
+#: web/src/pages/characters/Wizard.svelte:420
+msgid "Also voices of other languages"
+msgstr "Auch Stimmen anderer Sprachen"
+
+#: web/src/pages/characters/Wizard.svelte:422
+msgid ""
+"The vendor tags these for another language. They may speak German with an "
+"accent."
+msgstr ""
+"Der Anbieter führt diese Stimmen für eine andere Sprache. Sie sprechen "
+"Deutsch womöglich mit Akzent."
+
+#: web/src/pages/characters/Wizard.svelte:436
+msgid "Use this voice"
+msgstr "Diese Stimme verwenden"
+
+#: web/src/pages/characters/Wizard.svelte:442
 msgid "Assign to a venue"
 msgstr "Einem Betrieb zuweisen"
 
-#: web/src/pages/characters/Wizard.svelte:404
+#: web/src/pages/characters/Wizard.svelte:442
 msgid "Optional. Until then the venue speaks as the default character."
 msgstr "Optional. Bis dahin spricht der Betrieb als Standardcharakter."
 
-#: web/src/pages/characters/Wizard.svelte:406
+#: web/src/pages/characters/Wizard.svelte:444
 msgid "Not now"
 msgstr "Jetzt nicht"
 

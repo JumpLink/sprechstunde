@@ -212,12 +212,12 @@
         </Tabs.List>
       </Tabs.Root>
       {#if vendorCount > 1}
-        <label class="ml-auto flex items-center gap-2 text-sm">
+        <label class="flex items-center gap-2 text-sm">
           <input type="checkbox" class="size-4 accent-primary" bind:checked={grouped} />
           {_('Group by vendor')}
         </label>
       {/if}
-      <p class="text-sm text-muted-foreground {vendorCount > 1 ? '' : 'ml-auto'}" aria-live="polite">{fill(_('%s voices'), list.length)}</p>
+      <p class="ml-auto text-sm text-muted-foreground" aria-live="polite">{fill(_('%s voices'), list.length)}</p>
     </div>
 
     <div class="flex gap-2">

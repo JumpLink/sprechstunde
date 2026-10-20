@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { ArrowLeft, ArrowRight, CircleDot, Mars, Play, Venus } from '@lucide/svelte';
+  import { ArrowLeft, ArrowRight, CircleDot, Mars, Play, Plus, Venus, X } from '@lucide/svelte';
   import { onDestroy, untrack } from 'svelte';
   import { toast } from 'svelte-sonner';
   import { api, message } from '$lib/api';
@@ -10,6 +10,7 @@
     greetingWithName,
     type Heard,
     loadGreeting,
+    poolFor,
     previewCache,
     specKey,
     specOf,
@@ -56,6 +57,8 @@
   let favourites = $state<Candidate[]>([]);
   let chosen = $state<Candidate>();
   let fallbackKey = $state('');
+  let picking = $state(false);
+  let otherLanguages = $state(false);
   let assignFile = $state('');
   let plays = $state<Record<string, { busy?: boolean; ttfaMs?: number; error?: string }>>({});
   let busy = $state(false);
@@ -74,7 +77,9 @@
   const providers = $derived((app.state?.providers ?? []).filter((provider) => app.state?.keys[provider] !== false));
   $effect(() => ensureCatalogs(providers));
   const loading = $derived(providers.some((provider) => !catalogOf(provider)));
-  const candidates = $derived(candidatesFrom(providers.map((provider) => catalogOf(provider)), 'de'));
+  const catalogs = $derived(providers.map((provider) => catalogOf(provider)));
+  const candidates = $derived(candidatesFrom(catalogs, 'de'));
+  const everyCandidate = $derived(candidatesFrom(catalogs, ''));
 
   /** A saved or picked voice as a card, with the vendor's name for it when the catalog knows it. */
   function candidateOf(spec: VoiceSpec): Candidate {
@@ -125,8 +130,8 @@
     if (result) await cache.play(result.url);
   }
 
-  async function playBoth(): Promise<void> {
-    const [first, second] = favourites;
+  /** The same greeting in two voices, one after the other. */
+  async function playPair(first: Candidate | undefined, second: Candidate | undefined): Promise<void> {
     if (!first || !second) return;
     const [a, b] = await Promise.all([hear(specOf(first)), hear(specOf(second))]);
     if (a) await cache.play(a.url);
@@ -184,27 +189,22 @@
     if (index > 0) go(steps[index - 1]!);
   }
 
-  /** Every voice the fallback may be, plus the saved one when the catalogs do not list it. */
-  const fallbackOptions = $derived.by(() => {
-    const options = candidates.map((candidate) => ({ key: specKey(specOf(candidate)), candidate }));
+  /** The voices the fallback picker lists: German ones, or every language when the person asks. */
+  const fallbackPool = $derived(otherLanguages ? everyCandidate : candidates);
+  // Another vendor than the first voice is the point of a fallback; the person can lift the filter.
+  // A vendor with no voice of the character's gender would only show as an empty chip.
+  const fallbackVendors = $derived([...new Set(poolFor(fallbackPool, gender ?? 'neutral').known.map((candidate) => candidate.provider))].filter((provider) => provider !== primary?.provider));
+  const fallbackCandidate = $derived.by<Candidate | undefined>(() => {
+    if (fallbackKey === '') return undefined;
+    const listed = everyCandidate.find((candidate) => specKey(specOf(candidate)) === fallbackKey);
     const saved = initial?.fallbackVoice;
-    if (saved && !options.some((option) => option.key === specKey(saved))) {
-      options.unshift({ key: specKey(saved), candidate: candidateOf(saved) });
-    }
-    return options;
+    return listed ?? (saved && specKey(saved) === fallbackKey ? candidateOf(saved) : undefined);
   });
   const fallbackSpec = $derived<VoiceSpec | undefined>(
-    fallbackKey === ''
-      ? undefined
-      : initial?.fallbackVoice && specKey(initial.fallbackVoice) === fallbackKey
-        ? initial.fallbackVoice
-        : (() => {
-            const option = fallbackOptions.find((entry) => entry.key === fallbackKey);
-            return option ? specOf(option.candidate) : undefined;
-          })(),
+    fallbackCandidate && initial?.fallbackVoice && specKey(initial.fallbackVoice) === fallbackKey
+      ? initial.fallbackVoice
+      : fallbackCandidate && specOf(fallbackCandidate),
   );
-  const optionLabel = (candidate: Candidate): string =>
-    [candidate.name, candidate.provider, candidate.gender && genderLabel(candidate.gender)].filter(Boolean).join(' · ');
 
   const venues = $derived((app.profiles?.profiles ?? []).filter((entry) => !entry.error));
 
@@ -350,7 +350,7 @@
   {:else if step === 'compare'}
     <Card title={_('Compare')} description={_('The same sentence in both voices. Choose the one that fits.')}>
       {#snippet actions()}
-        <Button size="sm" onclick={playBoth}><Play class="size-4" />{_('Play A, then B')}</Button>
+        <Button size="sm" onclick={() => playPair(favourites[0], favourites[1])}><Play class="size-4" />{_('Play A, then B')}</Button>
       {/snippet}
       <ul class="grid gap-3 sm:grid-cols-2">
         {#each favourites as candidate, index (specKey(specOf(candidate)))}
@@ -383,24 +383,62 @@
             {#if tone.trim()}<p class="mt-1 text-sm text-muted-foreground italic">{tone.trim()}</p>{/if}
           </div>
         </div>
-        <Field label={_('Fallback voice')} for="c-fallback" hint={_('Takes over when the first voice fails. Preselected: another vendor, a local voice if there is one.')}>
-          <div class="flex flex-wrap gap-2">
-            <select id="c-fallback" class="{controlClass} min-w-0 flex-1" bind:value={fallbackKey}>
-              <option value="">{_('None')}</option>
-              {#each fallbackOptions as option (option.key)}
-                <option value={option.key}>{optionLabel(option.candidate)}</option>
-              {/each}
-            </select>
-            {#if fallbackSpec}
-              <Button variant="outline" onclick={() => play(fallbackSpec)} aria-label={_('Hear the fallback voice')}>
-                <Play class="size-4" />
-              </Button>
+        <section class="space-y-3" aria-labelledby="fallback-title">
+          <div class="flex flex-wrap items-start justify-between gap-2">
+            <div class="min-w-0">
+              <h3 id="fallback-title" class="text-sm font-medium">{_('Fallback voice')}</h3>
+              <p class="text-xs text-muted-foreground">{_('Takes over when the first voice fails. Preselected: another vendor, a local voice if there is one.')}</p>
+            </div>
+            {#if fallbackCandidate}
+              <Button size="sm" onclick={() => playPair(primary, fallbackCandidate)}><Play class="size-4" />{_('Play A, then B')}</Button>
             {/if}
           </div>
-          {#if fallbackSpec && plays[specKey(fallbackSpec)]?.error}
-            <p class="text-xs text-destructive" role="alert">{plays[specKey(fallbackSpec)]?.error}</p>
+          <ul class="grid gap-3 sm:grid-cols-2">
+            <CastCard candidate={primary} tag="A" heard={plays[specKey(specOf(primary))]} onplay={() => play(specOf(primary))} />
+            {#if fallbackCandidate}
+              <CastCard candidate={fallbackCandidate} tag="B" heard={plays[specKey(specOf(fallbackCandidate))]} onplay={() => play(specOf(fallbackCandidate))} />
+            {:else}
+              <li class="flex min-h-32 flex-col items-center justify-center gap-1 rounded-xl border border-dashed p-4 text-center text-sm text-muted-foreground">
+                <span class="inline-flex size-6 items-center justify-center rounded-full bg-muted text-xs">B</span>
+                {_('No fallback voice')}
+              </li>
+            {/if}
+          </ul>
+          <div class="flex flex-wrap gap-2">
+            <Button variant="outline" size="sm" onclick={() => (picking = !picking)} aria-expanded={picking}>
+              {#if picking}<X class="size-4" />{_('Close the list')}{:else}<Plus class="size-4" />{fallbackCandidate ? _('Change the fallback voice') : _('Choose a fallback voice')}{/if}
+            </Button>
+            {#if fallbackCandidate}
+              <Button variant="ghost" size="sm" onclick={() => (fallbackKey = '')}>{_('No fallback voice')}</Button>
+            {/if}
+          </div>
+          {#if picking}
+            <div class="space-y-3 rounded-xl border p-3">
+              <div class="space-y-1">
+                <label class="flex items-center gap-2 text-sm">
+                  <input type="checkbox" class="size-4 accent-primary" bind:checked={otherLanguages} />
+                  {_('Also voices of other languages')}
+                </label>
+                <p class="text-xs text-muted-foreground">{_('The vendor tags these for another language. They may speak German with an accent.')}</p>
+              </div>
+              <VoiceBrowser
+                candidates={fallbackPool}
+                {loading}
+                {gender}
+                hide={otherLanguages ? [] : ['language']}
+                preset={{ vendor: fallbackVendors }}
+                grouped
+                selected={fallbackCandidate ? [fallbackCandidate] : []}
+                heard={plays}
+                onpick={(candidate) => (fallbackKey = specKey(specOf(candidate)))}
+                onhear={(candidate) => play(specOf(candidate))}
+                onstop={() => cache.stop()}
+                actionLabel={_('Use this voice')}
+                onaction={() => (picking = false)}
+              />
+            </div>
           {/if}
-        </Field>
+        </section>
         <Field label={_('Assign to a venue')} for="c-assign" hint={_('Optional. Until then the venue speaks as the default character.')}>
           <select id="c-assign" class={controlClass} bind:value={assignFile}>
             <option value="">{_('Not now')}</option>
