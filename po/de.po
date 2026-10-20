@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-20 13:59+0200\n"
+"POT-Creation-Date: 2026-10-20 14:01+0200\n"
 "PO-Revision-Date: 2026-10-19 23:10+0200\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -85,6 +85,19 @@ msgstr "das ist keine gültige Webadresse"
 #: src/admin/fetch-safe.ts:359
 msgid "the site asks robots not to fetch this page"
 msgstr "die Website bittet Roboter, diese Seite nicht abzurufen"
+
+#: src/admin/html-markdown.ts:25
+msgid "too many selectors to exclude"
+msgstr "zu viele Selektoren zum Ausschließen"
+
+#: src/admin/html-markdown.ts:31
+msgid "a selector is too long"
+msgstr "ein Selektor ist zu lang"
+
+#: src/admin/html-markdown.ts:35
+#, javascript-format
+msgid "\"%s\" is not a valid CSS selector"
+msgstr "„%s“ ist kein gültiger CSS-Selektor"
 
 #: src/admin/main.ts:22
 #, javascript-format

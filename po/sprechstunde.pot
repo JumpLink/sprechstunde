@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-20 13:59+0200\n"
+"POT-Creation-Date: 2026-10-20 14:01+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -89,6 +89,19 @@ msgstr ""
 
 #: src/admin/fetch-safe.ts:359
 msgid "the site asks robots not to fetch this page"
+msgstr ""
+
+#: src/admin/html-markdown.ts:25
+msgid "too many selectors to exclude"
+msgstr ""
+
+#: src/admin/html-markdown.ts:31
+msgid "a selector is too long"
+msgstr ""
+
+#: src/admin/html-markdown.ts:35
+#, javascript-format
+msgid "\"%s\" is not a valid CSS selector"
 msgstr ""
 
 #: src/admin/main.ts:22

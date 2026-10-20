@@ -1,5 +1,6 @@
 src/admin/catalog.ts
 src/admin/fetch-safe.ts
+src/admin/html-markdown.ts
 src/admin/http-error.ts
 src/admin/latency.ts
 src/admin/main.ts
@@ -8,6 +9,7 @@ src/admin/preview.ts
 src/admin/profile-store.ts
 src/admin/robots.ts
 src/admin/server.ts
+src/admin/sitemap.ts
 src/admin/static.ts
 src/agent/assistant.ts
 src/agent/echo.ts
@@ -45,6 +47,7 @@ src/core/tools.ts
 src/i18n.ts
 src/mistral.ts
 src/sip/register.ts
+src/types/turndown-plugin-gfm.d.ts
 web/src/App.svelte
 web/src/lib/api.ts
 web/src/lib/browse.ts
