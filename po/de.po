@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-20 09:46+0200\n"
+"POT-Creation-Date: 2026-10-20 09:52+0200\n"
 "PO-Revision-Date: 2026-10-19 23:10+0200\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -604,6 +604,7 @@ msgid "Overview"
 msgstr "Übersicht"
 
 #: web/src/lib/nav.ts:14 web/src/pages/Characters.svelte:81
+#: web/src/pages/voices/facts.ts:20
 msgid "Characters"
 msgstr "Charaktere"
 
@@ -1150,7 +1151,7 @@ msgid "Restore"
 msgstr "Wiederherstellen"
 
 #: web/src/pages/Knowledge.svelte:515
-#: web/src/pages/voices/VoiceBrowser.svelte:265
+#: web/src/pages/voices/VoiceBrowser.svelte:273
 msgid "Close"
 msgstr "Schließen"
 
@@ -1579,113 +1580,113 @@ msgstr "Qualität"
 msgid "Unknown"
 msgstr "Unbekannt"
 
-#: web/src/pages/voices/FilterPanel.svelte:71
+#: web/src/pages/voices/FilterPanel.svelte:72
 msgid "Where it runs"
 msgstr "Wo sie läuft"
 
-#: web/src/pages/voices/FilterPanel.svelte:75
+#: web/src/pages/voices/FilterPanel.svelte:76
 msgid "EU endpoint only"
 msgstr "Nur EU-Endpunkt"
 
-#: web/src/pages/voices/FilterPanel.svelte:81
+#: web/src/pages/voices/FilterPanel.svelte:82
 msgid "Local only"
 msgstr "Nur lokal"
 
-#: web/src/pages/voices/FilterPanel.svelte:86
+#: web/src/pages/voices/FilterPanel.svelte:87
 msgid "Reset"
 msgstr "Zurücksetzen"
 
-#: web/src/pages/voices/VoiceBrowser.svelte:92
+#: web/src/pages/voices/VoiceBrowser.svelte:100
 msgid "All"
 msgstr "Alle"
 
-#: web/src/pages/voices/VoiceBrowser.svelte:93
+#: web/src/pages/voices/VoiceBrowser.svelte:101
 msgid "Own voices"
 msgstr "Eigene Stimmen"
 
-#: web/src/pages/voices/VoiceBrowser.svelte:94
+#: web/src/pages/voices/VoiceBrowser.svelte:102
 #, javascript-format
 msgid "Favourites (%s)"
 msgstr "Favoriten (%s)"
 
-#: web/src/pages/voices/VoiceBrowser.svelte:136
+#: web/src/pages/voices/VoiceBrowser.svelte:144
 msgid "The vendor sample could not be played"
 msgstr "Die Hörprobe des Anbieters ließ sich nicht abspielen"
 
-#: web/src/pages/voices/VoiceBrowser.svelte:166
-#: web/src/pages/voices/VoiceBrowser.svelte:202
-#: web/src/pages/voices/VoiceBrowser.svelte:264
+#: web/src/pages/voices/VoiceBrowser.svelte:174
+#: web/src/pages/voices/VoiceBrowser.svelte:210
+#: web/src/pages/voices/VoiceBrowser.svelte:272
 msgid "Filter"
 msgstr "Filter"
 
-#: web/src/pages/voices/VoiceBrowser.svelte:174
+#: web/src/pages/voices/VoiceBrowser.svelte:182
 msgid "Which voices"
 msgstr "Welche Stimmen"
 
-#: web/src/pages/voices/VoiceBrowser.svelte:185
+#: web/src/pages/voices/VoiceBrowser.svelte:193
 #, javascript-format
 msgid "%s voices"
 msgstr "%s Stimmen"
 
-#: web/src/pages/voices/VoiceBrowser.svelte:196
-#: web/src/pages/voices/VoiceBrowser.svelte:197
+#: web/src/pages/voices/VoiceBrowser.svelte:204
+#: web/src/pages/voices/VoiceBrowser.svelte:205
 msgid "Search by name or description"
 msgstr "Nach Name oder Beschreibung suchen"
 
-#: web/src/pages/voices/VoiceBrowser.svelte:212
+#: web/src/pages/voices/VoiceBrowser.svelte:220
 msgid "No voices"
 msgstr "Keine Stimmen"
 
-#: web/src/pages/voices/VoiceBrowser.svelte:212
+#: web/src/pages/voices/VoiceBrowser.svelte:220
 msgid "No vendor offers a voice right now. Check the API keys."
 msgstr ""
 "Gerade bietet kein Anbieter eine Stimme an. Prüfen Sie die API-"
 "Schlüssel.Gerade bietet kein Anbieter eine deutsche Stimme an. Prüfe die API-"
 "Schlüssel."
 
-#: web/src/pages/voices/VoiceBrowser.svelte:217
+#: web/src/pages/voices/VoiceBrowser.svelte:225
 msgid "Recommended"
 msgstr "Empfehlungen"
 
-#: web/src/pages/voices/VoiceBrowser.svelte:218
+#: web/src/pages/voices/VoiceBrowser.svelte:226
 msgid "Other voices"
 msgstr "Andere Stimmen"
 
-#: web/src/pages/voices/VoiceBrowser.svelte:229
+#: web/src/pages/voices/VoiceBrowser.svelte:237
 msgid "No favourites yet"
 msgstr "Noch keine Favoriten"
 
-#: web/src/pages/voices/VoiceBrowser.svelte:229
+#: web/src/pages/voices/VoiceBrowser.svelte:237
 msgid "No voice matches"
 msgstr "Keine Stimme passt"
 
-#: web/src/pages/voices/VoiceBrowser.svelte:230
+#: web/src/pages/voices/VoiceBrowser.svelte:238
 msgid "Tap the heart on a voice to keep it here."
 msgstr "Tippen Sie bei einer Stimme auf das Herz, um sie hier zu behalten."
 
-#: web/src/pages/voices/VoiceBrowser.svelte:230
+#: web/src/pages/voices/VoiceBrowser.svelte:238
 msgid "Loosen the filters."
 msgstr "Lockere die Filter."
 
-#: web/src/pages/voices/VoiceBrowser.svelte:240
+#: web/src/pages/voices/VoiceBrowser.svelte:248
 #, javascript-format
 msgid "Load more (%s left)"
 msgstr "Mehr laden (noch %s)"
 
-#: web/src/pages/voices/VoiceBrowser.svelte:247
+#: web/src/pages/voices/VoiceBrowser.svelte:255
 msgid "Selection"
 msgstr "Auswahl"
 
-#: web/src/pages/voices/VoiceBrowser.svelte:249
+#: web/src/pages/voices/VoiceBrowser.svelte:257
 #, javascript-format
 msgid "%s selected"
 msgstr "%s ausgewählt"
 
-#: web/src/pages/voices/VoiceBrowser.svelte:267
+#: web/src/pages/voices/VoiceBrowser.svelte:275
 msgid "Narrow the voices down"
 msgstr "Die Stimmen eingrenzen"
 
-#: web/src/pages/voices/VoiceBrowser.svelte:269
+#: web/src/pages/voices/VoiceBrowser.svelte:277
 #, javascript-format
 msgid "Show %s voices"
 msgstr "%s Stimmen anzeigen"
@@ -1730,6 +1731,58 @@ msgstr "Mittleren Alters"
 #: web/src/pages/voices/facts.ts:4
 msgid "Older"
 msgstr "Älter"
+
+#: web/src/pages/voices/facts.ts:14
+msgid "Premade"
+msgstr "Fertige Stimme"
+
+#: web/src/pages/voices/facts.ts:15
+msgid "Cloned"
+msgstr "Geklont"
+
+#: web/src/pages/voices/facts.ts:16
+msgid "Designed"
+msgstr "Entworfen"
+
+#: web/src/pages/voices/facts.ts:17
+msgid "Conversational"
+msgstr "Gesprächig"
+
+#: web/src/pages/voices/facts.ts:18
+msgid "Narrative"
+msgstr "Erzählend"
+
+#: web/src/pages/voices/facts.ts:19
+msgid "Storytelling"
+msgstr "Geschichten"
+
+#: web/src/pages/voices/facts.ts:21
+msgid "Animated characters"
+msgstr "Zeichentrickfiguren"
+
+#: web/src/pages/voices/facts.ts:22
+msgid "Informative and educational"
+msgstr "Information und Bildung"
+
+#: web/src/pages/voices/facts.ts:23
+msgid "Entertainment and TV"
+msgstr "Unterhaltung und Fernsehen"
+
+#: web/src/pages/voices/facts.ts:24
+msgid "Advertising"
+msgstr "Werbung"
+
+#: web/src/pages/voices/facts.ts:28
+msgid "Basic quality"
+msgstr "Einfache Qualität"
+
+#: web/src/pages/voices/facts.ts:28
+msgid "Medium quality"
+msgstr "Mittlere Qualität"
+
+#: web/src/pages/voices/facts.ts:28
+msgid "High quality"
+msgstr "Hohe Qualität"
 
 #~ msgid ""
 #~ "No vendor says which of its voices match this gender. Listen and choose."

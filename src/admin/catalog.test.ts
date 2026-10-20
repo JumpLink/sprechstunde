@@ -457,7 +457,6 @@ test('voice facts come from the vendor only: kugel, mistral and cartesia report 
       category: 'narrative',
       quality: 'high',
       verified: true,
-      own: true,
       avatarUrl: 'https://vendor.invalid/a.png',
       hasAvatar: true,
     },

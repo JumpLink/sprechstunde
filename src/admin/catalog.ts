@@ -317,8 +317,8 @@ async function fetchKugel(context: Context): Promise<Fetched> {
           category: entry.category,
           quality: entry.quality,
           verified: entry.verified,
-          // A public voice is the vendor's; the others belong to the account.
-          own: entry.isPublic === false,
+          // Not mapped: the API reports `is_public=false` for every voice of the catalog, the vendor's own
+          // included (checked live), so the flag does not tell account voices apart.
         }),
       );
     }

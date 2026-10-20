@@ -6,7 +6,7 @@
   import RegionBadges from '$lib/ui/RegionBadges.svelte';
   import VendorBadge from '$lib/ui/VendorBadge.svelte';
   import { cn } from '$lib/utils';
-  import { ageLabel } from './facts';
+  import { ageLabel, categoryLabel, qualityLabel } from './facts';
   import GenderMark from './GenderMark.svelte';
   import VoiceAvatar from './VoiceAvatar.svelte';
 
@@ -24,7 +24,7 @@
 
   let { candidate, selected, favourite, sampling, heard, onsample, onhear, onfavourite, onselect }: Props = $props();
 
-  const facts = $derived([candidate.age && ageLabel(candidate.age), candidate.quality, candidate.category].filter(Boolean));
+  const facts = $derived([candidate.age && ageLabel(candidate.age), candidate.quality && qualityLabel(candidate.quality), candidate.category && categoryLabel(candidate.category)].filter(Boolean));
 </script>
 
 <li

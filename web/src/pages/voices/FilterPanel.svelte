@@ -6,7 +6,7 @@
   import { cn } from '$lib/utils';
   import { vendorOf } from '$lib/vendor';
   import { genderLabel } from '$lib/voices';
-  import { ageLabel } from './facts';
+  import { ageLabel, categoryLabel, qualityLabel } from './facts';
   import type { Gender } from '$lib/types';
 
   interface Props {
@@ -31,14 +31,15 @@
     quality: _('Quality'),
   });
 
-  const shown = $derived((['vendor', 'language', 'gender', 'age', 'category', 'quality'] as Facet[]).filter((facet) => !hide.includes(facet) && offered(candidates, facet)));
+  const shown = $derived((['vendor', 'language', 'gender', 'age', 'category', 'quality'] as Facet[]).filter((facet) => !hide.includes(facet) && offered(candidates, facet) && options(candidates, filters, context, facet).length > 0));
 
   function label(facet: Facet, value: string): string {
     if (facet === 'vendor') return vendorOf(value).name;
     if (facet === 'language') return new Intl.DisplayNames([currentLanguage()], { type: 'language' }).of(value) ?? value;
     if (facet === 'gender') return value === UNKNOWN ? _('Unknown') : genderLabel(value as Gender);
     if (facet === 'age') return ageLabel(value);
-    return value;
+    if (facet === 'category') return categoryLabel(value);
+    return qualityLabel(value);
   }
 </script>
 

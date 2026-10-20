@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-20 09:46+0200\n"
+"POT-Creation-Date: 2026-10-20 09:53+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -574,6 +574,7 @@ msgid "Overview"
 msgstr ""
 
 #: web/src/lib/nav.ts:14 web/src/pages/Characters.svelte:81
+#: web/src/pages/voices/facts.ts:20
 msgid "Characters"
 msgstr ""
 
@@ -1106,7 +1107,7 @@ msgid "Restore"
 msgstr ""
 
 #: web/src/pages/Knowledge.svelte:515
-#: web/src/pages/voices/VoiceBrowser.svelte:265
+#: web/src/pages/voices/VoiceBrowser.svelte:273
 msgid "Close"
 msgstr ""
 
@@ -1528,110 +1529,110 @@ msgstr ""
 msgid "Unknown"
 msgstr ""
 
-#: web/src/pages/voices/FilterPanel.svelte:71
+#: web/src/pages/voices/FilterPanel.svelte:72
 msgid "Where it runs"
 msgstr ""
 
-#: web/src/pages/voices/FilterPanel.svelte:75
+#: web/src/pages/voices/FilterPanel.svelte:76
 msgid "EU endpoint only"
 msgstr ""
 
-#: web/src/pages/voices/FilterPanel.svelte:81
+#: web/src/pages/voices/FilterPanel.svelte:82
 msgid "Local only"
 msgstr ""
 
-#: web/src/pages/voices/FilterPanel.svelte:86
+#: web/src/pages/voices/FilterPanel.svelte:87
 msgid "Reset"
 msgstr ""
 
-#: web/src/pages/voices/VoiceBrowser.svelte:92
+#: web/src/pages/voices/VoiceBrowser.svelte:100
 msgid "All"
 msgstr ""
 
-#: web/src/pages/voices/VoiceBrowser.svelte:93
+#: web/src/pages/voices/VoiceBrowser.svelte:101
 msgid "Own voices"
 msgstr ""
 
-#: web/src/pages/voices/VoiceBrowser.svelte:94
+#: web/src/pages/voices/VoiceBrowser.svelte:102
 #, javascript-format
 msgid "Favourites (%s)"
 msgstr ""
 
-#: web/src/pages/voices/VoiceBrowser.svelte:136
+#: web/src/pages/voices/VoiceBrowser.svelte:144
 msgid "The vendor sample could not be played"
 msgstr ""
 
-#: web/src/pages/voices/VoiceBrowser.svelte:166
-#: web/src/pages/voices/VoiceBrowser.svelte:202
-#: web/src/pages/voices/VoiceBrowser.svelte:264
+#: web/src/pages/voices/VoiceBrowser.svelte:174
+#: web/src/pages/voices/VoiceBrowser.svelte:210
+#: web/src/pages/voices/VoiceBrowser.svelte:272
 msgid "Filter"
 msgstr ""
 
-#: web/src/pages/voices/VoiceBrowser.svelte:174
+#: web/src/pages/voices/VoiceBrowser.svelte:182
 msgid "Which voices"
 msgstr ""
 
-#: web/src/pages/voices/VoiceBrowser.svelte:185
+#: web/src/pages/voices/VoiceBrowser.svelte:193
 #, javascript-format
 msgid "%s voices"
 msgstr ""
 
-#: web/src/pages/voices/VoiceBrowser.svelte:196
-#: web/src/pages/voices/VoiceBrowser.svelte:197
+#: web/src/pages/voices/VoiceBrowser.svelte:204
+#: web/src/pages/voices/VoiceBrowser.svelte:205
 msgid "Search by name or description"
 msgstr ""
 
-#: web/src/pages/voices/VoiceBrowser.svelte:212
+#: web/src/pages/voices/VoiceBrowser.svelte:220
 msgid "No voices"
 msgstr ""
 
-#: web/src/pages/voices/VoiceBrowser.svelte:212
+#: web/src/pages/voices/VoiceBrowser.svelte:220
 msgid "No vendor offers a voice right now. Check the API keys."
 msgstr ""
 
-#: web/src/pages/voices/VoiceBrowser.svelte:217
+#: web/src/pages/voices/VoiceBrowser.svelte:225
 msgid "Recommended"
 msgstr ""
 
-#: web/src/pages/voices/VoiceBrowser.svelte:218
+#: web/src/pages/voices/VoiceBrowser.svelte:226
 msgid "Other voices"
 msgstr ""
 
-#: web/src/pages/voices/VoiceBrowser.svelte:229
+#: web/src/pages/voices/VoiceBrowser.svelte:237
 msgid "No favourites yet"
 msgstr ""
 
-#: web/src/pages/voices/VoiceBrowser.svelte:229
+#: web/src/pages/voices/VoiceBrowser.svelte:237
 msgid "No voice matches"
 msgstr ""
 
-#: web/src/pages/voices/VoiceBrowser.svelte:230
+#: web/src/pages/voices/VoiceBrowser.svelte:238
 msgid "Tap the heart on a voice to keep it here."
 msgstr ""
 
-#: web/src/pages/voices/VoiceBrowser.svelte:230
+#: web/src/pages/voices/VoiceBrowser.svelte:238
 msgid "Loosen the filters."
 msgstr ""
 
-#: web/src/pages/voices/VoiceBrowser.svelte:240
+#: web/src/pages/voices/VoiceBrowser.svelte:248
 #, javascript-format
 msgid "Load more (%s left)"
 msgstr ""
 
-#: web/src/pages/voices/VoiceBrowser.svelte:247
+#: web/src/pages/voices/VoiceBrowser.svelte:255
 msgid "Selection"
 msgstr ""
 
-#: web/src/pages/voices/VoiceBrowser.svelte:249
+#: web/src/pages/voices/VoiceBrowser.svelte:257
 #, javascript-format
 msgid "%s selected"
 msgstr ""
 
-#: web/src/pages/voices/VoiceBrowser.svelte:267
+#: web/src/pages/voices/VoiceBrowser.svelte:275
 msgid "Narrow the voices down"
 msgstr ""
 
-#: web/src/pages/voices/VoiceBrowser.svelte:269
+#: web/src/pages/voices/VoiceBrowser.svelte:277
 #, javascript-format
 msgid "Show %s voices"
 msgstr ""
@@ -1675,4 +1676,56 @@ msgstr ""
 
 #: web/src/pages/voices/facts.ts:4
 msgid "Older"
+msgstr ""
+
+#: web/src/pages/voices/facts.ts:14
+msgid "Premade"
+msgstr ""
+
+#: web/src/pages/voices/facts.ts:15
+msgid "Cloned"
+msgstr ""
+
+#: web/src/pages/voices/facts.ts:16
+msgid "Designed"
+msgstr ""
+
+#: web/src/pages/voices/facts.ts:17
+msgid "Conversational"
+msgstr ""
+
+#: web/src/pages/voices/facts.ts:18
+msgid "Narrative"
+msgstr ""
+
+#: web/src/pages/voices/facts.ts:19
+msgid "Storytelling"
+msgstr ""
+
+#: web/src/pages/voices/facts.ts:21
+msgid "Animated characters"
+msgstr ""
+
+#: web/src/pages/voices/facts.ts:22
+msgid "Informative and educational"
+msgstr ""
+
+#: web/src/pages/voices/facts.ts:23
+msgid "Entertainment and TV"
+msgstr ""
+
+#: web/src/pages/voices/facts.ts:24
+msgid "Advertising"
+msgstr ""
+
+#: web/src/pages/voices/facts.ts:28
+msgid "Basic quality"
+msgstr ""
+
+#: web/src/pages/voices/facts.ts:28
+msgid "Medium quality"
+msgstr ""
+
+#: web/src/pages/voices/facts.ts:28
+msgid "High quality"
 msgstr ""
