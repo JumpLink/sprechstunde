@@ -13,6 +13,8 @@ const METRICS = [
   ['llm_metrics', 'ttftMs'],
   ['llm_metrics', 'durationMs'],
   ['tts_metrics', 'ttfbMs'],
+  ['tts_stream', 'gaps'],
+  ['tts_stream', 'maxGapMs'],
   ['tts_metrics', 'durationMs'],
 ] as const;
 

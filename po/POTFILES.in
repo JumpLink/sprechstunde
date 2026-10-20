@@ -19,6 +19,7 @@ src/agent/stt-merge.ts
 src/agent/transcript.ts
 src/agent/transfer.ts
 src/agent/tts-hedge.ts
+src/agent/tts-meter.ts
 src/agent/tts-provider.ts
 src/agent/tts-voice.ts
 src/agent/watchdog.ts

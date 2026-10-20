@@ -8,7 +8,9 @@ import type { Profile } from '../core/profile.js';
 import { type Character, KUGEL_VOICE_ID, type VoiceSpec, voiceRefAudioPath } from '../core/settings.js';
 import { spellOutNumbers } from '../core/spoken-numbers.js';
 import { _ } from '../i18n.js';
+import { recordTtsStream } from './metrics.js';
 import { DEFAULT_POCKET_URL, PocketTTS } from './pocket-tts.js';
+import { MeasuredTTS } from './tts-meter.js';
 import { resolveTtsVoice } from './tts-voice.js';
 
 const PROVIDERS = ['mistral', 'cartesia', 'openrouter', 'pocket', 'kugel'] as const;
@@ -200,7 +202,7 @@ export function buildBaseTts(
       return new PocketTTS(pocketUrl(env), voice, spellOutNumbers(profile.locale));
     case 'kugel': {
       const language = profile.locale.split('-')[0]!;
-      return new KugelTTS({
+      const kugel = new KugelTTS({
         apiKey: kugelApiKey(env),
         model,
         // Every path that builds a choice has checked this is a number (`ttsChoice`,
@@ -215,6 +217,8 @@ export function buildBaseTts(
         // are server-side resampling. Asking for 8 kHz would only move the phone-line downsampling
         // to the vendor, and the agent mixes at 24 kHz either way.
       });
+      // Its stream never says when text went out, so the SDK emits no `tts_metrics` for it.
+      return new MeasuredTTS(kugel, (stats) => recordTtsStream(stats, 'kugel'));
     }
   }
 }
