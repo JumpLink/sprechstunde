@@ -91,13 +91,18 @@ podman exec <asterisk container> asterisk -rx 'pjsip show registrations'   # Reg
 
 ## Admin through an SSH tunnel
 
-The admin listens on `127.0.0.1:8091` inside the LXC. From the workstation, through the Proxmox host:
+The admin listens on `127.0.0.1:8091` inside the LXC. A Proxmox host whose containers sit on a
+bridge without a host address (behind a router VM) cannot reach the LXC's sshd, so `ssh -J` hangs.
+Tunnel through `pct exec` instead; it needs `nc` in the LXC (`apt install netcat-openbsd`):
 
 ```sh
-ssh -J <user>@<proxmox-host> -L 8091:127.0.0.1:8091 <user>@<lxc-address>
+ssh -o HostKeyAlias=<lxc-name> \
+  -o ProxyCommand="ssh <user>@<proxmox-host> pct exec <id> -- nc 127.0.0.1 22" \
+  -L 8092:127.0.0.1:8091 root@<lxc-name>
 ```
 
-then open `http://127.0.0.1:8091`. Do not forward 8091 on the router or publish it under a domain
+then open `http://127.0.0.1:8092` (8091 stays free for a local admin). The alias pins the LXC's
+host key under its own name. Do not forward 8091 on the router or publish it under a domain
 before ADR step 3.
 
 ## NAT forward
