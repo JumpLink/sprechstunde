@@ -196,7 +196,14 @@ export interface Knowledge {
   }>;
 }
 
-export type SourceKind = 'manual' | 'web' | 'sitemap';
+export type SourceKind = 'manual' | 'web' | 'sitemap' | 'pdf' | 'image';
+
+export interface SourceFileInfo {
+  position: number;
+  name: string;
+  mime: string;
+  bytes: number;
+}
 
 export interface KnowledgeSource {
   id: string;
@@ -213,6 +220,8 @@ export interface KnowledgeSource {
   lastError: string | null;
   pendingCount: number;
   sections: number;
+  /** Document sources: pages in the last reading. */
+  ocrPages: number | null;
 }
 
 export interface SourceRevision {
@@ -225,6 +234,8 @@ export interface SourceRevision {
   markdown: string;
   fetchedAt: string | null;
   author: string | null;
+  /** `capped:<n>` when a document was cut at its page ceiling. */
+  note: string | null;
   createdAt: string;
   decidedAt: string | null;
 }
