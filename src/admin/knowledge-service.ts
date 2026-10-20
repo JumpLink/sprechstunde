@@ -24,9 +24,15 @@ import {
 } from './knowledge-repo.js';
 import { changed, lineDiff, type DiffLine } from './line-diff.js';
 import { matchesGlobs, parseSitemap, sameHost } from './sitemap.js';
+import { createLimiter } from './limiter.js';
 import { MAX_PATTERN_CHARS } from './wildcard.js';
 
 export const MAX_PAGES = 30;
+export const MAX_SOURCES_PER_VENUE = 50;
+/** Revisions kept per section (see `pruneRevisions` for what is kept on top). */
+export const KEEP_REVISIONS = 20;
+export const KEEP_EDITS = 20;
+const MAX_PARALLEL_FETCHES = 2;
 export const MAX_SITEMAPS = 3;
 export const MAX_MANUAL_CHARS = 100_000;
 export const MAX_TITLE_CHARS = 120;
@@ -35,8 +41,10 @@ export const DEFAULT_REFRESH_HOURS = 24;
 /** The service reports user mistakes with a status the HTTP layer maps one to one. */
 export class KnowledgeError extends Error {
   constructor(
-    readonly status: 400 | 404 | 409 | 502,
+    readonly status: 400 | 404 | 409 | 429 | 502,
     message: string,
+    /** Seconds until a 429 may be tried again. */
+    readonly retryAfter?: number,
   ) {
     super(message);
     this.name = 'KnowledgeError';
@@ -188,11 +196,10 @@ export function createKnowledgeService(options: ServiceOptions) {
       fetchedAt: at,
       createdAt: at,
     });
-    if (source.autoApprove && live?.origin !== 'edited') {
-      goLive(t, section, revision);
-      return 'approved';
-    }
-    return 'pending';
+    const approved = source.autoApprove && live?.origin !== 'edited';
+    if (approved) goLive(t, section, revision);
+    t.pruneRevisions(section.id, KEEP_REVISIONS, KEEP_EDITS);
+    return approved ? 'approved' : 'pending';
   };
 
   const fetchPage = async (source: Source, address: string) => {
@@ -224,6 +231,8 @@ export function createKnowledgeService(options: ServiceOptions) {
     return [...new Set(pages)];
   };
 
+  const fetchSlots = createLimiter(MAX_PARALLEL_FETCHES);
+
   return {
     republish,
 
@@ -238,6 +247,12 @@ export function createKnowledgeService(options: ServiceOptions) {
 
     async addSource(tenantId: string, input: NewSourceInput): Promise<Source> {
       const t = repo.forTenant(tenantId);
+      if (t.sources(input.venue).length >= MAX_SOURCES_PER_VENUE) {
+        throw new KnowledgeError(
+          400,
+          _('a venue may have at most %s sources').replace('%s', String(MAX_SOURCES_PER_VENUE)),
+        );
+      }
       if (!['manual', 'web', 'sitemap'].includes(input.kind)) {
         throw new KnowledgeError(400, _('"kind" must be one of: %s').replace('%s', 'manual, web, sitemap'));
       }
@@ -292,7 +307,12 @@ export function createKnowledgeService(options: ServiceOptions) {
     },
 
     /** Fetches a source now. One failing page does not stop the others. */
-    async refresh(tenantId: string, sourceId: string): Promise<RefreshSummary> {
+    /** The scheduler and the API share these slots, so a burst of requests cannot open a burst of fetches. */
+    refresh(tenantId: string, sourceId: string): Promise<RefreshSummary> {
+      return fetchSlots.run(() => this.refreshNow(tenantId, sourceId));
+    },
+
+    async refreshNow(tenantId: string, sourceId: string): Promise<RefreshSummary> {
       const t = repo.forTenant(tenantId);
       const source = need(t.source(sourceId));
       if (source.kind === 'manual') throw new KnowledgeError(400, _('a text source has nothing to fetch'));
@@ -406,6 +426,7 @@ export function createKnowledgeService(options: ServiceOptions) {
         });
         t.setLive(sectionId, made.id);
         t.renameSection(sectionId, title);
+        t.pruneRevisions(sectionId, KEEP_REVISIONS, KEEP_EDITS);
         return made;
       });
       republish(tenantId, source.venue);

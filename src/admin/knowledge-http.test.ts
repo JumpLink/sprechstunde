@@ -133,3 +133,19 @@ test('runDue: refreshes what is due and survives a failure', async () => {
   assert.equal(await runDue(r.runtime.service, 'default', (message) => logged.push(message)), 0);
   assert.deepEqual(logged, []);
 });
+
+test('a second refresh of the same source within the cooldown is a 429 with Retry-After', async () => {
+  const r = await start();
+  const added = await r.call('POST', '/api/knowledge/sources', {
+    venue: 'venue.json',
+    kind: 'web',
+    title: 'Menu',
+    url: PAGE,
+  });
+  const source = (await added.json()) as { id: string };
+  const path = `/api/knowledge/sources/${source.id}/refresh`;
+  assert.equal((await r.call('POST', path, {})).status, 200);
+  const again = await r.call('POST', path, {});
+  assert.equal(again.status, 429);
+  assert.ok(Number(again.headers.get('retry-after')) > 0);
+});

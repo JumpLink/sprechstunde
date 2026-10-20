@@ -5,12 +5,13 @@ import { FetchRefused, type SafeFetcher } from './fetch-safe.js';
 import { createKnowledgeApi } from './knowledge-api.js';
 import { openDb } from './knowledge-db.js';
 import { createKnowledgeRepo } from './knowledge-repo.js';
-import { createKnowledgeService, KnowledgeError } from './knowledge-service.js';
+import { createKnowledgeService, KEEP_REVISIONS, KnowledgeError, MAX_SOURCES_PER_VENUE } from './knowledge-service.js';
 
 const html = (body: string, title = 'Page') =>
   `<html><head><title>${title}</title></head><body><main>${body}</main></body></html>`;
 
 function rig(pages: Record<string, string | Error>) {
+  let hook: (() => Promise<void>) | undefined;
   const failing = { publish: false };
   const logged: string[] = [];
   const bodies = { ...pages };
@@ -18,6 +19,7 @@ function rig(pages: Record<string, string | Error>) {
   const fetcher = {
     async fetch(address: string) {
       fetched.push(address);
+      await hook?.();
       const body = bodies[address];
       if (body === undefined) throw new FetchRefused('status', 'the page answered with an error');
       if (body instanceof Error) throw body;
@@ -42,6 +44,7 @@ function rig(pages: Record<string, string | Error>) {
   return {
     service,
     repo,
+    onFetch: (fn: () => Promise<void>) => (hook = fn),
     published,
     failing,
     logged,
@@ -331,4 +334,53 @@ test('the API still answers 200 and says the publish is pending', async () => {
     body: async () => ({}),
   });
   assert.equal((published!.payload as { stale: boolean }).stale, true);
+});
+
+test('a venue cannot hold more than the capped number of sources', async () => {
+  const r = rig({});
+  for (let i = 0; i < MAX_SOURCES_PER_VENUE; i++) {
+    await r.service.addSource(T, { venue: 'v.json', kind: 'manual', title: `n${i}`, markdown: 'x' });
+  }
+  await assert.rejects(
+    r.service.addSource(T, { venue: 'v.json', kind: 'manual', title: 'one more', markdown: 'x' }),
+    (e: unknown) => e instanceof KnowledgeError && e.status === 400,
+  );
+  await r.service.addSource(T, { venue: 'other.json', kind: 'manual', title: 'fine', markdown: 'x' });
+});
+
+test('revisions are pruned, but never the live, the pending or the newest fetched one', async () => {
+  const r = rig({ [URL1]: html('<p>0</p>') });
+  const source = await webSource(r);
+  for (let i = 0; i < KEEP_REVISIONS + 15; i++) {
+    r.bodies[URL1] = html(`<p>v${i}</p>`);
+    await r.service.refresh(T, source.id);
+    const { sections } = r.service.detail(T, source.id);
+    if (i % 2 === 0 && sections[0]!.pending) r.service.approve(T, sections[0]!.pending.id);
+  }
+  const section = r.service.detail(T, source.id).sections[0]!;
+  const history = r.service.history(T, section.id);
+  assert.ok(history.length <= KEEP_REVISIONS + 2, `kept ${history.length}`);
+  assert.ok(history.some((rev) => rev.id === section.liveRevisionId));
+  assert.ok(section.pending === null || history.some((rev) => rev.id === section.pending!.id));
+  assert.match(history[0]!.markdown, /v34/);
+});
+
+test('refreshes share a small number of fetch slots', async () => {
+  const pages = Object.fromEntries([1, 2, 3, 4, 5].map((n) => [`https://venue.example/p${n}`, html(`<p>${n}</p>`)]));
+  const r = rig(pages);
+  let running = 0;
+  let peak = 0;
+  const inner = r.service;
+  const sources = [];
+  for (const address of Object.keys(pages)) {
+    sources.push(await r.service.addSource(T, { venue: 'v.json', kind: 'web', title: address, url: address }));
+  }
+  r.onFetch(async () => {
+    running++;
+    peak = Math.max(peak, running);
+    await new Promise((resolve) => setTimeout(resolve, 5));
+    running--;
+  });
+  await Promise.all(sources.map((source) => inner.refresh(T, source.id)));
+  assert.ok(peak >= 1 && peak <= 2, `peak ${peak}`);
 });

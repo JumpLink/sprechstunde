@@ -22,8 +22,10 @@ export interface KnowledgeApiOptions {
   venueExists: (file: string) => boolean;
   /** Who made a hand edit; shown in the history. */
   author?: string;
+  now?: () => number;
 }
 
+const REFRESH_COOLDOWN_MS = 60_000;
 const PREFIX = '/api/knowledge/';
 const ID = /^[A-Za-z0-9]{1,40}$/;
 
@@ -35,6 +37,8 @@ const list = (value: unknown): string[] | undefined =>
 export function createKnowledgeApi(options: KnowledgeApiOptions) {
   const { service, tenantId } = options;
   const refreshing = new Set<string>();
+  const lastRefresh = new Map<string, number>();
+  const now = options.now ?? Date.now;
 
   const venueOf = (value: unknown): string => {
     const file = text(value);
@@ -105,7 +109,13 @@ export function createKnowledgeApi(options: KnowledgeApiOptions) {
     if (area === 'sources' && parts.length === 3 && action === 'refresh' && method === 'POST') {
       const sourceId = idOf(id);
       if (refreshing.has(sourceId)) throw new KnowledgeError(409, _('this source is being fetched right now'));
+      const wait = Math.ceil(((lastRefresh.get(sourceId) ?? 0) + REFRESH_COOLDOWN_MS - now()) / 1000);
+      if (wait > 0) {
+        throw new KnowledgeError(429, _('this source was fetched a moment ago: try again shortly'), wait);
+      }
       refreshing.add(sourceId);
+      lastRefresh.set(sourceId, now());
+      if (lastRefresh.size > 500) lastRefresh.delete(lastRefresh.keys().next().value!);
       try {
         return ok(await service.refresh(tenantId, sourceId));
       } finally {

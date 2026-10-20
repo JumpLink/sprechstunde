@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-20 14:28+0200\n"
+"POT-Creation-Date: 2026-10-20 14:31+0200\n"
 "PO-Revision-Date: 2026-10-19 23:10+0200\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -26,7 +26,7 @@ msgstr "der Anbieter antwortete mit %s"
 msgid "the request failed: %s"
 msgstr "die Anfrage ist fehlgeschlagen: %s"
 
-#: src/admin/fetch-safe.ts:184 src/admin/knowledge-service.ts:111
+#: src/admin/fetch-safe.ts:184 src/admin/knowledge-service.ts:119
 msgid "only http and https addresses can be fetched"
 msgstr "es können nur http- und https-Adressen abgerufen werden"
 
@@ -78,7 +78,7 @@ msgstr "die Seite antwortete mit einem Fehler"
 msgid "the page is not a kind of document that can be read"
 msgstr "die Seite ist kein Dokument, das sich lesen lässt"
 
-#: src/admin/fetch-safe.ts:350 src/admin/knowledge-service.ts:108
+#: src/admin/fetch-safe.ts:350 src/admin/knowledge-service.ts:116
 msgid "this is not a valid web address"
 msgstr "das ist keine gültige Webadresse"
 
@@ -99,79 +99,88 @@ msgstr "ein Selektor ist zu lang"
 msgid "\"%s\" is not a valid CSS selector"
 msgstr "„%s“ ist kein gültiger CSS-Selektor"
 
-#: src/admin/knowledge-api.ts:42
+#: src/admin/knowledge-api.ts:46
 msgid "\"venue\" must be the name of a .json file in the profiles directory"
 msgstr "„venue“ muss der Name einer .json-Datei im Profilverzeichnis sein"
 
-#: src/admin/knowledge-api.ts:44
+#: src/admin/knowledge-api.ts:48
 msgid "no such venue"
 msgstr "dieses Lokal gibt es nicht"
 
-#: src/admin/knowledge-api.ts:48 src/admin/knowledge-api.ts:53
+#: src/admin/knowledge-api.ts:52 src/admin/knowledge-api.ts:57
 msgid "invalid id"
 msgstr "ungültige ID"
 
-#: src/admin/knowledge-api.ts:107
+#: src/admin/knowledge-api.ts:111
 msgid "this source is being fetched right now"
 msgstr "diese Quelle wird gerade abgerufen"
 
-#: src/admin/knowledge-api.ts:124
+#: src/admin/knowledge-api.ts:114
+msgid "this source was fetched a moment ago: try again shortly"
+msgstr "diese Quelle wurde gerade erst abgerufen: versuche es gleich noch einmal"
+
+#: src/admin/knowledge-api.ts:134
 msgid "\"baseRevisionId\" must be the revision the page loaded, or null"
 msgstr ""
 "„baseRevisionId“ muss die Revision sein, die die Seite geladen hat, oder null"
 
-#: src/admin/knowledge-service.ts:87
+#: src/admin/knowledge-service.ts:95
 #, javascript-format
 msgid "at most %s patterns are allowed"
 msgstr "höchstens %s Muster sind erlaubt"
 
-#: src/admin/knowledge-service.ts:91
+#: src/admin/knowledge-service.ts:99
 #, javascript-format
 msgid "a pattern may have at most %s characters"
 msgstr "ein Muster darf höchstens %s Zeichen haben"
 
-#: src/admin/knowledge-service.ts:103
+#: src/admin/knowledge-service.ts:111
 msgid "\"url\" must be a web address"
 msgstr "„url“ muss eine Webadresse sein"
 
-#: src/admin/knowledge-service.ts:153
+#: src/admin/knowledge-service.ts:161
 msgid "not found"
 msgstr "nicht gefunden"
 
-#: src/admin/knowledge-service.ts:242
+#: src/admin/knowledge-service.ts:253
+#, javascript-format
+msgid "a venue may have at most %s sources"
+msgstr "ein Lokal darf höchstens %s Quellen haben"
+
+#: src/admin/knowledge-service.ts:257
 #, javascript-format
 msgid "\"kind\" must be one of: %s"
 msgstr "„kind“ muss einer dieser Werte sein: %s"
 
-#: src/admin/knowledge-service.ts:245
+#: src/admin/knowledge-service.ts:260
 msgid "Notes"
 msgstr "Notizen"
 
-#: src/admin/knowledge-service.ts:245 web/src/pages/Sources.svelte:22
+#: src/admin/knowledge-service.ts:260 web/src/pages/Sources.svelte:22
 msgid "Web page"
 msgstr "Webseite"
 
-#: src/admin/knowledge-service.ts:248 src/admin/knowledge-service.ts:388
+#: src/admin/knowledge-service.ts:263 src/admin/knowledge-service.ts:408
 msgid "the text is too long"
 msgstr "der Text ist zu lang"
 
-#: src/admin/knowledge-service.ts:279 src/admin/knowledge-service.ts:450
+#: src/admin/knowledge-service.ts:294 src/admin/knowledge-service.ts:471
 msgid "\"refreshHours\" must be a whole number of hours, or null"
 msgstr "„refreshHours“ muss eine ganze Zahl von Stunden oder null sein"
 
-#: src/admin/knowledge-service.ts:298
+#: src/admin/knowledge-service.ts:318
 msgid "a text source has nothing to fetch"
 msgstr "eine Textquelle hat nichts abzurufen"
 
-#: src/admin/knowledge-service.ts:363 src/admin/knowledge-service.ts:374
+#: src/admin/knowledge-service.ts:383 src/admin/knowledge-service.ts:394
 msgid "this change was already decided: reload the page"
 msgstr "über diese Änderung ist schon entschieden: Seite neu laden"
 
-#: src/admin/knowledge-service.ts:387
+#: src/admin/knowledge-service.ts:407
 msgid "\"markdown\" must be text"
 msgstr "„markdown“ muss ein Text sein"
 
-#: src/admin/knowledge-service.ts:390
+#: src/admin/knowledge-service.ts:410
 msgid ""
 "this section changed since you loaded it: reload and make the change again"
 msgstr ""
@@ -391,15 +400,15 @@ msgstr ""
 msgid "the text may have at most %s characters"
 msgstr "der Text darf höchstens %s Zeichen haben"
 
-#: src/admin/server.ts:875
+#: src/admin/server.ts:879
 msgid "the settings app is not built: run `npm run web:build`"
 msgstr "Die Einstellungs-App ist nicht gebaut: `npm run web:build` ausführen"
 
-#: src/admin/server.ts:883
+#: src/admin/server.ts:887
 msgid "unknown route"
 msgstr "unbekannte Route"
 
-#: src/admin/server.ts:892
+#: src/admin/server.ts:896
 msgid "internal error"
 msgstr "interner Fehler"
 
@@ -1637,7 +1646,9 @@ msgstr ""
 #: web/src/pages/Sources.svelte:359
 msgid ""
 "Publishing failed and is being retried. The bot still has the older text."
-msgstr "Veröffentlichen fehlgeschlagen, wird wiederholt. Der Bot hat noch den älteren Text."
+msgstr ""
+"Veröffentlichen fehlgeschlagen, wird wiederholt. Der Bot hat noch den "
+"älteren Text."
 
 #: web/src/pages/Sources.svelte:365
 msgid "Nothing yet"

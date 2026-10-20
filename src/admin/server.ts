@@ -859,7 +859,11 @@ export function createAdminServer(options: AdminOptions): Server {
         });
         if (result) return json(response, result.status, result.payload);
       } catch (error) {
-        if (error instanceof KnowledgeError) throw new HttpError(error.status, error.message);
+        if (error instanceof KnowledgeError) {
+          const headers: Record<string, string> =
+            error.retryAfter === undefined ? {} : { 'retry-after': String(error.retryAfter) };
+          throw new HttpError(error.status, error.message, headers);
+        }
         throw error;
       }
     }
@@ -889,7 +893,14 @@ export function createAdminServer(options: AdminOptions): Server {
       if (status === 500) console.error((error as Error).message);
       if (response.headersSent) return response.end();
       // Only an HttpError was written for the page; anything else may name paths or SQL.
-      json(response, status, { error: error instanceof HttpError ? error.message : _('internal error') });
+      const payload = JSON.stringify({ error: error instanceof HttpError ? error.message : _('internal error') });
+      send(
+        response,
+        status,
+        'application/json; charset=utf-8',
+        payload,
+        error instanceof HttpError ? error.headers : {},
+      );
     });
   });
 }

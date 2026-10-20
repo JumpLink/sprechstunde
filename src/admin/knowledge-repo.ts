@@ -336,6 +336,34 @@ export function createKnowledgeRepo(db: DatabaseSync) {
           return this.revision(Number(result.lastInsertRowid))!;
         },
 
+        /**
+         * Drops old decided revisions of a section. Kept: the newest `keep`, every pending one, the live one,
+         * the newest `keepEdits` hand edits and the newest fetched one (the baseline for the next diff).
+         */
+        pruneRevisions(sectionId: string, keep: number, keepEdits: number): number {
+          const newest = (extra: string, limit: number) =>
+            `SELECT id FROM revision WHERE tenant_id = ? AND section_id = ? ${extra} ORDER BY id DESC LIMIT ${limit}`;
+          return Number(
+            run(
+              `DELETE FROM revision WHERE tenant_id = ? AND section_id = ? AND status != 'pending'
+                 AND id NOT IN (SELECT live_revision_id FROM section WHERE tenant_id = ? AND id = ? AND live_revision_id IS NOT NULL)
+                 AND id NOT IN (${newest('', Math.trunc(keep))})
+                 AND id NOT IN (${newest("AND origin = 'edited'", Math.trunc(keepEdits))})
+                 AND id NOT IN (${newest("AND origin = 'fetched'", 1)})`,
+              tenantId,
+              sectionId,
+              tenantId,
+              sectionId,
+              tenantId,
+              sectionId,
+              tenantId,
+              sectionId,
+              tenantId,
+              sectionId,
+            ).changes,
+          );
+        },
+
         revision(id: number): Revision | undefined {
           const row = one('SELECT * FROM revision WHERE tenant_id = ? AND id = ?', tenantId, id);
           return row && revisionOf(row);
