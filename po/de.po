@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-20 14:56+0200\n"
+"POT-Creation-Date: 2026-10-20 15:00+0200\n"
 "PO-Revision-Date: 2026-10-19 23:10+0200\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -26,7 +26,7 @@ msgstr "der Anbieter antwortete mit %s"
 msgid "the request failed: %s"
 msgstr "die Anfrage ist fehlgeschlagen: %s"
 
-#: src/admin/fetch-safe.ts:202 src/admin/knowledge-service.ts:119
+#: src/admin/fetch-safe.ts:202 src/admin/knowledge-service.ts:143
 msgid "only http and https addresses can be fetched"
 msgstr "es können nur http- und https-Adressen abgerufen werden"
 
@@ -74,11 +74,11 @@ msgstr "die Seite leitet auf eine ungültige Adresse weiter"
 msgid "the page answered with an error"
 msgstr "die Seite antwortete mit einem Fehler"
 
-#: src/admin/fetch-safe.ts:326
+#: src/admin/fetch-safe.ts:326 src/admin/knowledge-service.ts:287
 msgid "the page is not a kind of document that can be read"
 msgstr "die Seite ist kein Dokument, das sich lesen lässt"
 
-#: src/admin/fetch-safe.ts:382 src/admin/knowledge-service.ts:116
+#: src/admin/fetch-safe.ts:382 src/admin/knowledge-service.ts:140
 msgid "this is not a valid web address"
 msgstr "das ist keine gültige Webadresse"
 
@@ -125,68 +125,122 @@ msgid "\"baseRevisionId\" must be the revision the page loaded, or null"
 msgstr ""
 "„baseRevisionId“ muss die Revision sein, die die Seite geladen hat, oder null"
 
-#: src/admin/knowledge-service.ts:95
+#: src/admin/knowledge-service.ts:111
 #, javascript-format
 msgid "at most %s patterns are allowed"
 msgstr "höchstens %s Muster sind erlaubt"
 
-#: src/admin/knowledge-service.ts:99
+#: src/admin/knowledge-service.ts:115
 #, javascript-format
 msgid "a pattern may have at most %s characters"
 msgstr "ein Muster darf höchstens %s Zeichen haben"
 
-#: src/admin/knowledge-service.ts:111
+#: src/admin/knowledge-service.ts:129 src/admin/knowledge-service.ts:689
+msgid "\"refreshHours\" must be a whole number of hours, or null"
+msgstr "„refreshHours“ muss eine ganze Zahl von Stunden oder null sein"
+
+#: src/admin/knowledge-service.ts:135
 msgid "\"url\" must be a web address"
 msgstr "„url“ muss eine Webadresse sein"
 
-#: src/admin/knowledge-service.ts:161
+#: src/admin/knowledge-service.ts:185 src/admin/knowledge-service.ts:657
 msgid "not found"
 msgstr "nicht gefunden"
 
-#: src/admin/knowledge-service.ts:254
+#: src/admin/knowledge-service.ts:319 src/admin/server.ts:896
+msgid "internal error"
+msgstr "interner Fehler"
+
+#: src/admin/knowledge-service.ts:327
+msgid "no file has been uploaded yet"
+msgstr "es wurde noch keine Datei hochgeladen"
+
+#: src/admin/knowledge-service.ts:338
+msgid "a stored file is missing: upload it again"
+msgstr "eine gespeicherte Datei fehlt: bitte erneut hochladen"
+
+#: src/admin/knowledge-service.ts:345
+msgid "no text was found in the document"
+msgstr "im Dokument wurde kein Text gefunden"
+
+#: src/admin/knowledge-service.ts:390
 #, javascript-format
 msgid "a venue may have at most %s sources"
 msgstr "ein Lokal darf höchstens %s Quellen haben"
 
-#: src/admin/knowledge-service.ts:258
+#: src/admin/knowledge-service.ts:394
 #, javascript-format
 msgid "\"kind\" must be one of: %s"
 msgstr "„kind“ muss einer dieser Werte sein: %s"
 
-#: src/admin/knowledge-service.ts:261
+#: src/admin/knowledge-service.ts:398
 msgid "Notes"
 msgstr "Notizen"
 
-#: src/admin/knowledge-service.ts:261 web/src/pages/Sources.svelte:22
+#: src/admin/knowledge-service.ts:399 src/admin/knowledge-service.ts:400
+#: web/src/pages/Sources.svelte:22
 msgid "Web page"
 msgstr "Webseite"
 
-#: src/admin/knowledge-service.ts:264 src/admin/knowledge-service.ts:409
+#: src/admin/knowledge-service.ts:401
+msgid "Document"
+msgstr "Dokument"
+
+#: src/admin/knowledge-service.ts:402
+msgid "Photos"
+msgstr "Fotos"
+
+#: src/admin/knowledge-service.ts:420 src/admin/knowledge-service.ts:563
 msgid "the text is too long"
 msgstr "der Text ist zu lang"
 
-#: src/admin/knowledge-service.ts:295 src/admin/knowledge-service.ts:472
-msgid "\"refreshHours\" must be a whole number of hours, or null"
-msgstr "„refreshHours“ muss eine ganze Zahl von Stunden oder null sein"
-
-#: src/admin/knowledge-service.ts:319
+#: src/admin/knowledge-service.ts:472
 msgid "a text source has nothing to fetch"
 msgstr "eine Textquelle hat nichts abzurufen"
 
-#: src/admin/knowledge-service.ts:384 src/admin/knowledge-service.ts:395
+#: src/admin/knowledge-service.ts:538 src/admin/knowledge-service.ts:549
 msgid "this change was already decided: reload the page"
 msgstr "über diese Änderung ist schon entschieden: Seite neu laden"
 
-#: src/admin/knowledge-service.ts:408
+#: src/admin/knowledge-service.ts:562
 msgid "\"markdown\" must be text"
 msgstr "„markdown“ muss ein Text sein"
 
-#: src/admin/knowledge-service.ts:411
+#: src/admin/knowledge-service.ts:565
 msgid ""
 "this section changed since you loaded it: reload and make the change again"
 msgstr ""
 "der Abschnitt hat sich geändert, seit du ihn geladen hast: neu laden und die "
 "Änderung noch einmal machen"
+
+#: src/admin/knowledge-service.ts:604 src/admin/knowledge-service.ts:645
+msgid "this source takes no files"
+msgstr "diese Quelle nimmt keine Dateien an"
+
+#: src/admin/knowledge-service.ts:606
+msgid "this source is fetched from a web address and takes no uploaded files"
+msgstr "diese Quelle wird von einer Webadresse geladen und nimmt keine hochgeladenen Dateien an"
+
+#: src/admin/knowledge-service.ts:609
+msgid "this is not a PDF or a picture (PNG, JPEG or WebP)"
+msgstr "das ist weder ein PDF noch ein Bild (PNG, JPEG oder WebP)"
+
+#: src/admin/knowledge-service.ts:613
+msgid "this source takes a PDF"
+msgstr "diese Quelle nimmt ein PDF an"
+
+#: src/admin/knowledge-service.ts:613
+msgid "this source takes pictures"
+msgstr "diese Quelle nimmt Bilder an"
+
+#: src/admin/knowledge-service.ts:616
+msgid "the file is too large"
+msgstr "die Datei ist zu groß"
+
+#: src/admin/knowledge-service.ts:619
+#, javascript-format
+msgid "at most %s pictures are allowed"
+msgstr "höchstens %s Bilder sind erlaubt"
 
 #: src/admin/main.ts:23
 #, javascript-format
@@ -412,10 +466,6 @@ msgstr "Die Einstellungs-App ist nicht gebaut: `npm run web:build` ausführen"
 #: src/admin/server.ts:887
 msgid "unknown route"
 msgstr "unbekannte Route"
-
-#: src/admin/server.ts:896
-msgid "internal error"
-msgstr "interner Fehler"
 
 #: src/agent/assistant.ts:76
 msgid "CPU profile written to"

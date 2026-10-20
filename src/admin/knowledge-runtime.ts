@@ -1,12 +1,15 @@
-import { existsSync } from 'node:fs';
-import { dirname } from 'node:path';
+import { existsSync, mkdtempSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { dirname, join } from 'node:path';
 import { cleanSnapshotTemps, publishSnapshot, renderSnapshot, snapshotPath } from '../core/knowledge-snapshot.js';
 import { DEFAULT_TENANT, profileFilePath } from '../core/settings.js';
 import { createSafeFetcher, type SafeFetcher } from './fetch-safe.js';
+import { createFileStore } from './file-store.js';
 import { dbPath, openDb } from './knowledge-db.js';
 import { createKnowledgeApi } from './knowledge-api.js';
 import { createKnowledgeRepo } from './knowledge-repo.js';
 import { createKnowledgeService, type KnowledgeService } from './knowledge-service.js';
+import { mistralOcr, type Ocr } from './ocr.js';
 
 export const SCHEDULE_INTERVAL_MS = 10 * 60 * 1000;
 
@@ -36,11 +39,19 @@ export async function runDue(
 export function createKnowledgeRuntime(
   env: NodeJS.ProcessEnv = process.env,
   fetcher: SafeFetcher = createSafeFetcher(),
+  ocr: Ocr = mistralOcr(),
 ) {
-  const repo = createKnowledgeRepo(openDb(dbPath(env)));
+  const database = dbPath(env);
+  const repo = createKnowledgeRepo(openDb(database));
+  // The originals sit next to the database, so one backup of `var/db` holds both.
+  const files = createFileStore(
+    database === ':memory:' ? mkdtempSync(join(tmpdir(), 'sprechstunde-files-')) : join(dirname(database), 'files'),
+  );
   const service = createKnowledgeService({
     repo,
     fetcher,
+    files,
+    ocr,
     render: renderSnapshot,
     publish: (tenantId, venue, text) => {
       if (tenantId !== DEFAULT_TENANT) return;

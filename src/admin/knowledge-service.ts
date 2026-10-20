@@ -13,18 +13,22 @@ import { createHash } from 'node:crypto';
 import { _ } from '../i18n.js';
 import { type SnapshotSection } from '../core/knowledge-snapshot.js';
 import { FetchRefused, SITEMAP_TYPES, type SafeFetcher } from './fetch-safe.js';
+import { cleanFileName, detectFile, IMAGE_TYPES, limitFor, PDF_TYPES, type DocumentKind } from './file-kinds.js';
+import { sha256Of, type FileStore } from './file-store.js';
 import { checkSelectors, htmlToMarkdown } from './html-markdown.js';
 import {
   type KnowledgeRepo,
   type Revision,
   type Section,
   type Source,
+  type SourceFile,
   type SourceKind,
   type TenantRepo,
 } from './knowledge-repo.js';
 import { changed, lineDiff, type DiffLine } from './line-diff.js';
 import { matchesGlobs, parseSitemap, sameHost } from './sitemap.js';
 import { createLimiter } from './limiter.js';
+import { MAX_OCR_PAGES, OcrFailed, type Ocr } from './ocr.js';
 import { MAX_PATTERN_CHARS } from './wildcard.js';
 
 export const MAX_PAGES = 30;
@@ -41,7 +45,7 @@ export const DEFAULT_REFRESH_HOURS = 24;
 /** The service reports user mistakes with a status the HTTP layer maps one to one. */
 export class KnowledgeError extends Error {
   constructor(
-    readonly status: 400 | 404 | 409 | 429 | 502,
+    readonly status: 400 | 404 | 409 | 413 | 429 | 502,
     message: string,
     /** Seconds until a 429 may be tried again. */
     readonly retryAfter?: number,
@@ -54,6 +58,10 @@ export class KnowledgeError extends Error {
 export interface ServiceOptions {
   repo: KnowledgeRepo;
   fetcher: SafeFetcher;
+  /** The originals of document sources. */
+  files: FileStore;
+  /** Reads a PDF or a picture; the one place that costs money per call. */
+  ocr: Ocr;
   /** Writes (or, for an empty text, removes) the snapshot of one venue. */
   publish: (tenantId: string, venue: string, text: string) => void;
   render: (sections: SnapshotSection[]) => string;
@@ -87,6 +95,14 @@ export interface RefreshSummary {
 
 const sha = (text: string): string => createHash('sha256').update(text).digest('hex');
 
+const isDocument = (kind: SourceKind): kind is DocumentKind & SourceKind => kind === 'pdf' || kind === 'image';
+
+/** Which files, in which order: what a reading is made from. */
+const fileSetSha = (files: SourceFile[]): string => sha(JSON.stringify(files.map((file) => file.sha256)));
+
+/** What a reading joins its pages with; a thematic break reads as a break and costs the assistant nothing. */
+const PAGE_BREAK = '\n\n---\n\n';
+
 const MAX_GLOBS = 20;
 
 function cleanGlobs(globs: string[]): string[] {
@@ -105,6 +121,14 @@ function cleanGlobs(globs: string[]): string[] {
 function cleanTitle(value: unknown, fallback: string): string {
   const title = typeof value === 'string' ? value.replace(/\s+/g, ' ').trim() : '';
   return (title || fallback).slice(0, MAX_TITLE_CHARS);
+}
+
+function cleanHours(value: number | null | undefined): number | null {
+  const hours = value === undefined ? DEFAULT_REFRESH_HOURS : value;
+  if (hours !== null && (!Number.isInteger(hours) || hours < 1 || hours > 24 * 90)) {
+    throw new KnowledgeError(400, _('"refreshHours" must be a whole number of hours, or null'));
+  }
+  return hours;
 }
 
 function checkAddress(value: unknown): string {
@@ -172,14 +196,17 @@ export function createKnowledgeService(options: ServiceOptions) {
   const takePage = (
     t: TenantRepo,
     source: Source,
-    page: { url: string; title: string; markdown: string },
+    page: { url: string | null; title: string; markdown: string; note?: string },
     listed: string,
   ): 'unchanged' | 'pending' | 'approved' => {
     const at = stamp();
     const sectionUrl = source.kind === 'web' ? (source.url ?? listed) : listed;
-    const section =
-      t.sectionByUrl(source.id, sectionUrl) ??
-      t.addSection(source.id, { url: sectionUrl, title: cleanTitle(page.title, source.title), createdAt: at });
+    // A document source is one section; a web page or a listed page is found by its address.
+    const section = isDocument(source.kind)
+      ? (t.sections(source.id)[0] ??
+        t.addSection(source.id, { url: source.url, title: cleanTitle(page.title, source.title), createdAt: at }))
+      : (t.sectionByUrl(source.id, sectionUrl) ??
+        t.addSection(source.id, { url: sectionUrl, title: cleanTitle(page.title, source.title), createdAt: at }));
     if (section.gone) t.setGone(section.id, false);
     const hash = sha(page.markdown);
     if (t.latestFetched(section.id)?.sha256 === hash) return 'unchanged';
@@ -195,6 +222,7 @@ export function createKnowledgeService(options: ServiceOptions) {
       markdown: page.markdown,
       sha256: hash,
       fetchedAt: at,
+      note: page.note ?? null,
       createdAt: at,
     });
     const approved = source.autoApprove && live?.origin !== 'edited';
@@ -232,6 +260,114 @@ export function createKnowledgeService(options: ServiceOptions) {
     return [...new Set(pages)];
   };
 
+  /** Frees stored files that no source of the tenant uses any more. */
+  const release = (tenantId: string, t: TenantRepo, shas: string[]): void => {
+    for (const hash of new Set(shas)) if (t.fileUsers(hash) === 0) options.files.remove(tenantId, hash);
+  };
+
+  const originalName = (address: string, kind: DocumentKind): string => {
+    try {
+      return cleanFileName(decodeURIComponent(new URL(address).pathname.split('/').pop() ?? ''), kind);
+    } catch {
+      return kind;
+    }
+  };
+
+  /** A document source with an address: the file at it replaces the stored one when its bytes differ. */
+  const fetchDocument = async (tenantId: string, t: TenantRepo, source: Source): Promise<void> => {
+    const kind = source.kind as DocumentKind;
+    const result = await fetcher.fetch(source.url!, {
+      binary: true,
+      types: kind === 'pdf' ? PDF_TYPES : IMAGE_TYPES,
+      maxBytes: limitFor(kind),
+    });
+    const bytes = result.bytes!;
+    const found = detectFile(bytes);
+    if (found?.kind !== kind) {
+      throw new FetchRefused('type', _('the page is not a kind of document that can be read'));
+    }
+    const current = t.files(source.id);
+    if (current.length === 1 && current[0]!.sha256 === sha256Of(bytes)) return;
+    const stored = options.files.put(tenantId, bytes);
+    repo.transaction(() => {
+      t.clearFiles(source.id);
+      t.addFile(source.id, {
+        sha256: stored,
+        name: originalName(result.url, kind),
+        mime: found.mime,
+        bytes: bytes.length,
+      });
+    });
+    release(
+      tenantId,
+      t,
+      current.map((file) => file.sha256),
+    );
+  };
+
+  /** Reads the files of a document source, unless they are the ones the live reading came from. */
+  const readDocument = async (
+    tenantId: string,
+    t: TenantRepo,
+    source: Source,
+    summary: RefreshSummary,
+  ): Promise<RefreshSummary> => {
+    const kind = source.kind as DocumentKind;
+    const fail = (error: unknown): RefreshSummary => {
+      const expected = error instanceof FetchRefused || error instanceof OcrFailed || error instanceof KnowledgeError;
+      if (!expected) log(`document reading failed: ${(error as Error).message}`);
+      summary.error = expected ? (error as Error).message : _('internal error');
+      summary.failed = 1;
+      t.markChecked(source.id, stamp(), summary.error, false);
+      return summary;
+    };
+    try {
+      if (source.url) await fetchDocument(tenantId, t, source);
+      const stored = t.files(source.id);
+      if (stored.length === 0) throw new KnowledgeError(400, _('no file has been uploaded yet'));
+      const setSha = fileSetSha(stored);
+      if (setSha === source.ocrSha) {
+        t.markChecked(source.id, stamp(), null, true);
+        summary.pages = 1;
+        summary.unchanged = 1;
+        return summary;
+      }
+      const pages: string[] = [];
+      for (const file of stored) {
+        const bytes = options.files.get(tenantId, file.sha256);
+        if (!bytes) throw new KnowledgeError(400, _('a stored file is missing: upload it again'));
+        pages.push(...(await options.ocr({ kind, mime: file.mime, bytes })));
+      }
+      const markdown = pages
+        .map((page) => page.trim())
+        .filter((page) => page !== '')
+        .join(PAGE_BREAK);
+      if (markdown === '') throw new KnowledgeError(400, _('no text was found in the document'));
+      const result = repo.transaction(() => {
+        const taken = takePage(
+          t,
+          source,
+          {
+            url: source.url,
+            title: source.title,
+            markdown,
+            ...(pages.length >= MAX_OCR_PAGES && { note: `capped:${MAX_OCR_PAGES}` }),
+          },
+          source.url ?? '',
+        );
+        t.setOcr(source.id, setSha, pages.length);
+        return taken;
+      });
+      summary.pages = 1;
+      summary[result]++;
+      t.markChecked(source.id, stamp(), null, true);
+      if (result === 'approved') republish(tenantId, source.venue);
+      return summary;
+    } catch (error) {
+      return fail(error);
+    }
+  };
+
   const fetchSlots = createLimiter(MAX_PARALLEL_FETCHES);
 
   return {
@@ -254,11 +390,31 @@ export function createKnowledgeService(options: ServiceOptions) {
           _('a venue may have at most %s sources').replace('%s', String(MAX_SOURCES_PER_VENUE)),
         );
       }
-      if (!['manual', 'web', 'sitemap'].includes(input.kind)) {
-        throw new KnowledgeError(400, _('"kind" must be one of: %s').replace('%s', 'manual, web, sitemap'));
+      if (!['manual', 'web', 'sitemap', 'pdf', 'image'].includes(input.kind)) {
+        throw new KnowledgeError(400, _('"kind" must be one of: %s').replace('%s', 'manual, web, sitemap, pdf, image'));
       }
       const at = stamp();
-      const title = cleanTitle(input.title, input.kind === 'manual' ? _('Notes') : _('Web page'));
+      const fallbackTitle = {
+        manual: _('Notes'),
+        web: _('Web page'),
+        sitemap: _('Web page'),
+        pdf: _('Document'),
+        image: _('Photos'),
+      }[input.kind];
+      const title = cleanTitle(input.title, fallbackTitle);
+      if (isDocument(input.kind)) {
+        // With an address the file is fetched like a page; without one it is uploaded afterwards.
+        const hasUrl = typeof input.url === 'string' && input.url.trim() !== '';
+        return t.createSource({
+          venue: input.venue,
+          kind: input.kind,
+          title,
+          url: hasUrl ? checkAddress(input.url) : null,
+          refreshHours: hasUrl ? cleanHours(input.refreshHours) : null,
+          autoApprove: input.autoApprove === true,
+          createdAt: at,
+        });
+      }
       if (input.kind === 'manual') {
         const markdown = typeof input.markdown === 'string' ? input.markdown : '';
         if (markdown.length > MAX_MANUAL_CHARS) throw new KnowledgeError(400, _('the text is too long'));
@@ -290,10 +446,7 @@ export function createKnowledgeService(options: ServiceOptions) {
       } catch (error) {
         throw new KnowledgeError(400, (error as Error).message);
       }
-      const refreshHours = input.refreshHours === undefined ? DEFAULT_REFRESH_HOURS : input.refreshHours;
-      if (refreshHours !== null && (!Number.isInteger(refreshHours) || refreshHours < 1 || refreshHours > 24 * 90)) {
-        throw new KnowledgeError(400, _('"refreshHours" must be a whole number of hours, or null'));
-      }
+      const refreshHours = cleanHours(input.refreshHours);
       return t.createSource({
         venue: input.venue,
         kind: input.kind,
@@ -326,6 +479,7 @@ export function createKnowledgeService(options: ServiceOptions) {
         failed: 0,
         error: null,
       };
+      if (isDocument(source.kind)) return readDocument(tenantId, t, source, summary);
       let addresses: string[];
       try {
         addresses = source.kind === 'web' ? [source.url!] : await sitemapPages(source);
@@ -437,8 +591,71 @@ export function createKnowledgeService(options: ServiceOptions) {
     removeSource(tenantId: string, sourceId: string): void {
       const t = repo.forTenant(tenantId);
       const source = need(t.source(sourceId));
+      const stored = t.files(sourceId).map((file) => file.sha256);
       t.deleteSource(sourceId);
+      release(tenantId, t, stored);
       republish(tenantId, source.venue);
+    },
+
+    /** An uploaded file: its bytes decide what it is. A PDF source holds one file, a picture source up to 30. */
+    addFile(tenantId: string, sourceId: string, input: { name: unknown; bytes: Uint8Array }): SourceFile {
+      const t = repo.forTenant(tenantId);
+      const source = need(t.source(sourceId));
+      if (!isDocument(source.kind)) throw new KnowledgeError(400, _('this source takes no files'));
+      if (source.url) {
+        throw new KnowledgeError(400, _('this source is fetched from a web address and takes no uploaded files'));
+      }
+      const found = detectFile(input.bytes);
+      if (!found) throw new KnowledgeError(400, _('this is not a PDF or a picture (PNG, JPEG or WebP)'));
+      if (found.kind !== source.kind) {
+        throw new KnowledgeError(
+          400,
+          source.kind === 'pdf' ? _('this source takes a PDF') : _('this source takes pictures'),
+        );
+      }
+      if (input.bytes.length > limitFor(found.kind)) throw new KnowledgeError(413, _('the file is too large'));
+      const present = t.files(sourceId);
+      if (source.kind === 'image' && present.length >= MAX_OCR_PAGES) {
+        throw new KnowledgeError(400, _('at most %s pictures are allowed').replace('%s', String(MAX_OCR_PAGES)));
+      }
+      const stored = options.files.put(tenantId, input.bytes);
+      const row = repo.transaction(() => {
+        if (source.kind === 'pdf') t.clearFiles(sourceId);
+        return t.addFile(sourceId, {
+          sha256: stored,
+          name: cleanFileName(input.name, source.kind),
+          mime: found.mime,
+          bytes: input.bytes.length,
+        });
+      });
+      if (source.kind === 'pdf') {
+        release(
+          tenantId,
+          t,
+          present.map((file) => file.sha256),
+        );
+      }
+      return row;
+    },
+
+    /** Drops the uploaded files, so the next set starts at the first position. The live text stays. */
+    clearFiles(tenantId: string, sourceId: string): void {
+      const t = repo.forTenant(tenantId);
+      const source = need(t.source(sourceId));
+      if (!isDocument(source.kind) || source.url) throw new KnowledgeError(400, _('this source takes no files'));
+      const present = t.files(sourceId).map((file) => file.sha256);
+      t.clearFiles(sourceId);
+      release(tenantId, t, present);
+    },
+
+    /** One original file, for the page to show or download. */
+    file(tenantId: string, sourceId: string, position: number): { name: string; mime: string; bytes: Buffer } {
+      const t = repo.forTenant(tenantId);
+      need(t.source(sourceId));
+      const row = need(t.files(sourceId).find((file) => file.position === position));
+      const bytes = options.files.get(tenantId, row.sha256);
+      if (!bytes) throw new KnowledgeError(404, _('not found'));
+      return { name: row.name, mime: row.mime, bytes };
     },
 
     updateSource(
@@ -507,7 +724,8 @@ export function createKnowledgeService(options: ServiceOptions) {
           overwritesEdit: Boolean(pending && live?.origin === 'edited'),
         };
       });
-      return { source, sections };
+      const files = t.files(sourceId).map(({ position, name, mime, bytes }) => ({ position, name, mime, bytes }));
+      return { source, files, sections };
     },
 
     history(tenantId: string, sectionId: string): Revision[] {
