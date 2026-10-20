@@ -6,6 +6,7 @@ import {
   type KugelLike,
   labelFromId,
   type MistralLike,
+  normalizeAge,
   normalizeGender,
 } from './catalog.js';
 
@@ -407,4 +408,97 @@ test('normalizeGender: vendor words map to female, male or neutral; anything els
   assert.equal(normalizeGender('M'), 'male');
   assert.equal(normalizeGender('gender_neutral'), 'neutral');
   for (const unknown of ['', 'child', null, undefined, 3]) assert.equal(normalizeGender(unknown), undefined);
+});
+
+test('normalizeAge: vendor words and years fall in three bands; anything else stays unknown', () => {
+  assert.equal(normalizeAge('young'), 'young');
+  assert.equal(normalizeAge('middle_aged'), 'middle');
+  assert.equal(normalizeAge('Middle-Aged'), 'middle');
+  assert.equal(normalizeAge('old'), 'old');
+  assert.equal(normalizeAge(25), 'young');
+  assert.equal(normalizeAge(40), 'middle');
+  assert.equal(normalizeAge(70), 'old');
+  for (const unknown of ['', 'ageless', null, undefined, 0, -3, Number.NaN])
+    assert.equal(normalizeAge(unknown), undefined);
+});
+
+test('voice facts come from the vendor only: kugel, mistral and cartesia report what they report', async () => {
+  const kugel = {
+    models: { list: async () => [] },
+    voices: {
+      list: async () => ({
+        voices: [
+          {
+            id: 7,
+            name: 'Rich',
+            sex: 'female',
+            age: 'middle_aged',
+            category: 'narrative',
+            quality: 'high',
+            verified: true,
+            isPublic: false,
+            avatarUrl: 'https://vendor.invalid/a.png',
+            supportedLanguages: ['de'],
+          },
+          { id: 8, name: 'Bare', isPublic: true, verified: false, supportedLanguages: ['de'] },
+        ],
+        total: 2,
+      }),
+    },
+  };
+  const result = await catalog({ kugel: () => kugel }).get('kugel');
+  assert.deepEqual(result.voices, [
+    {
+      id: '7',
+      name: 'Rich',
+      languages: ['de'],
+      gender: 'female',
+      age: 'middle',
+      category: 'narrative',
+      quality: 'high',
+      verified: true,
+      own: true,
+      avatarUrl: 'https://vendor.invalid/a.png',
+      hasAvatar: true,
+    },
+    { id: '8', name: 'Bare', languages: ['de'] },
+  ]);
+
+  const mistral: MistralLike = {
+    models: { list: async () => ({ data: [] }) },
+    audio: {
+      voices: {
+        list: async () => ({
+          items: [
+            { id: 'm1', name: 'Preset', languages: ['de'], age: 31, userId: null },
+            { id: 'm2', name: 'Mine', languages: ['de'], userId: 'u-1' },
+          ],
+          total: 2,
+        }),
+      },
+    },
+  };
+  const mistralResult = await catalog({ mistral: () => mistral }).get('mistral');
+  assert.deepEqual(mistralResult.voices, [
+    { id: 'm1', name: 'Preset', languages: ['de'], age: 'middle' },
+    { id: 'm2', name: 'Mine', languages: ['de'], own: true },
+  ]);
+
+  const { fetch: fetchFn } = fakeFetch({
+    'https://api.cartesia.ai/voices': () =>
+      jsonResponse({
+        data: [
+          { id: 'c1', name: 'Own', language: 'de', is_owner: true },
+          { id: 'c2', name: 'Theirs', language: 'de' },
+        ],
+      }),
+  });
+  const cartesia = await catalog({ fetch: fetchFn }).get('cartesia');
+  assert.deepEqual(
+    cartesia.voices.map((entry) => [entry.id, entry.own]),
+    [
+      ['c1', true],
+      ['c2', undefined],
+    ],
+  );
 });

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-20 08:20+0200\n"
+"POT-Creation-Date: 2026-10-20 09:30+0200\n"
 "PO-Revision-Date: 2026-10-19 23:10+0200\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -12,16 +12,16 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: src/admin/catalog.ts:211
+#: src/admin/catalog.ts:232
 msgid "no API key for this vendor in the environment"
 msgstr "kein API-Schlüssel für diesen Anbieter in der Umgebung"
 
-#: src/admin/catalog.ts:564
+#: src/admin/catalog.ts:620
 #, javascript-format
 msgid "the vendor answered with %s"
 msgstr "der Anbieter antwortete mit %s"
 
-#: src/admin/catalog.ts:569
+#: src/admin/catalog.ts:625
 #, javascript-format
 msgid "the request failed: %s"
 msgstr "die Anfrage ist fehlgeschlagen: %s"
@@ -84,12 +84,12 @@ msgid "no profile %s"
 msgstr "kein Profil %s"
 
 #: src/admin/profile-store.ts:165 src/admin/profile-store.ts:346
-#: src/admin/server.ts:254
+#: src/admin/server.ts:259
 #, javascript-format
 msgid "%s is not valid JSON"
 msgstr "%s ist kein gültiges JSON"
 
-#: src/admin/profile-store.ts:166 src/admin/server.ts:255
+#: src/admin/profile-store.ts:166 src/admin/server.ts:260
 msgid "top level must be an object"
 msgstr "die oberste Ebene muss ein Objekt sein"
 
@@ -97,8 +97,8 @@ msgstr "die oberste Ebene muss ein Objekt sein"
 msgid "a transfer needs a target: enter a phone number"
 msgstr "eine Weiterleitung braucht ein Ziel: Telefonnummer eingeben"
 
-#: src/admin/profile-store.ts:236 src/admin/server.ts:585
-#: src/admin/server.ts:638 src/admin/server.ts:666
+#: src/admin/profile-store.ts:236 src/admin/server.ts:609
+#: src/admin/server.ts:662 src/admin/server.ts:690
 msgid "\"file\" must be the name of a .json file in the profiles directory"
 msgstr "\"file\" muss der Name einer .json-Datei im Profilverzeichnis sein"
 
@@ -107,7 +107,7 @@ msgstr "\"file\" muss der Name einer .json-Datei im Profilverzeichnis sein"
 msgid "invalid version"
 msgstr "ungültige Version"
 
-#: src/admin/profile-store.ts:312 src/admin/server.ts:467
+#: src/admin/profile-store.ts:312 src/admin/server.ts:472
 msgid "\"revision\" must be the revision the page loaded"
 msgstr "„revision“ muss die Revision sein, die die Seite geladen hat"
 
@@ -126,115 +126,124 @@ msgstr "diese Version gibt es nicht"
 msgid "a profile with this name already exists"
 msgstr "ein Profil mit diesem Namen gibt es schon"
 
-#: src/admin/server.ts:111
+#: src/admin/server.ts:112
 msgid "the request body is too large"
 msgstr "der Anfragekörper ist zu groß"
 
-#: src/admin/server.ts:127
+#: src/admin/server.ts:128
 msgid "the request body must be a JSON object"
 msgstr "der Anfragekörper muss ein JSON-Objekt sein"
 
-#: src/admin/server.ts:157 src/admin/server.ts:162
+#: src/admin/server.ts:158 src/admin/server.ts:163
 #, javascript-format
 msgid "\"%s\" must be a short plain string"
 msgstr "„%s“ muss ein kurzer Text ohne Steuerzeichen sein"
 
-#: src/admin/server.ts:189
+#: src/admin/server.ts:194 src/admin/server.ts:574
 msgid "the vendor sample could not be fetched"
 msgstr "die Hörprobe des Anbieters konnte nicht geladen werden"
 
-#: src/admin/server.ts:335
+#: src/admin/server.ts:340
 #, javascript-format
 msgid "\"provider\" must be one of: %s"
 msgstr "„provider“ muss einer dieser Werte sein: %s"
 
-#: src/admin/server.ts:363
+#: src/admin/server.ts:368
 msgid "no voice is configured"
 msgstr "es ist keine Stimme konfiguriert"
 
-#: src/admin/server.ts:367 src/admin/server.ts:645 src/admin/server.ts:730
-#: src/admin/server.ts:740 src/admin/server.ts:764
+#: src/admin/server.ts:372 src/admin/server.ts:669 src/admin/server.ts:754
+#: src/admin/server.ts:764 src/admin/server.ts:788
 #, javascript-format
 msgid "no character with id %s"
 msgstr "kein Charakter mit der Id %s"
 
-#: src/admin/server.ts:470
+#: src/admin/server.ts:475
 msgid ""
 "the characters changed since you loaded them: reload and make the change "
 "again"
-msgstr "die Charaktere haben sich geändert, seit du sie geladen hast: neu laden und die Änderung noch einmal machen"
+msgstr ""
+"die Charaktere haben sich geändert, seit du sie geladen hast: neu laden und "
+"die Änderung noch einmal machen"
 
-#: src/admin/server.ts:476
+#: src/admin/server.ts:481
 msgid "this server answers on 127.0.0.1 only"
 msgstr "dieser Server antwortet nur auf 127.0.0.1"
 
-#: src/admin/server.ts:478
+#: src/admin/server.ts:483
 msgid "a change must come from the page this server serves"
 msgstr "eine Änderung muss von der Seite kommen, die dieser Server ausliefert"
 
-#: src/admin/server.ts:494 src/admin/server.ts:694
+#: src/admin/server.ts:499 src/admin/server.ts:718
 msgid "invalid character id"
 msgstr "ungültige Charakter-ID"
 
-#: src/admin/server.ts:523
+#: src/admin/server.ts:528
 msgid "unknown catalog"
 msgstr "unbekannter Katalog"
 
-#: src/admin/server.ts:527
+#: src/admin/server.ts:532
 msgid "\"language\" must be a BCP-47 tag"
 msgstr "„language“ muss ein BCP-47-Tag sein"
 
-#: src/admin/server.ts:542
+#: src/admin/server.ts:547 src/admin/server.ts:561
 msgid "unknown provider"
 msgstr "unbekannter Anbieter"
 
-#: src/admin/server.ts:549
+#: src/admin/server.ts:554
 msgid "no sample for this voice"
 msgstr "keine Hörprobe für diese Stimme"
 
-#: src/admin/server.ts:612 src/admin/server.ts:624
+#: src/admin/server.ts:568
+msgid "no picture for this voice"
+msgstr "kein Bild für diese Stimme"
+
+#: src/admin/server.ts:636 src/admin/server.ts:648
 msgid "\"file\" must be a file name"
 msgstr "„file“ muss ein Dateiname sein"
 
-#: src/admin/server.ts:626
+#: src/admin/server.ts:650
 msgid "\"from\" must be a file name or null"
 msgstr "„from“ muss ein Dateiname oder null sein"
 
-#: src/admin/server.ts:662
+#: src/admin/server.ts:686
 msgid "\"file\" must be a file name or null"
 msgstr "\"file\" muss ein Dateiname oder null sein"
 
-#: src/admin/server.ts:689
+#: src/admin/server.ts:713
 msgid "there are too many characters"
 msgstr "es gibt zu viele Charaktere"
 
-#: src/admin/server.ts:696
+#: src/admin/server.ts:720
 msgid "a character with this id already exists"
 msgstr "einen Charakter mit dieser Id gibt es schon"
 
-#: src/admin/server.ts:742
+#: src/admin/server.ts:766
 msgid "a character keeps its id"
 msgstr "ein Charakter behält seine Id"
 
-#: src/admin/server.ts:767
+#: src/admin/server.ts:791
 msgid ""
 "the default character cannot be deleted: make another one the default first"
-msgstr "der Standardcharakter lässt sich nicht löschen: mach zuerst einen anderen zum Standard"
+msgstr "kein Bild für diese Stimme"
+"der Standardcharakter lässt sich nicht löschen: mach zuerst einen anderen "
+"zum Standard"
 
-#: src/admin/server.ts:770
+#: src/admin/server.ts:794
 msgid "a venue still uses this character: pick another one for it first"
-msgstr "ein Betrieb nutzt diesen Charakter noch: wähle zuerst einen anderen für ihn"
+msgstr ""
+"ein Betrieb nutzt diesen Charakter noch: wähle zuerst einen anderen für ihn"
 
-#: src/admin/server.ts:805
+#: src/admin/server.ts:829
 #, javascript-format
 msgid "the text may have at most %s characters"
 msgstr "der Text darf höchstens %s Zeichen haben"
 
-#: src/admin/server.ts:832
+#: src/admin/server.ts:856
 msgid "the settings app is not built: run `npm run web:build`"
 msgstr "Die Einstellungs-App ist nicht gebaut: `npm run web:build` ausführen"
 
-#: src/admin/server.ts:840
+#: src/admin/server.ts:864
 msgid "unknown route"
 msgstr "unbekannte Route"
 
@@ -282,7 +291,8 @@ msgstr "gewähltes Profil wird ignoriert, stattdessen gilt das Startprofil:"
 
 #: src/agent/settings.ts:58
 msgid "ignoring an unknown character, using the default one instead:"
-msgstr "unbekannter Charakter wird ignoriert, stattdessen gilt der Standardcharakter:"
+msgstr ""
+"unbekannter Charakter wird ignoriert, stattdessen gilt der Standardcharakter:"
 
 #: src/agent/speech-close.ts:11
 msgid "Closing the TTS failed"
@@ -1380,7 +1390,9 @@ msgstr "Geschlecht"
 msgid ""
 "This character came from an old preset, so its gender was never stated. "
 "Choose it once."
-msgstr "Dieser Charakter stammt aus einer alten Voreinstellung, sein Geschlecht wurde nie angegeben. Wähle es einmal aus."
+msgstr ""
+"Dieser Charakter stammt aus einer alten Voreinstellung, sein Geschlecht "
+"wurde nie angegeben. Wähle es einmal aus."
 
 #: web/src/pages/characters/Wizard.svelte:324
 msgid "Manner of speaking"
@@ -1415,12 +1427,15 @@ msgstr "Andere Stimmen"
 
 #: web/src/pages/characters/Wizard.svelte:362
 msgid "No vendor offers a German voice right now. Check the API keys."
-msgstr "Gerade bietet kein Anbieter eine deutsche Stimme an. Prüfe die API-Schlüssel."
+msgstr ""
+"Gerade bietet kein Anbieter eine deutsche Stimme an. Prüfe die API-Schlüssel."
 
 #: web/src/pages/characters/Wizard.svelte:365
 msgid ""
 "No vendor says which of its voices match this gender. Listen and choose."
-msgstr "Kein Anbieter sagt, welche seiner Stimmen zu diesem Geschlecht passen. Hör rein und wähle."
+msgstr ""
+"Kein Anbieter sagt, welche seiner Stimmen zu diesem Geschlecht passen. Hör "
+"rein und wähle."
 
 #: web/src/pages/characters/Wizard.svelte:373
 #: web/src/pages/characters/Wizard.svelte:393
@@ -1444,7 +1459,8 @@ msgstr "Geschlecht unbekannt"
 
 #: web/src/pages/characters/Wizard.svelte:405
 msgid "Two favourites picked: %1 and %2. Next, hear them back to back."
-msgstr "Zwei Favoriten gewählt: %1 und %2. Als Nächstes hörst du sie hintereinander."
+msgstr ""
+"Zwei Favoriten gewählt: %1 und %2. Als Nächstes hörst du sie hintereinander."
 
 #: web/src/pages/characters/Wizard.svelte:407
 #, javascript-format
@@ -1482,7 +1498,9 @@ msgstr "Prüfen, die Ersatzstimme wählen und speichern"
 msgid ""
 "Takes over when the first voice fails. Preselected: another vendor, a local "
 "voice if there is one."
-msgstr "Übernimmt, wenn die erste Stimme ausfällt. Vorgewählt: ein anderer Anbieter, wenn möglich eine lokale Stimme."
+msgstr ""
+"Übernimmt, wenn die erste Stimme ausfällt. Vorgewählt: ein anderer Anbieter, "
+"wenn möglich eine lokale Stimme."
 
 #: web/src/pages/characters/Wizard.svelte:460
 msgid "Hear the fallback voice"

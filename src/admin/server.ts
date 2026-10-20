@@ -63,6 +63,7 @@ const MAX_PREVIEW_CHARS = 1000;
 const MAX_VOICE_FIELD_CHARS = 100;
 /** A vendor sample is a few seconds of audio; anything bigger is not one. */
 const MAX_SAMPLE_BYTES = 5 * 1024 * 1024;
+const MAX_AVATAR_BYTES = 1024 * 1024;
 const SAMPLE_TIMEOUT_MS = 10_000;
 
 export interface AdminOptions {
@@ -185,7 +186,11 @@ function maybeNumber(value: unknown): number | undefined {
 }
 
 /** The sample as bytes with the vendor's audio type; refuses anything else or anything too big. */
-async function fetchSample(fetcher: typeof fetch, address: string): Promise<{ type: string; body: Uint8Array }> {
+async function fetchSample(
+  fetcher: typeof fetch,
+  address: string,
+  { kind, limit } = { kind: 'audio/', limit: MAX_SAMPLE_BYTES },
+): Promise<{ type: string; body: Uint8Array }> {
   const bad = () => new HttpError(502, _('the vendor sample could not be fetched'));
   if (!address.startsWith('https://')) throw bad();
   let upstream: Response;
@@ -199,15 +204,15 @@ async function fetchSample(fetcher: typeof fetch, address: string): Promise<{ ty
   }
   const type = upstream.headers.get('content-type')?.split(';')[0]?.trim().toLowerCase() ?? '';
   // A redirect could lead anywhere, loopback included; a catalog sample address does not redirect.
-  if (upstream.status >= 300 || !upstream.ok || !type.startsWith('audio/') || !upstream.body) throw bad();
+  if (upstream.status >= 300 || !upstream.ok || !type.startsWith(kind) || !upstream.body) throw bad();
   const declared = Number(upstream.headers.get('content-length'));
-  if (declared > MAX_SAMPLE_BYTES) throw bad();
+  if (declared > limit) throw bad();
   const chunks: Uint8Array[] = [];
   let size = 0;
   try {
     for await (const chunk of upstream.body) {
       size += chunk.byteLength;
-      if (size > MAX_SAMPLE_BYTES) throw bad();
+      if (size > limit) throw bad();
       chunks.push(chunk);
     }
   } catch {
@@ -549,6 +554,25 @@ export function createAdminServer(options: AdminOptions): Server {
       if (!voice?.sampleUrl) throw new HttpError(404, _('no sample for this voice'));
       const sample = await fetchSample(options.fetch ?? fetch, voice.sampleUrl);
       return send(response, 200, sample.type, sample.body);
+    }
+
+    if (method === 'GET' && path === '/api/avatar') {
+      const provider = url.searchParams.get('provider') ?? '';
+      if (!(TTS_PROVIDERS as readonly string[]).includes(provider)) throw new HttpError(400, _('unknown provider'));
+      const id = url.searchParams.get('voice') ?? '';
+      const model = url.searchParams.get('model') || undefined;
+      // As with the sample: the address is the catalog's, never the request's.
+      const voice = (await catalog.get(provider as CatalogTarget)).voices.find(
+        (entry) => entry.id === id && (!model || entry.model === model),
+      );
+      if (!voice?.avatarUrl) throw new HttpError(404, _('no picture for this voice'));
+      const picture = await fetchSample(options.fetch ?? fetch, voice.avatarUrl, {
+        kind: 'image/',
+        limit: MAX_AVATAR_BYTES,
+      });
+      // An SVG could carry script; it is only ever shown as an <img>, but the type is refused anyway.
+      if (picture.type === 'image/svg+xml') throw new HttpError(502, _('the vendor sample could not be fetched'));
+      return send(response, 200, picture.type, picture.body, { 'cache-control': 'private, max-age=86400' });
     }
 
     if (method === 'GET' && path === '/api/profiles') {

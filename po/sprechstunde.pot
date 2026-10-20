@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-20 08:22+0200\n"
+"POT-Creation-Date: 2026-10-20 09:31+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,16 +17,16 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src/admin/catalog.ts:211
+#: src/admin/catalog.ts:232
 msgid "no API key for this vendor in the environment"
 msgstr ""
 
-#: src/admin/catalog.ts:564
+#: src/admin/catalog.ts:620
 #, javascript-format
 msgid "the vendor answered with %s"
 msgstr ""
 
-#: src/admin/catalog.ts:569
+#: src/admin/catalog.ts:625
 #, javascript-format
 msgid "the request failed: %s"
 msgstr ""
@@ -87,12 +87,12 @@ msgid "no profile %s"
 msgstr ""
 
 #: src/admin/profile-store.ts:165 src/admin/profile-store.ts:346
-#: src/admin/server.ts:254
+#: src/admin/server.ts:259
 #, javascript-format
 msgid "%s is not valid JSON"
 msgstr ""
 
-#: src/admin/profile-store.ts:166 src/admin/server.ts:255
+#: src/admin/profile-store.ts:166 src/admin/server.ts:260
 msgid "top level must be an object"
 msgstr ""
 
@@ -100,8 +100,8 @@ msgstr ""
 msgid "a transfer needs a target: enter a phone number"
 msgstr ""
 
-#: src/admin/profile-store.ts:236 src/admin/server.ts:585
-#: src/admin/server.ts:638 src/admin/server.ts:666
+#: src/admin/profile-store.ts:236 src/admin/server.ts:609
+#: src/admin/server.ts:662 src/admin/server.ts:690
 msgid "\"file\" must be the name of a .json file in the profiles directory"
 msgstr ""
 
@@ -110,7 +110,7 @@ msgstr ""
 msgid "invalid version"
 msgstr ""
 
-#: src/admin/profile-store.ts:312 src/admin/server.ts:467
+#: src/admin/profile-store.ts:312 src/admin/server.ts:472
 msgid "\"revision\" must be the revision the page loaded"
 msgstr ""
 
@@ -127,115 +127,119 @@ msgstr ""
 msgid "a profile with this name already exists"
 msgstr ""
 
-#: src/admin/server.ts:111
+#: src/admin/server.ts:112
 msgid "the request body is too large"
 msgstr ""
 
-#: src/admin/server.ts:127
+#: src/admin/server.ts:128
 msgid "the request body must be a JSON object"
 msgstr ""
 
-#: src/admin/server.ts:157 src/admin/server.ts:162
+#: src/admin/server.ts:158 src/admin/server.ts:163
 #, javascript-format
 msgid "\"%s\" must be a short plain string"
 msgstr ""
 
-#: src/admin/server.ts:189
+#: src/admin/server.ts:194 src/admin/server.ts:574
 msgid "the vendor sample could not be fetched"
 msgstr ""
 
-#: src/admin/server.ts:335
+#: src/admin/server.ts:340
 #, javascript-format
 msgid "\"provider\" must be one of: %s"
 msgstr ""
 
-#: src/admin/server.ts:363
+#: src/admin/server.ts:368
 msgid "no voice is configured"
 msgstr ""
 
-#: src/admin/server.ts:367 src/admin/server.ts:645 src/admin/server.ts:730
-#: src/admin/server.ts:740 src/admin/server.ts:764
+#: src/admin/server.ts:372 src/admin/server.ts:669 src/admin/server.ts:754
+#: src/admin/server.ts:764 src/admin/server.ts:788
 #, javascript-format
 msgid "no character with id %s"
 msgstr ""
 
-#: src/admin/server.ts:470
+#: src/admin/server.ts:475
 msgid ""
 "the characters changed since you loaded them: reload and make the change "
 "again"
 msgstr ""
 
-#: src/admin/server.ts:476
+#: src/admin/server.ts:481
 msgid "this server answers on 127.0.0.1 only"
 msgstr ""
 
-#: src/admin/server.ts:478
+#: src/admin/server.ts:483
 msgid "a change must come from the page this server serves"
 msgstr ""
 
-#: src/admin/server.ts:494 src/admin/server.ts:694
+#: src/admin/server.ts:499 src/admin/server.ts:718
 msgid "invalid character id"
 msgstr ""
 
-#: src/admin/server.ts:523
+#: src/admin/server.ts:528
 msgid "unknown catalog"
 msgstr ""
 
-#: src/admin/server.ts:527
+#: src/admin/server.ts:532
 msgid "\"language\" must be a BCP-47 tag"
 msgstr ""
 
-#: src/admin/server.ts:542
+#: src/admin/server.ts:547 src/admin/server.ts:561
 msgid "unknown provider"
 msgstr ""
 
-#: src/admin/server.ts:549
+#: src/admin/server.ts:554
 msgid "no sample for this voice"
 msgstr ""
 
-#: src/admin/server.ts:612 src/admin/server.ts:624
+#: src/admin/server.ts:568
+msgid "no picture for this voice"
+msgstr ""
+
+#: src/admin/server.ts:636 src/admin/server.ts:648
 msgid "\"file\" must be a file name"
 msgstr ""
 
-#: src/admin/server.ts:626
+#: src/admin/server.ts:650
 msgid "\"from\" must be a file name or null"
 msgstr ""
 
-#: src/admin/server.ts:662
+#: src/admin/server.ts:686
 msgid "\"file\" must be a file name or null"
 msgstr ""
 
-#: src/admin/server.ts:689
+#: src/admin/server.ts:713
 msgid "there are too many characters"
 msgstr ""
 
-#: src/admin/server.ts:696
+#: src/admin/server.ts:720
 msgid "a character with this id already exists"
 msgstr ""
 
-#: src/admin/server.ts:742
+#: src/admin/server.ts:766
 msgid "a character keeps its id"
 msgstr ""
 
-#: src/admin/server.ts:767
+#: src/admin/server.ts:791
 msgid ""
 "the default character cannot be deleted: make another one the default first"
 msgstr ""
 
-#: src/admin/server.ts:770
+#: src/admin/server.ts:794
 msgid "a venue still uses this character: pick another one for it first"
 msgstr ""
 
-#: src/admin/server.ts:805
+#: src/admin/server.ts:829
 #, javascript-format
 msgid "the text may have at most %s characters"
 msgstr ""
 
-#: src/admin/server.ts:832
+#: src/admin/server.ts:856
 msgid "the settings app is not built: run `npm run web:build`"
 msgstr ""
 
-#: src/admin/server.ts:840
+#: src/admin/server.ts:864
 msgid "unknown route"
 msgstr ""
 
