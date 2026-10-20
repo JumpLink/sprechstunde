@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-20 09:52+0200\n"
+"POT-Creation-Date: 2026-10-20 11:16+0200\n"
 "PO-Revision-Date: 2026-10-19 23:10+0200\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -1151,7 +1151,7 @@ msgid "Restore"
 msgstr "Wiederherstellen"
 
 #: web/src/pages/Knowledge.svelte:515
-#: web/src/pages/voices/VoiceBrowser.svelte:273
+#: web/src/pages/voices/VoiceBrowser.svelte:331
 msgid "Close"
 msgstr "Schließen"
 
@@ -1596,97 +1596,102 @@ msgstr "Nur lokal"
 msgid "Reset"
 msgstr "Zurücksetzen"
 
-#: web/src/pages/voices/VoiceBrowser.svelte:100
+#: web/src/pages/voices/VoiceBrowser.svelte:114
 msgid "All"
 msgstr "Alle"
 
-#: web/src/pages/voices/VoiceBrowser.svelte:101
+#: web/src/pages/voices/VoiceBrowser.svelte:115
 msgid "Own voices"
 msgstr "Eigene Stimmen"
 
-#: web/src/pages/voices/VoiceBrowser.svelte:102
+#: web/src/pages/voices/VoiceBrowser.svelte:116
 #, javascript-format
 msgid "Favourites (%s)"
 msgstr "Favoriten (%s)"
 
-#: web/src/pages/voices/VoiceBrowser.svelte:144
+#: web/src/pages/voices/VoiceBrowser.svelte:165
 msgid "The vendor sample could not be played"
 msgstr "Die Hörprobe des Anbieters ließ sich nicht abspielen"
 
-#: web/src/pages/voices/VoiceBrowser.svelte:174
-#: web/src/pages/voices/VoiceBrowser.svelte:210
-#: web/src/pages/voices/VoiceBrowser.svelte:272
+#: web/src/pages/voices/VoiceBrowser.svelte:195
+#: web/src/pages/voices/VoiceBrowser.svelte:237
+#: web/src/pages/voices/VoiceBrowser.svelte:330
 msgid "Filter"
 msgstr "Filter"
 
-#: web/src/pages/voices/VoiceBrowser.svelte:182
+#: web/src/pages/voices/VoiceBrowser.svelte:203
 msgid "Which voices"
 msgstr "Welche Stimmen"
 
-#: web/src/pages/voices/VoiceBrowser.svelte:193
+#: web/src/pages/voices/VoiceBrowser.svelte:217
+msgid "Group by vendor"
+msgstr "Gruppieren nach Anbieter"
+
+#: web/src/pages/voices/VoiceBrowser.svelte:220
 #, javascript-format
 msgid "%s voices"
 msgstr "%s Stimmen"
 
-#: web/src/pages/voices/VoiceBrowser.svelte:204
-#: web/src/pages/voices/VoiceBrowser.svelte:205
+#: web/src/pages/voices/VoiceBrowser.svelte:231
+#: web/src/pages/voices/VoiceBrowser.svelte:232
 msgid "Search by name or description"
 msgstr "Nach Name oder Beschreibung suchen"
 
-#: web/src/pages/voices/VoiceBrowser.svelte:220
+#: web/src/pages/voices/VoiceBrowser.svelte:247
 msgid "No voices"
 msgstr "Keine Stimmen"
 
-#: web/src/pages/voices/VoiceBrowser.svelte:220
+#: web/src/pages/voices/VoiceBrowser.svelte:247
 msgid "No vendor offers a voice right now. Check the API keys."
 msgstr ""
 "Gerade bietet kein Anbieter eine Stimme an. Prüfen Sie die API-"
 "Schlüssel.Gerade bietet kein Anbieter eine deutsche Stimme an. Prüfe die API-"
 "Schlüssel."
 
-#: web/src/pages/voices/VoiceBrowser.svelte:225
+#: web/src/pages/voices/VoiceBrowser.svelte:252
 msgid "Recommended"
 msgstr "Empfehlungen"
 
-#: web/src/pages/voices/VoiceBrowser.svelte:226
+#: web/src/pages/voices/VoiceBrowser.svelte:253
 msgid "Other voices"
 msgstr "Andere Stimmen"
 
-#: web/src/pages/voices/VoiceBrowser.svelte:237
+#: web/src/pages/voices/VoiceBrowser.svelte:264
 msgid "No favourites yet"
 msgstr "Noch keine Favoriten"
 
-#: web/src/pages/voices/VoiceBrowser.svelte:237
+#: web/src/pages/voices/VoiceBrowser.svelte:264
 msgid "No voice matches"
 msgstr "Keine Stimme passt"
 
-#: web/src/pages/voices/VoiceBrowser.svelte:238
+#: web/src/pages/voices/VoiceBrowser.svelte:265
 msgid "Tap the heart on a voice to keep it here."
 msgstr "Tippen Sie bei einer Stimme auf das Herz, um sie hier zu behalten."
 
-#: web/src/pages/voices/VoiceBrowser.svelte:238
+#: web/src/pages/voices/VoiceBrowser.svelte:265
 msgid "Loosen the filters."
 msgstr "Lockere die Filter."
 
-#: web/src/pages/voices/VoiceBrowser.svelte:248
+#: web/src/pages/voices/VoiceBrowser.svelte:291
+#: web/src/pages/voices/VoiceBrowser.svelte:306
 #, javascript-format
 msgid "Load more (%s left)"
 msgstr "Mehr laden (noch %s)"
 
-#: web/src/pages/voices/VoiceBrowser.svelte:255
+#: web/src/pages/voices/VoiceBrowser.svelte:313
 msgid "Selection"
 msgstr "Auswahl"
 
-#: web/src/pages/voices/VoiceBrowser.svelte:257
+#: web/src/pages/voices/VoiceBrowser.svelte:315
 #, javascript-format
 msgid "%s selected"
 msgstr "%s ausgewählt"
 
-#: web/src/pages/voices/VoiceBrowser.svelte:275
+#: web/src/pages/voices/VoiceBrowser.svelte:333
 msgid "Narrow the voices down"
 msgstr "Die Stimmen eingrenzen"
 
-#: web/src/pages/voices/VoiceBrowser.svelte:277
+#: web/src/pages/voices/VoiceBrowser.svelte:335
 #, javascript-format
 msgid "Show %s voices"
 msgstr "%s Stimmen anzeigen"

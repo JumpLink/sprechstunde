@@ -154,3 +154,18 @@ export function recommend(candidates: Candidate[], count: number, seen: Set<stri
   }
   return mixOf([...byVendor.values()].flat(), count, seen);
 }
+
+export interface Group {
+  provider: string;
+  voices: Candidate[];
+}
+
+/** The voices under their vendor, the vendor with most voices first; the order inside a vendor is kept. */
+export function groupByVendor(candidates: Candidate[]): Group[] {
+  const groups = new Map<string, Candidate[]>();
+  for (const candidate of candidates)
+    groups.set(candidate.provider, [...(groups.get(candidate.provider) ?? []), candidate]);
+  return [...groups]
+    .map(([provider, voices]) => ({ provider, voices }))
+    .toSorted((a, b) => b.voices.length - a.voices.length || a.provider.localeCompare(b.provider));
+}
