@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-20 15:04+0200\n"
+"POT-Creation-Date: 2026-10-20 15:08+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -31,7 +31,7 @@ msgstr ""
 msgid "the request failed: %s"
 msgstr ""
 
-#: src/admin/fetch-safe.ts:202 src/admin/knowledge-service.ts:143
+#: src/admin/fetch-safe.ts:202 src/admin/knowledge-service.ts:145
 msgid "only http and https addresses can be fetched"
 msgstr ""
 
@@ -79,11 +79,11 @@ msgstr ""
 msgid "the page answered with an error"
 msgstr ""
 
-#: src/admin/fetch-safe.ts:326 src/admin/knowledge-service.ts:287
+#: src/admin/fetch-safe.ts:326 src/admin/knowledge-service.ts:289
 msgid "the page is not a kind of document that can be read"
 msgstr ""
 
-#: src/admin/fetch-safe.ts:382 src/admin/knowledge-service.ts:140
+#: src/admin/fetch-safe.ts:382 src/admin/knowledge-service.ts:142
 msgid "this is not a valid web address"
 msgstr ""
 
@@ -128,117 +128,117 @@ msgstr ""
 msgid "\"baseRevisionId\" must be the revision the page loaded, or null"
 msgstr ""
 
-#: src/admin/knowledge-service.ts:111
+#: src/admin/knowledge-service.ts:113
 #, javascript-format
 msgid "at most %s patterns are allowed"
 msgstr ""
 
-#: src/admin/knowledge-service.ts:115
+#: src/admin/knowledge-service.ts:117
 #, javascript-format
 msgid "a pattern may have at most %s characters"
 msgstr ""
 
-#: src/admin/knowledge-service.ts:129 src/admin/knowledge-service.ts:689
+#: src/admin/knowledge-service.ts:131 src/admin/knowledge-service.ts:691
 msgid "\"refreshHours\" must be a whole number of hours, or null"
 msgstr ""
 
-#: src/admin/knowledge-service.ts:135
+#: src/admin/knowledge-service.ts:137
 msgid "\"url\" must be a web address"
 msgstr ""
 
-#: src/admin/knowledge-service.ts:185 src/admin/knowledge-service.ts:657
+#: src/admin/knowledge-service.ts:187 src/admin/knowledge-service.ts:659
 msgid "not found"
 msgstr ""
 
-#: src/admin/knowledge-service.ts:319 src/admin/server.ts:927
+#: src/admin/knowledge-service.ts:321 src/admin/server.ts:927
 msgid "internal error"
 msgstr ""
 
-#: src/admin/knowledge-service.ts:327
+#: src/admin/knowledge-service.ts:329
 msgid "no file has been uploaded yet"
 msgstr ""
 
-#: src/admin/knowledge-service.ts:338
+#: src/admin/knowledge-service.ts:340
 msgid "a stored file is missing: upload it again"
 msgstr ""
 
-#: src/admin/knowledge-service.ts:345
+#: src/admin/knowledge-service.ts:347
 msgid "no text was found in the document"
 msgstr ""
 
-#: src/admin/knowledge-service.ts:390
+#: src/admin/knowledge-service.ts:392
 #, javascript-format
 msgid "a venue may have at most %s sources"
 msgstr ""
 
-#: src/admin/knowledge-service.ts:394
+#: src/admin/knowledge-service.ts:396
 #, javascript-format
 msgid "\"kind\" must be one of: %s"
 msgstr ""
 
-#: src/admin/knowledge-service.ts:398
+#: src/admin/knowledge-service.ts:400
 msgid "Notes"
 msgstr ""
 
-#: src/admin/knowledge-service.ts:399 src/admin/knowledge-service.ts:400
+#: src/admin/knowledge-service.ts:401 src/admin/knowledge-service.ts:402
 #: web/src/pages/Sources.svelte:22
 msgid "Web page"
 msgstr ""
 
-#: src/admin/knowledge-service.ts:401
+#: src/admin/knowledge-service.ts:403
 msgid "Document"
 msgstr ""
 
-#: src/admin/knowledge-service.ts:402
+#: src/admin/knowledge-service.ts:404
 msgid "Photos"
 msgstr ""
 
-#: src/admin/knowledge-service.ts:420 src/admin/knowledge-service.ts:563
+#: src/admin/knowledge-service.ts:422 src/admin/knowledge-service.ts:565
 msgid "the text is too long"
 msgstr ""
 
-#: src/admin/knowledge-service.ts:472
+#: src/admin/knowledge-service.ts:474
 msgid "a text source has nothing to fetch"
 msgstr ""
 
-#: src/admin/knowledge-service.ts:538 src/admin/knowledge-service.ts:549
+#: src/admin/knowledge-service.ts:540 src/admin/knowledge-service.ts:551
 msgid "this change was already decided: reload the page"
 msgstr ""
 
-#: src/admin/knowledge-service.ts:562
+#: src/admin/knowledge-service.ts:564
 msgid "\"markdown\" must be text"
 msgstr ""
 
-#: src/admin/knowledge-service.ts:565
+#: src/admin/knowledge-service.ts:567
 msgid ""
 "this section changed since you loaded it: reload and make the change again"
 msgstr ""
 
-#: src/admin/knowledge-service.ts:604 src/admin/knowledge-service.ts:645
+#: src/admin/knowledge-service.ts:606 src/admin/knowledge-service.ts:647
 msgid "this source takes no files"
 msgstr ""
 
-#: src/admin/knowledge-service.ts:606
+#: src/admin/knowledge-service.ts:608
 msgid "this source is fetched from a web address and takes no uploaded files"
 msgstr ""
 
-#: src/admin/knowledge-service.ts:609
+#: src/admin/knowledge-service.ts:611
 msgid "this is not a PDF or a picture (PNG, JPEG or WebP)"
 msgstr ""
 
-#: src/admin/knowledge-service.ts:613
+#: src/admin/knowledge-service.ts:615
 msgid "this source takes a PDF"
 msgstr ""
 
-#: src/admin/knowledge-service.ts:613
+#: src/admin/knowledge-service.ts:615
 msgid "this source takes pictures"
 msgstr ""
 
-#: src/admin/knowledge-service.ts:616
+#: src/admin/knowledge-service.ts:618
 msgid "the file is too large"
 msgstr ""
 
-#: src/admin/knowledge-service.ts:619
+#: src/admin/knowledge-service.ts:621
 #, javascript-format
 msgid "at most %s pictures are allowed"
 msgstr ""

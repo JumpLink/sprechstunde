@@ -101,6 +101,8 @@ const isDocument = (kind: SourceKind): kind is DocumentKind & SourceKind => kind
 const fileSetSha = (files: SourceFile[]): string => sha(JSON.stringify(files.map((file) => file.sha256)));
 
 /** What a reading joins its pages with; a thematic break reads as a break and costs the assistant nothing. */
+/** Kept apart from the `_()` strings: an older xgettext reads a slash literal as a regex start and stops. */
+const lastSegment = (path: string): string => path.slice(path.lastIndexOf(String.fromCharCode(47)) + 1);
 const PAGE_BREAK = '\n\n---\n\n';
 
 const MAX_GLOBS = 20;
@@ -267,7 +269,7 @@ export function createKnowledgeService(options: ServiceOptions) {
 
   const originalName = (address: string, kind: DocumentKind): string => {
     try {
-      return cleanFileName(decodeURIComponent(new URL(address).pathname.split('/').pop() ?? ''), kind);
+      return cleanFileName(decodeURIComponent(lastSegment(new URL(address).pathname)), kind);
     } catch {
       return kind;
     }
