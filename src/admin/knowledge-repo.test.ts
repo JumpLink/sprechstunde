@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
+import { DatabaseSync } from 'node:sqlite';
 import { MIGRATIONS, migrate, openDb } from './knowledge-db.js';
 import { createKnowledgeRepo, type TenantRepo } from './knowledge-repo.js';
 
@@ -165,4 +166,73 @@ test('repo: transaction rolls back on a throw', () => {
     }),
   );
   assert.deepEqual(a.sources('v'), []);
+});
+
+test('migrate: widening the source kinds keeps every row and its children', () => {
+  const db = new DatabaseSync(':memory:');
+  db.exec('PRAGMA foreign_keys = ON');
+  db.exec(MIGRATIONS[0]!);
+  db.exec('PRAGMA user_version = 1');
+  db.exec(`INSERT INTO source (tenant_id, id, venue, kind, title, url, created_at)
+    VALUES ('t', 's1', 'v', 'web', 'Menu', 'https://venue.example/', '${AT}')`);
+  db.exec(`INSERT INTO section (tenant_id, id, source_id, url, title, created_at)
+    VALUES ('t', 'sec1', 's1', 'https://venue.example/', 'Menu', '${AT}')`);
+  db.exec(`INSERT INTO revision (tenant_id, section_id, origin, status, title, markdown, sha256, created_at)
+    VALUES ('t', 'sec1', 'fetched', 'pending', 'Menu', '# Menu', 'abc', '${AT}')`);
+
+  migrate(db);
+
+  assert.equal((db.prepare('PRAGMA user_version').get() as { user_version: number }).user_version, MIGRATIONS.length);
+  assert.equal((db.prepare('PRAGMA foreign_keys').get() as { foreign_keys: number }).foreign_keys, 1);
+  const repo = createKnowledgeRepo(db);
+  const t = repo.forTenant('t');
+  assert.equal(t.source('s1')?.title, 'Menu');
+  assert.equal(t.sections('s1').length, 1);
+  assert.equal(t.pending('sec1')?.markdown, '# Menu');
+  assert.equal(t.source('s1')?.ocrSha, null);
+  const pdf = t.createSource({ venue: 'v', kind: 'pdf', title: 'Card', createdAt: AT });
+  assert.equal(pdf.kind, 'pdf');
+  // the children still cascade from the rebuilt table
+  assert.equal(t.deleteSource('s1'), true);
+  assert.equal(t.sections('s1').length, 0);
+  assert.equal((db.prepare('SELECT COUNT(*) AS n FROM revision').get() as { n: number }).n, 0);
+});
+
+test('repo: files keep their order, are per tenant and go with their source', () => {
+  const { a, b } = fresh();
+  const source = a.createSource({ venue: 'v', kind: 'image', title: 'Photos', createdAt: AT });
+  const file = (sha: string, name: string) => ({ sha256: sha, name, mime: 'image/png', bytes: 3 });
+  assert.equal(a.addFile(source.id, file('a'.repeat(64), 'one.png')).position, 1);
+  assert.equal(a.addFile(source.id, file('b'.repeat(64), 'two.png')).position, 2);
+  assert.deepEqual(
+    a.files(source.id).map((entry) => entry.name),
+    ['one.png', 'two.png'],
+  );
+  assert.equal(a.fileUsers('a'.repeat(64)), 1);
+  assert.equal(b.fileUsers('a'.repeat(64)), 0, 'another tenant does not count');
+  assert.deepEqual(b.files(source.id), []);
+  a.setOcr(source.id, 'set', 2);
+  assert.equal(a.source(source.id)?.ocrPages, 2);
+  a.clearFiles(source.id);
+  assert.deepEqual(a.files(source.id), []);
+  a.addFile(source.id, file('c'.repeat(64), 'three.png'));
+  assert.equal(a.deleteSource(source.id), true);
+  assert.equal(a.fileUsers('c'.repeat(64)), 0);
+});
+
+test('repo: only sources with an address are refreshed on a timer', () => {
+  const { a } = fresh();
+  a.createSource({ venue: 'v', kind: 'pdf', title: 'Upload', refreshHours: 24, createdAt: AT });
+  const web = a.createSource({
+    venue: 'v',
+    kind: 'pdf',
+    title: 'Link',
+    url: 'https://venue.example/card.pdf',
+    refreshHours: 24,
+    createdAt: AT,
+  });
+  assert.deepEqual(
+    a.refreshable().map((entry) => entry.id),
+    [web.id],
+  );
 });
