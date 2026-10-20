@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-20 13:47+0200\n"
+"POT-Creation-Date: 2026-10-20 13:59+0200\n"
 "PO-Revision-Date: 2026-10-19 23:10+0200\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -25,6 +25,66 @@ msgstr "der Anbieter antwortete mit %s"
 #, javascript-format
 msgid "the request failed: %s"
 msgstr "die Anfrage ist fehlgeschlagen: %s"
+
+#: src/admin/fetch-safe.ts:184
+msgid "only http and https addresses can be fetched"
+msgstr "es können nur http- und https-Adressen abgerufen werden"
+
+#: src/admin/fetch-safe.ts:187
+msgid "an address with a user name or password is not accepted"
+msgstr "eine Adresse mit Benutzername oder Passwort wird nicht angenommen"
+
+#: src/admin/fetch-safe.ts:191
+msgid "only the default web ports are accepted"
+msgstr "es werden nur die Standard-Webports angenommen"
+
+#: src/admin/fetch-safe.ts:203 src/admin/fetch-safe.ts:206
+msgid "the host name could not be resolved"
+msgstr "der Hostname konnte nicht aufgelöst werden"
+
+#: src/admin/fetch-safe.ts:209
+msgid "this address leads to a private or internal network"
+msgstr "diese Adresse führt in ein privates oder internes Netz"
+
+#: src/admin/fetch-safe.ts:228 src/admin/fetch-safe.ts:234
+msgid "the page is too large"
+msgstr "die Seite ist zu groß"
+
+#: src/admin/fetch-safe.ts:278 src/admin/fetch-safe.ts:304
+msgid "the page took too long to answer"
+msgstr "die Seite hat zu lange nicht geantwortet"
+
+#: src/admin/fetch-safe.ts:279 src/admin/fetch-safe.ts:305
+msgid "the page could not be fetched"
+msgstr "die Seite konnte nicht abgerufen werden"
+
+#: src/admin/fetch-safe.ts:283
+msgid "the page answered with a redirect without a target"
+msgstr "die Seite antwortete mit einer Weiterleitung ohne Ziel"
+
+#: src/admin/fetch-safe.ts:284
+msgid "the page redirects too often"
+msgstr "die Seite leitet zu oft weiter"
+
+#: src/admin/fetch-safe.ts:288
+msgid "the page redirects to an invalid address"
+msgstr "die Seite leitet auf eine ungültige Adresse weiter"
+
+#: src/admin/fetch-safe.ts:293
+msgid "the page answered with an error"
+msgstr "die Seite antwortete mit einem Fehler"
+
+#: src/admin/fetch-safe.ts:297
+msgid "the page is not a kind of document that can be read"
+msgstr "die Seite ist kein Dokument, das sich lesen lässt"
+
+#: src/admin/fetch-safe.ts:350
+msgid "this is not a valid web address"
+msgstr "das ist keine gültige Webadresse"
+
+#: src/admin/fetch-safe.ts:359
+msgid "the site asks robots not to fetch this page"
+msgstr "die Website bittet Roboter, diese Seite nicht abzurufen"
 
 #: src/admin/main.ts:22
 #, javascript-format

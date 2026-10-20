@@ -1,9 +1,12 @@
 src/admin/catalog.ts
+src/admin/fetch-safe.ts
 src/admin/http-error.ts
 src/admin/latency.ts
 src/admin/main.ts
+src/admin/net-guard.ts
 src/admin/preview.ts
 src/admin/profile-store.ts
+src/admin/robots.ts
 src/admin/server.ts
 src/admin/static.ts
 src/agent/assistant.ts
