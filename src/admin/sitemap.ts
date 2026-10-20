@@ -1,4 +1,5 @@
 import * as cheerio from 'cheerio';
+import { matchTokens, tokenize } from './wildcard.js';
 
 export interface Sitemap {
   /** Page addresses (`<url><loc>`). */
@@ -17,19 +18,6 @@ export function parseSitemap(xml: string): Sitemap {
   return { pages: locs('urlset > url > loc'), sitemaps: locs('sitemapindex > sitemap > loc') };
 }
 
-function patternOf(glob: string): RegExp {
-  const body = glob
-    .split('**')
-    .map((part) =>
-      part
-        .split('*')
-        .map((piece) => piece.replace(/[.+?^${}()|[\]\\]/g, '\\$&'))
-        .join('[^/]*'),
-    )
-    .join('.*');
-  return new RegExp(`^${body}$`);
-}
-
 /**
  * Include globs for a sitemap source. `*` stays inside one path segment, `**` crosses them. A glob
  * starting with `/` is matched against the path, any other against the whole address. An empty list
@@ -43,7 +31,7 @@ export function matchesGlobs(address: string, globs: string[]): boolean {
   } catch {
     return false;
   }
-  return globs.some((glob) => patternOf(glob).test(glob.startsWith('/') ? url.pathname : url.href));
+  return globs.some((glob) => matchTokens(tokenize(glob, true), glob.startsWith('/') ? url.pathname : url.href, false));
 }
 
 /** Only pages of the sitemap's own host: a sitemap cannot send the fetcher elsewhere. */

@@ -24,6 +24,7 @@ import {
 } from './knowledge-repo.js';
 import { changed, lineDiff, type DiffLine } from './line-diff.js';
 import { matchesGlobs, parseSitemap, sameHost } from './sitemap.js';
+import { MAX_PATTERN_CHARS } from './wildcard.js';
 
 export const MAX_PAGES = 30;
 export const MAX_SITEMAPS = 3;
@@ -75,6 +76,21 @@ export interface RefreshSummary {
 }
 
 const sha = (text: string): string => createHash('sha256').update(text).digest('hex');
+
+const MAX_GLOBS = 20;
+
+function cleanGlobs(globs: string[]): string[] {
+  const kept = globs.filter((glob) => typeof glob === 'string' && glob.trim() !== '').map((glob) => glob.trim());
+  if (kept.length > MAX_GLOBS)
+    throw new KnowledgeError(400, _('at most %s patterns are allowed').replace('%s', String(MAX_GLOBS)));
+  if (kept.some((glob) => glob.length > MAX_PATTERN_CHARS)) {
+    throw new KnowledgeError(
+      400,
+      _('a pattern may have at most %s characters').replace('%s', String(MAX_PATTERN_CHARS)),
+    );
+  }
+  return kept;
+}
 
 function cleanTitle(value: unknown, fallback: string): string {
   const title = typeof value === 'string' ? value.replace(/\s+/g, ' ').trim() : '';
@@ -243,9 +259,7 @@ export function createKnowledgeService(options: ServiceOptions) {
         kind: input.kind,
         title,
         url,
-        includeGlobs: (input.includeGlobs ?? [])
-          .filter((glob) => typeof glob === 'string' && glob.trim() !== '')
-          .slice(0, 20),
+        includeGlobs: cleanGlobs(input.includeGlobs ?? []),
         excludeSelectors,
         refreshHours,
         autoApprove: input.autoApprove === true,
@@ -396,8 +410,7 @@ export function createKnowledgeService(options: ServiceOptions) {
       const source = need(t.source(sourceId));
       const next: Parameters<TenantRepo['updateSource']>[1] = {};
       if (patch.title !== undefined) next.title = cleanTitle(patch.title, source.title);
-      if (patch.includeGlobs !== undefined)
-        next.includeGlobs = patch.includeGlobs.filter((glob) => glob.trim() !== '').slice(0, 20);
+      if (patch.includeGlobs !== undefined) next.includeGlobs = cleanGlobs(patch.includeGlobs);
       if (patch.excludeSelectors !== undefined) {
         try {
           next.excludeSelectors = checkSelectors(patch.excludeSelectors);

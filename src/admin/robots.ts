@@ -1,3 +1,5 @@
+import { matchTokens, tokenize } from './wildcard.js';
+
 /** A parsed robots.txt, reduced to the rules that apply to one user agent. */
 export interface RobotsRules {
   allowed(path: string): boolean;
@@ -5,21 +7,13 @@ export interface RobotsRules {
 
 interface Rule {
   allow: boolean;
-  pattern: RegExp;
+  tokens: ReturnType<typeof tokenize>;
+  anchored: boolean;
   length: number;
 }
 
 export const ALLOW_ALL: RobotsRules = { allowed: () => true };
 export const DISALLOW_ALL: RobotsRules = { allowed: () => false };
-
-function patternOf(path: string): RegExp {
-  const anchored = path.endsWith('$');
-  const body = (anchored ? path.slice(0, -1) : path)
-    .split('*')
-    .map((part) => part.replace(/[.+?^${}()|[\]\\]/g, '\\$&'))
-    .join('.*');
-  return new RegExp(`^${body}${anchored ? '$' : ''}`);
-}
 
 /**
  * RFC 9309: the group naming our product wins over `*`; inside it the longest matching rule wins
@@ -46,7 +40,13 @@ export function parseRobots(text: string, agent: string): RobotsRules {
     } else if ((field === 'allow' || field === 'disallow') && current) {
       collecting = false;
       if (value !== '') {
-        current.rules.push({ allow: field === 'allow', pattern: patternOf(value), length: value.length });
+        const anchored = value.endsWith('$');
+        current.rules.push({
+          allow: field === 'allow',
+          tokens: tokenize(anchored ? value.slice(0, -1) : value, false),
+          anchored,
+          length: value.length,
+        });
       }
     } else {
       collecting = false;
@@ -59,7 +59,7 @@ export function parseRobots(text: string, agent: string): RobotsRules {
     allowed(path) {
       let best: Rule | undefined;
       for (const rule of rules) {
-        if (!rule.pattern.test(path)) continue;
+        if (!matchTokens(rule.tokens, path, !rule.anchored)) continue;
         if (!best || rule.length > best.length || (rule.length === best.length && rule.allow)) best = rule;
       }
       return best ? best.allow : true;

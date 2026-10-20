@@ -83,6 +83,16 @@ test('addSource refuses bad kinds, addresses and selectors', async () => {
   );
 });
 
+test('sitemap patterns are capped in number and length', async () => {
+  const r = rig({});
+  const bad = (e: unknown) => e instanceof KnowledgeError && e.status === 400;
+  const base = { venue: 'v', kind: 'sitemap', title: 'x', url: 'https://venue.example/sitemap.xml' } as const;
+  await assert.rejects(r.service.addSource(T, { ...base, includeGlobs: ['*a'.repeat(200)] }), bad);
+  await assert.rejects(r.service.addSource(T, { ...base, includeGlobs: Array(21).fill('/a') }), bad);
+  const made = await r.service.addSource(T, base);
+  assert.throws(() => r.service.updateSource(T, made.id, { includeGlobs: ['*a'.repeat(200)] }), bad);
+});
+
 test('a fetched page is pending, not live, until approved', async () => {
   const r = rig({ [URL1]: html('<p>Soup 5</p>') });
   const source = await webSource(r);

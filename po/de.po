@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-20 14:16+0200\n"
+"POT-Creation-Date: 2026-10-20 14:25+0200\n"
 "PO-Revision-Date: 2026-10-19 23:10+0200\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -26,7 +26,7 @@ msgstr "der Anbieter antwortete mit %s"
 msgid "the request failed: %s"
 msgstr "die Anfrage ist fehlgeschlagen: %s"
 
-#: src/admin/fetch-safe.ts:184 src/admin/knowledge-service.ts:93
+#: src/admin/fetch-safe.ts:184 src/admin/knowledge-service.ts:109
 msgid "only http and https addresses can be fetched"
 msgstr "es können nur http- und https-Adressen abgerufen werden"
 
@@ -78,7 +78,7 @@ msgstr "die Seite antwortete mit einem Fehler"
 msgid "the page is not a kind of document that can be read"
 msgstr "die Seite ist kein Dokument, das sich lesen lässt"
 
-#: src/admin/fetch-safe.ts:350 src/admin/knowledge-service.ts:90
+#: src/admin/fetch-safe.ts:350 src/admin/knowledge-service.ts:106
 msgid "this is not a valid web address"
 msgstr "das ist keine gültige Webadresse"
 
@@ -121,47 +121,57 @@ msgstr ""
 "„baseRevisionId“ muss die Revision sein, die die Seite geladen hat, oder null"
 
 #: src/admin/knowledge-service.ts:85
+#, javascript-format
+msgid "at most %s patterns are allowed"
+msgstr "höchstens %s Muster sind erlaubt"
+
+#: src/admin/knowledge-service.ts:89
+#, javascript-format
+msgid "a pattern may have at most %s characters"
+msgstr "ein Muster darf höchstens %s Zeichen haben"
+
+#: src/admin/knowledge-service.ts:101
 msgid "\"url\" must be a web address"
 msgstr "„url“ muss eine Webadresse sein"
 
-#: src/admin/knowledge-service.ts:122
+#: src/admin/knowledge-service.ts:138
 msgid "not found"
 msgstr "nicht gefunden"
 
-#: src/admin/knowledge-service.ts:202
+#: src/admin/knowledge-service.ts:218
 #, javascript-format
 msgid "\"kind\" must be one of: %s"
 msgstr "„kind“ muss einer dieser Werte sein: %s"
 
-#: src/admin/knowledge-service.ts:205
+#: src/admin/knowledge-service.ts:221
 msgid "Notes"
 msgstr "Notizen"
 
-#: src/admin/knowledge-service.ts:205 web/src/pages/Sources.svelte:22
+#: src/admin/knowledge-service.ts:221 web/src/pages/Sources.svelte:22
 msgid "Web page"
 msgstr "Webseite"
 
-#: src/admin/knowledge-service.ts:208 src/admin/knowledge-service.ts:350
+#: src/admin/knowledge-service.ts:224 src/admin/knowledge-service.ts:364
 msgid "the text is too long"
 msgstr "der Text ist zu lang"
 
-#: src/admin/knowledge-service.ts:239 src/admin/knowledge-service.ts:413
+#: src/admin/knowledge-service.ts:255 src/admin/knowledge-service.ts:426
 msgid "\"refreshHours\" must be a whole number of hours, or null"
 msgstr "„refreshHours“ muss eine ganze Zahl von Stunden oder null sein"
 
-#: src/admin/knowledge-service.ts:260
+#: src/admin/knowledge-service.ts:274
 msgid "a text source has nothing to fetch"
 msgstr "eine Textquelle hat nichts abzurufen"
 
-#: src/admin/knowledge-service.ts:325 src/admin/knowledge-service.ts:336
+#: src/admin/knowledge-service.ts:339 src/admin/knowledge-service.ts:350
 msgid "this change was already decided: reload the page"
 msgstr "über diese Änderung ist schon entschieden: Seite neu laden"
 
-#: src/admin/knowledge-service.ts:349
+#: src/admin/knowledge-service.ts:363
 msgid "\"markdown\" must be text"
 msgstr "„markdown“ muss ein Text sein"
 
-#: src/admin/knowledge-service.ts:352
+#: src/admin/knowledge-service.ts:366
 msgid ""
 "this section changed since you loaded it: reload and make the change again"
 msgstr ""
@@ -1513,7 +1523,9 @@ msgstr "Kein Lokalprofil gefunden"
 msgid ""
 "Web pages are fetched, then you decide what goes live. Your own text is live "
 "at once."
-msgstr "Webseiten werden abgerufen, dann entscheidest du, was aktiv wird. Dein eigener Text ist sofort aktiv."
+msgstr ""
+"Webseiten werden abgerufen, dann entscheidest du, was aktiv wird. Dein "
+"eigener Text ist sofort aktiv."
 
 #: web/src/pages/Sources.svelte:205 web/src/pages/Sources.svelte:372
 msgid "Add source"
@@ -1603,7 +1615,8 @@ msgstr "Noch nicht aktiv."
 
 #: web/src/pages/Sources.svelte:344
 msgid "Not live yet: accept the change above to publish it."
-msgstr "Noch nicht aktiv: übernimm die Änderung oben, um sie zu veröffentlichen."
+msgstr ""
+"Noch nicht aktiv: übernimm die Änderung oben, um sie zu veröffentlichen."
 
 #: web/src/pages/Sources.svelte:356
 msgid "What the bot knows"
@@ -1613,7 +1626,9 @@ msgstr "Was der Bot weiß"
 msgid ""
 "Exactly the text the assistant gets from your sources, with where each part "
 "comes from."
-msgstr "Genau der Text, den der Assistent aus deinen Quellen bekommt, mit Herkunft jedes Teils."
+msgstr ""
+"Genau der Text, den der Assistent aus deinen Quellen bekommt, mit Herkunft "
+"jedes Teils."
 
 #: web/src/pages/Sources.svelte:360
 msgid "Nothing yet"
@@ -1625,7 +1640,8 @@ msgstr "Übernommene Quellen erscheinen hier."
 
 #: web/src/pages/Sources.svelte:373
 msgid "Pages are fetched politely: the site's robots.txt is respected."
-msgstr "Seiten werden höflich abgerufen: Die robots.txt der Seite wird beachtet."
+msgstr ""
+"Seiten werden höflich abgerufen: Die robots.txt der Seite wird beachtet."
 
 #: web/src/pages/Sources.svelte:381
 msgid "Kind"
@@ -1683,7 +1699,9 @@ msgstr "Diese Quelle entfernen?"
 msgid ""
 "Its fetched texts and their history are deleted, and the assistant stops "
 "using them."
-msgstr "Ihre abgerufenen Texte und deren Verlauf werden gelöscht, und der Assistent nutzt sie nicht mehr."
+msgstr ""
+"Ihre abgerufenen Texte und deren Verlauf werden gelöscht, und der Assistent "
+"nutzt sie nicht mehr."
 
 #: web/src/pages/characters/CastCard.svelte:42
 msgid "Synthesizing…"

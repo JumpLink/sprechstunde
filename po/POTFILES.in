@@ -17,6 +17,7 @@ src/admin/robots.ts
 src/admin/server.ts
 src/admin/sitemap.ts
 src/admin/static.ts
+src/admin/wildcard.ts
 src/agent/assistant.ts
 src/agent/echo.ts
 src/agent/llm.ts
