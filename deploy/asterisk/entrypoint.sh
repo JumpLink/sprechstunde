@@ -14,6 +14,14 @@ case "$SPRECHSTUNDE_ANSWER_TIMEOUT" in
 esac
 envsubst '${SIP_PROVIDER_HOST} ${SIP_PROVIDER_DOMAIN} ${SIP_PROVIDER_USER} ${SIP_PROVIDER_PASSWORD} ${SIP_PROVIDER_NUMBER} ${SIP_PROVIDER_MEDIA_ENCRYPTION}' \
   < /etc/asterisk/pjsip.conf.template > /etc/asterisk/pjsip.conf
+# RTP range: one variable pair, also what the NAT forward on the router must cover.
+RTP_START="${SIP_RTP_START:-12000}"
+RTP_END="${SIP_RTP_END:-12100}"
+for v in "$RTP_START" "$RTP_END"; do
+  case "$v" in ''|*[!0-9]*) echo "SIP_RTP_START and SIP_RTP_END must be port numbers" >&2; exit 1 ;; esac
+done
+[ "$RTP_START" -lt "$RTP_END" ] && [ "$RTP_END" -le 65535 ] || { echo "SIP_RTP_START must be below SIP_RTP_END (at most 65535)" >&2; exit 1; }
+sed -i "s/^rtpstart=.*/rtpstart=${RTP_START}/;s/^rtpend=.*/rtpend=${RTP_END}/" /etc/asterisk/rtp.conf
 # IPv6 avoids NAT entirely: a FRITZ!Box rewrites the RTP source port even for forwarded ports,
 # and 1&1's media relay then neither accepts our audio nor sends its own.
 if [ "${SIP_PROVIDER_IPV6:-no}" = "yes" ]; then
@@ -22,8 +30,16 @@ if [ "${SIP_PROVIDER_IPV6:-no}" = "yes" ]; then
 # Behind NAT (e.g. a home router) the SDP must carry the public address: the provider sends its
 # audio there and drops ours when it comes from an address the SDP did not announce.
 elif [ -n "${SIP_PUBLIC_ADDRESS:-}" ]; then
-  sed -i "/^\[transport-tls-provider\]/a external_media_address=${SIP_PUBLIC_ADDRESS}\nlocal_net=127.0.0.0/8\nlocal_net=10.0.0.0/8\nlocal_net=172.16.0.0/12\nlocal_net=192.168.0.0/16" \
-    /etc/asterisk/pjsip.conf
+  # SIP_LOCAL_NET: comma-separated CIDRs that need no rewriting; default is every private range.
+  nets=""
+  for net in $(echo "${SIP_LOCAL_NET:-127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16}" | tr ',' ' '); do
+    nets="${nets}\nlocal_net=${net}"
+  done
+  sed -i "/^\[transport-tls-provider\]/a external_media_address=${SIP_PUBLIC_ADDRESS}${nets}" /etc/asterisk/pjsip.conf
+  # Optional: the address the provider should send SIP to, when it differs from the media one.
+  if [ -n "${SIP_PUBLIC_SIGNALING_ADDRESS:-}" ]; then
+    sed -i "/^\[transport-tls-provider\]/a external_signaling_address=${SIP_PUBLIC_SIGNALING_ADDRESS}" /etc/asterisk/pjsip.conf
+  fi
 fi
 # extensions.conf reads these via ${ENV(...)}
 chown asterisk:asterisk /etc/asterisk/pjsip.conf
