@@ -1,5 +1,7 @@
 src/admin/catalog.ts
 src/admin/fetch-safe.ts
+src/admin/file-kinds.ts
+src/admin/file-store.ts
 src/admin/html-markdown.ts
 src/admin/http-error.ts
 src/admin/knowledge-api.ts
