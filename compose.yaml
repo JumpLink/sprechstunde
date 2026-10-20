@@ -76,7 +76,7 @@ services:
       POCKET_MAX_SESSIONS: "${POCKET_MAX_SESSIONS:-}"
       POCKET_VOICE: "${POCKET_VOICE:-juergen}"
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8090/health')"]
+      test: ["CMD", "python", "-c", "__import__('urllib.request').request.urlopen('http://127.0.0.1:8090/health')"]
       interval: 30s
       start_period: 60s
     restart: unless-stopped
@@ -128,7 +128,7 @@ services:
       - ./var/profiles:/app/var/profiles:ro,z
       - ./var/transcripts:/app/var/transcripts:z
     healthcheck:
-      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8081/').then((r) => process.exit(r.ok ? 0 : 1), () => process.exit(1))"]
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8081/').then((r)=>process.exit(r.ok?0:1),()=>process.exit(1))"]
       interval: 30s
       start_period: 30s
     depends_on: [livekit]

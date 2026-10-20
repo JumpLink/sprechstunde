@@ -19,6 +19,18 @@ test('server compose: the boot unit starts the same two files the runbook names'
   assert.match(unit, /ExecStop=.*compose -f compose\.yaml -f compose\.server\.yaml --profile agent down/);
 });
 
+test('compose: health-check arguments carry no spaces', () => {
+  // docker-compose talking to Podman's socket splits each CMD argument at spaces, so `node -e`
+  // and `python -c` got fragments and both services stayed unhealthy on the server.
+  const tests = read('compose.yaml').match(/^\s+test: \[.*\]$/gm) ?? [];
+  assert.ok(tests.length >= 2);
+  for (const line of tests) {
+    for (const arg of JSON.parse(line.replace(/^\s+test: /, '')) as string[]) {
+      assert.doesNotMatch(arg, /\s/, `health-check argument with a space: ${arg}`);
+    }
+  }
+});
+
 test('env.example names every variable the compose files read for the provider leg', () => {
   const example = read('.env.example');
   for (const name of [
