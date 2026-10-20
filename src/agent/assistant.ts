@@ -6,15 +6,15 @@ import * as mistral from '@livekit/agents-plugin-mistralai';
 import type { Mistral } from '@mistralai/mistralai';
 import * as silero from '@livekit/agents-plugin-silero';
 import { ParticipantKind } from '@livekit/rtc-node';
-import { buildInstructions } from '../core/prompt.js';
+import { buildInstructions, personaOf } from '../core/prompt.js';
 import { type Profile, withAssistantName } from '../core/profile.js';
-import type { Settings } from '../core/settings.js';
+import type { Character } from '../core/settings.js';
 import { TRANSFER_TOOL, transferOverride, transferRequest } from '../core/tools.js';
 import { _ } from '../i18n.js';
 import { mistralClient } from '../mistral.js';
 import { buildLlm, llmFallbackModel, llmModel } from './llm.js';
 import { recordCallConfig, recordMetrics } from './metrics.js';
-import { currentSettings, profileForCall } from './settings.js';
+import { characterForCall, currentSettings, profileForCall } from './settings.js';
 import { attachTranscript, transcriptDir } from './transcript.js';
 import { transferSipParticipant } from './transfer.js';
 import { StallGuardSTT } from './stt-guard.js';
@@ -77,7 +77,9 @@ function startCpuProfile(jobId: string): (() => Promise<void>) | undefined {
 }
 
 export async function prewarm(proc: JobProcess): Promise<void> {
-  proc.userData.vad = await silero.VAD.load({ minSilenceDuration: VAD_MIN_SILENCE_MS });
+  proc.userData.vad = await silero.VAD.load({
+    minSilenceDuration: VAD_MIN_SILENCE_MS,
+  });
 }
 
 /**
@@ -92,7 +94,12 @@ function buildStt(client: Mistral, vad: silero.VAD, language: string): stt.STT {
     sttInstances: [
       new StallGuardSTT(
         // Without `vad` the plugin loads its own Silero per call, which blocks the event loop.
-        new mistral.STT({ client, model: process.env.SPRECHSTUNDE_STT_MODEL || DEFAULT_STT_MODEL, language, vad }),
+        new mistral.STT({
+          client,
+          model: process.env.SPRECHSTUNDE_STT_MODEL || DEFAULT_STT_MODEL,
+          language,
+          vad,
+        }),
         STT_STALL_MS,
         batch(),
       ),
@@ -131,9 +138,9 @@ function buildTts(client: Mistral, profile: Profile, choice: TtsChoice): tts.TTS
 async function voiceForCall(
   client: Mistral,
   profile: Profile,
-  settings: Settings | undefined,
+  character: Character | undefined,
 ): Promise<{ tts: tts.TTS; choice: TtsChoice; release?: () => Promise<void> }> {
-  const { primary, fallback } = ttsChoices(settings);
+  const { primary, fallback } = ttsChoices(character);
   if (!fallback) return { tts: buildTts(client, profile, primary), choice: primary };
 
   let release: (() => Promise<void>) | undefined;
@@ -164,8 +171,9 @@ export async function runAssistant(ctx: JobContext, startProfile: Profile): Prom
   // Read once per call: the voice must not change halfway through because the UI was used.
   const settings = currentSettings();
   const venue = profileForCall(startProfile, settings);
-  const speech = await voiceForCall(client, venue, settings);
-  // Each voice may carry its own name; greeting, prompt and announcements follow the voice.
+  const character = characterForCall(settings, venue);
+  const speech = await voiceForCall(client, venue, character);
+  // Each character carries its own name; greeting, prompt and announcements follow it.
   const profile = withAssistantName(venue, speech.choice.name);
 
   // No fact lookup tool: the facts are in the instructions, and a tool call costs a second LLM
@@ -216,7 +224,7 @@ export async function runAssistant(ctx: JobContext, startProfile: Profile): Prom
   recordCallConfig({
     jobId: ctx.job?.id,
     profile: venue.id,
-    ttsPreset: speech.choice.preset,
+    character: speech.choice.character,
     ttsProvider: speech.choice.provider,
     llmModel: llmModel(settings),
     llmFallbackModel: llmFallbackModel(settings),
@@ -242,7 +250,10 @@ export async function runAssistant(ctx: JobContext, startProfile: Profile): Prom
   });
 
   await session.start({
-    agent: new voice.Agent({ instructions: buildInstructions(profile, new Date()), tools }),
+    agent: new voice.Agent({
+      instructions: buildInstructions(profile, new Date(), personaOf(character)),
+      tools,
+    }),
     room: ctx.room,
   });
   session.say(profile.greeting);

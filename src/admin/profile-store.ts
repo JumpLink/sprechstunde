@@ -52,6 +52,8 @@ export interface ProfileDraft {
 
   transferTarget?: string;
   fallback: string | null;
+  /** The venue's character id; null takes it off (the default character speaks), absent leaves it as it is. */
+  character?: string | null;
 }
 
 /** The same fields as the page gets them: the target only as far as `maskTransferTarget` shows it. */
@@ -62,6 +64,7 @@ export interface DraftView {
   facts: DraftFact[];
   transfer: { announce: string; targetMasked: string } | null;
   fallback: string | null;
+  character: string | null;
 }
 
 export interface HistoryEntry {
@@ -132,6 +135,12 @@ export function parseDraft(raw: unknown): ProfileDraft {
   }
   const fallback =
     raw.fallback === null || raw.fallback === undefined || raw.fallback === '' ? null : text(raw.fallback, 'fallback');
+  const character =
+    raw.character === undefined
+      ? undefined
+      : raw.character === null || raw.character === ''
+        ? null
+        : text(raw.character, 'character');
   return {
     assistantName: text(raw.assistantName, 'assistantName'),
     greeting: text(raw.greeting, 'greeting'),
@@ -140,6 +149,7 @@ export function parseDraft(raw: unknown): ProfileDraft {
     transfer,
     ...(transferTarget && { transferTarget }),
     fallback,
+    ...(character !== undefined && { character }),
   };
 }
 
@@ -170,7 +180,11 @@ export function applyDraft(raw: Raw, draft: ProfileDraft, name: string): { json:
   const oldFacts = Array.isArray(raw.facts) ? raw.facts : [];
   next.facts = draft.facts.map((fact) => {
     const old = fact.origin === undefined ? undefined : oldFacts[fact.origin];
-    return { ...(isRecord(old) ? old : {}), topic: fact.topic, answer: fact.answer };
+    return {
+      ...(isRecord(old) ? old : {}),
+      topic: fact.topic,
+      answer: fact.answer,
+    };
   });
   if (draft.transfer === null) {
     delete next.transfer;
@@ -184,6 +198,8 @@ export function applyDraft(raw: Raw, draft: ProfileDraft, name: string): { json:
   }
   if (draft.fallback === null) delete next.fallback;
   else next.fallback = draft.fallback;
+  if (draft.character === null) delete next.character;
+  else if (draft.character !== undefined) next.character = draft.character;
   try {
     return { json: next, profile: parseProfile(next, name) };
   } catch (error) {
@@ -198,9 +214,13 @@ export function draftView(profile: Profile): DraftView {
     instructions: profile.instructions,
     facts: profile.facts.map((fact, origin) => ({ ...fact, origin })),
     transfer: profile.transfer
-      ? { announce: profile.transfer.announce, targetMasked: maskTransferTarget(profile.transfer.target) }
+      ? {
+          announce: profile.transfer.announce,
+          targetMasked: maskTransferTarget(profile.transfer.target),
+        }
       : null,
     fallback: profile.fallback ?? null,
+    character: profile.character ?? null,
   };
 }
 
@@ -345,7 +365,10 @@ export function createProfileStore(env: NodeJS.ProcessEnv, now: () => Date = () 
       const json: Raw = { ...source };
       // A reference clip is relative to the file it sits in; the copy lives elsewhere.
       if (isRecord(source.voice) && typeof source.voice.refAudio === 'string') {
-        json.voice = { ...source.voice, refAudio: resolve(sourceDir, source.voice.refAudio) };
+        json.voice = {
+          ...source.voice,
+          refAudio: resolve(sourceDir, source.voice.refAudio),
+        };
       }
       try {
         parseProfile(json, file);

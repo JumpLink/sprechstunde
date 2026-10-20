@@ -1,6 +1,6 @@
 /**
  * What the metrics files say about the voices: the latency lines of `src/agent/metrics.ts`, cut
- * into calls and attributed to the preset each call ran with.
+ * into calls and attributed to the character each call ran with.
  *
  * The agent writes one `call_config` line at the start of a call and latency lines after it, so a
  * `call_config` starts a new call here. Lines without one in front of them (an older file, or a
@@ -36,8 +36,8 @@ export interface Call {
   start: number;
   seconds: number;
   lines: number;
-  /** Preset id, or `undefined` when the environment decided the voice. */
-  preset?: string;
+  /** Character id, or `undefined` when the environment decided the voice. */
+  character?: string;
   provider?: string;
   llmModel?: string;
   /** Measured values per metric name, so several calls can be summarized together. */
@@ -117,7 +117,8 @@ export function callsFrom(lines: readonly Line[], gapMs = CALL_GAP_MS): Call[] {
     last = line.ts;
     call.seconds = Math.round((line.ts - call.start) / 1000);
     if (line.type === 'call_config') {
-      call.preset = text(line, 'ttsPreset');
+      // `ttsPreset` is what lines wrote before characters; a preset's id became its character's id.
+      call.character = text(line, 'character') ?? text(line, 'ttsPreset');
       call.provider = text(line, 'ttsProvider');
       call.llmModel = text(line, 'llmModel');
       continue;
@@ -140,27 +141,32 @@ export function summarizeCall(call: Call): Record<string, Summary> {
   return result;
 }
 
-export interface PresetLatency {
-  /** Preset id, or `undefined` for the calls the environment configured. */
-  preset?: string;
+export interface CharacterLatency {
+  /** Character id, or `undefined` for the calls the environment configured. */
+  character?: string;
   calls: number;
   provider?: string;
   summary: Record<string, Summary>;
 }
 
-/** One row per preset, over all given calls. Most calls first. */
-export function byPreset(calls: readonly Call[]): PresetLatency[] {
-  const rows = new Map<string, PresetLatency & { values: Record<string, number[]> }>();
+/** One row per character, over all given calls. Most calls first. */
+export function byCharacter(calls: readonly Call[]): CharacterLatency[] {
+  const rows = new Map<string, CharacterLatency & { values: Record<string, number[]> }>();
   for (const call of calls) {
-    const key = call.preset ?? '';
+    const key = call.character ?? '';
     let row = rows.get(key);
     if (!row) {
-      row = { ...(call.preset && { preset: call.preset }), calls: 0, summary: {}, values: {} };
+      row = {
+        ...(call.character && { character: call.character }),
+        calls: 0,
+        summary: {},
+        values: {},
+      };
       for (const name of METRIC_NAMES) row.values[name] = [];
       rows.set(key, row);
     }
     row.calls++;
-    // The provider of the most recent call; a preset that changed vendor is a new preset in
+    // The provider of the most recent call; a character that changed vendor is a new character in
     // practice, and the id is what the operator recognises.
     row.provider ??= call.provider;
     for (const name of METRIC_NAMES) row.values[name]!.push(...(call.values[name] ?? []));

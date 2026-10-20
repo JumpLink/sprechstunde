@@ -1,6 +1,6 @@
 /**
- * The settings UI as a small HTTP server: presets, which of them is active, the LLM models, a
- * preview that plays a voice, and what the metrics say about the voices used so far.
+ * The settings UI as a small HTTP server: characters and which of them is the default, the LLM
+ * models, a preview that plays a voice, and what the metrics say about the voices used so far.
  *
  * It binds to the loopback interface and has no login: whoever can reach it may change the voice
  * of every call. Two things follow, and both are checked here rather than assumed:
@@ -12,14 +12,17 @@ import { readFileSync } from 'node:fs';
 import { basename, dirname, resolve } from 'node:path';
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
 import {
-  type ActiveSlot,
+  CHARACTER_ID,
+  characterFor,
+  DEFAULT_TENANT,
   emptySettings,
+  findCharacter,
   parseSettings,
   readSettings,
+  RESERVED_CHARACTER_ID,
   type Settings,
   TTS_PROVIDERS,
   writeSettings,
-  PRESET_ID,
   profileFilePath,
   profilesDir,
 } from '../core/settings.js';
@@ -32,15 +35,15 @@ import {
   tryParseJson,
   withAssistantName,
 } from '../core/profile.js';
-import { buildInstructions } from '../core/prompt.js';
+import { buildInstructions, type Persona, personaOf } from '../core/prompt.js';
 import { transferOverride } from '../core/tools.js';
 import { profileForCall } from '../agent/settings.js';
-import { choiceFromPreset, type TtsChoice, ttsChoice, ttsChoices, ttsFallbackChoice } from '../agent/tts-provider.js';
+import { choiceFromVoice, type TtsChoice, ttsChoice, ttsFallbackChoice } from '../agent/tts-provider.js';
 import { _ } from '../i18n.js';
 import { CATALOG_TARGETS, type CatalogService, type CatalogTarget, createCatalog } from './catalog.js';
-import { byPreset, callsFrom, METRIC_NAMES, readMetrics, summarizeCall } from './latency.js';
+import { byCharacter, callsFrom, METRIC_NAMES, readMetrics, summarizeCall } from './latency.js';
 import { HttpError } from './http-error.js';
-import { applyDraft, createProfileStore, draftView, parseDraft } from './profile-store.js';
+import { applyDraft, createProfileStore, draftView, parseDraft, revisionOf } from './profile-store.js';
 import { findWebDir, serveStatic } from './static.js';
 import { previewWav, type Synthesizer } from './preview.js';
 
@@ -52,7 +55,7 @@ const MAX_BODY_BYTES = 256 * 1024;
 /** Calls shown in the latency table. More would be a log, not an overview. */
 const RECENT_CALLS = 25;
 const CATALOG_PREFIX = '/api/catalog/';
-const PRESET_PREFIX = '/api/presets/';
+const CHARACTER_PREFIX = '/api/characters/';
 const PROFILE_PREFIX = '/api/profiles/';
 
 /** A preview is a sentence or two; more is credit spent on a vendor for nothing. */
@@ -178,7 +181,10 @@ async function fetchSample(fetcher: typeof fetch, address: string): Promise<{ ty
   if (!address.startsWith('https://')) throw bad();
   let upstream: Response;
   try {
-    upstream = await fetcher(address, { signal: AbortSignal.timeout(SAMPLE_TIMEOUT_MS), redirect: 'manual' });
+    upstream = await fetcher(address, {
+      signal: AbortSignal.timeout(SAMPLE_TIMEOUT_MS),
+      redirect: 'manual',
+    });
   } catch {
     throw bad();
   }
@@ -215,19 +221,21 @@ export function createAdminServer(options: AdminOptions): Server {
     if (!path) return { editable: false as const };
     try {
       const { revision } = store.readRaw(file);
-      return { editable: true as const, revision, draft: draftView(loadProfile(path)) };
+      return {
+        editable: true as const,
+        revision,
+        draft: draftView(loadProfile(path)),
+      };
     } catch {
       return { editable: false as const };
     }
   };
 
-  /** A call greets by the name of its voice, and the prompt follows (see `runAssistant`). */
-  const voiceName = (settings: Settings): string | undefined => {
-    try {
-      return ttsChoices(settings, env).primary.name;
-    } catch {
-      return undefined; // no voice configured: the profile's own name stands
-    }
+  /** A call speaks as the venue's character: its name replaces the venue's, and its tone and gender shape the prompt. */
+  const speaker = (settings: Settings, profile: Profile): { name?: string; persona?: Persona } => {
+    const { character } = characterFor(settings, profile.character);
+    if (!character) return {}; // no character: the profile's own name stands
+    return { name: character.name, persona: personaOf(character) };
   };
 
   const startRaw = (): { raw: Record<string, unknown>; dir: string } => {
@@ -267,9 +275,16 @@ export function createAdminServer(options: AdminOptions): Server {
   };
 
   /** The voice the environment configures, shown while no preset is active. */
-  const envVoice = (): { primary?: TtsChoice; fallback?: TtsChoice; error?: string } => {
+  const envVoice = (): {
+    primary?: TtsChoice;
+    fallback?: TtsChoice;
+    error?: string;
+  } => {
     try {
-      return { primary: ttsChoice(env), ...(ttsFallbackChoice(env) && { fallback: ttsFallbackChoice(env) }) };
+      return {
+        primary: ttsChoice(env),
+        ...(ttsFallbackChoice(env) && { fallback: ttsFallbackChoice(env) }),
+      };
     } catch (error) {
       return { error: (error as Error).message };
     }
@@ -303,7 +318,7 @@ export function createAdminServer(options: AdminOptions): Server {
     };
   };
 
-  /** A voice that is not saved as a preset (a catalog entry being tried): same validation as a preset. */
+  /** A voice that is not saved as a character (a catalog entry being tried): same validation as a character's. */
   const choiceFromInline = (inline: Record<string, unknown>): TtsChoice => {
     if (!(TTS_PROVIDERS as readonly unknown[]).includes(inline.provider)) {
       throw new HttpError(400, _('"provider" must be one of: %s').replace('%s', TTS_PROVIDERS.join(', ')));
@@ -311,30 +326,137 @@ export function createAdminServer(options: AdminOptions): Server {
     const model = plainField(inline.model, 'model');
     const voice = plainField(inline.voice, 'voice');
     try {
-      const { presets } = parseSettings(
+      const { characters } = parseSettings(
         {
-          presets: [{ id: 'preview', label: 'preview', provider: inline.provider, model, voice }],
+          schemaVersion: 2,
+          characters: [
+            {
+              id: 'preview',
+              name: 'preview',
+              gender: 'neutral',
+              voice: { provider: inline.provider, model, voice },
+            },
+          ],
         },
         options.settingsPath,
       );
-      return choiceFromPreset(presets[0]!);
+      return choiceFromVoice(characters[0]!.voice, { id: 'preview' });
     } catch (error) {
       throw new HttpError(400, (error as Error).message);
     }
   };
 
-  const choiceFor = (settings: Settings, preset: string | undefined): TtsChoice => {
-    if (!preset) {
+  const choiceFor = (settings: Settings, characterId: string | undefined): TtsChoice => {
+    if (!characterId) {
       const voice = envVoice();
       if (!voice.primary) throw new HttpError(400, voice.error ?? _('no voice is configured'));
       return voice.primary;
     }
-    const found = settings.presets.find((entry) => entry.id === preset);
-    if (!found) throw new HttpError(404, _('no preset with id %s').replace('%s', preset));
+    const found = findCharacter(settings, DEFAULT_TENANT, characterId);
+    if (!found) throw new HttpError(404, _('no character with id %s').replace('%s', characterId));
     try {
-      return choiceFromPreset(found);
+      return choiceFromVoice(found.voice, { id: found.id, name: found.name });
     } catch (error) {
       throw new HttpError(400, (error as Error).message);
+    }
+  };
+
+  const revisionOfCharacters = (settings: Settings): string =>
+    revisionOf(JSON.stringify([settings.characters, settings.defaultCharacter ?? null]));
+
+  /** Every venue that can speak: each profile file, and the one the worker starts with. */
+  const venues = (): Array<{
+    file: string | null;
+    id: string;
+    name?: string;
+    character?: string;
+  }> => {
+    const list: Array<{
+      file: string | null;
+      id: string;
+      name?: string;
+      character?: string;
+    }> = [];
+    try {
+      for (const entry of listProfiles(profilesDir(env))) {
+        if (entry.error) continue;
+        list.push({
+          file: entry.file,
+          id: entry.id,
+          name: entry.name,
+          character: entry.character,
+        });
+      }
+    } catch {
+      // an unreadable profiles directory is reported by /api/profiles
+    }
+    try {
+      const start = (options.loadStartProfile ?? (() => loadProfile()))();
+      list.push({
+        file: null,
+        id: start.id,
+        name: start.assistantName,
+        character: start.character,
+      });
+    } catch {
+      // no start profile to name
+    }
+    return list;
+  };
+
+  const charactersView = () => {
+    const settings = current();
+    const all = venues();
+    return {
+      tenantId: DEFAULT_TENANT,
+      revision: revisionOfCharacters(settings),
+      default: settings.defaultCharacter ?? null,
+      characters: settings.characters
+        .filter((character) => character.tenantId === DEFAULT_TENANT)
+        .map((character) => ({
+          ...character,
+          usedBy: all
+            .filter((venue) => characterFor(settings, venue.character).character?.id === character.id)
+            .map((venue) => ({
+              file: venue.file,
+              id: venue.id,
+              name: venue.name,
+              explicit: venue.character === character.id,
+            })),
+        })),
+    };
+  };
+
+  const MAX_CHARACTERS = 200;
+  const PALETTE = ['#2563eb', '#db2777', '#059669', '#d97706', '#7c3aed', '#0891b2', '#dc2626', '#4d7c0f'];
+
+  const slug = (name: string): string => {
+    const base = name
+      .normalize('NFD')
+      .replace(new RegExp('[\\u0300-\\u036f]', 'g'), '')
+      .toLowerCase()
+      .replace(new RegExp('[^a-z0-9]+', 'g'), '-')
+      .replace(new RegExp('^-+|-+$', 'g'), '');
+    return base || 'character';
+  };
+
+  /** The fields a client may set; tenant and any other key are ours to decide. */
+  const characterFields = (wanted: Record<string, unknown>) => ({
+    ...(wanted.name !== undefined && { name: wanted.name }),
+    gender: wanted.gender,
+    ...(wanted.genderUnknown === true ? { genderUnknown: true } : {}),
+    voice: wanted.voice,
+    ...(wanted.fallbackVoice ? { fallbackVoice: wanted.fallbackVoice } : {}),
+    ...(wanted.tone ? { tone: wanted.tone } : {}),
+    ...(wanted.color ? { color: wanted.color } : {}),
+  });
+
+  const requireRevision = (settings: Settings, revision: unknown): void => {
+    if (typeof revision !== 'string' || revision === '') {
+      throw new HttpError(400, _('"revision" must be the revision the page loaded'));
+    }
+    if (revision !== revisionOfCharacters(settings)) {
+      throw new HttpError(409, _('the characters changed since you loaded them: reload and make the change again'));
     }
   };
 
@@ -346,18 +468,20 @@ export function createAdminServer(options: AdminOptions): Server {
     }
     const url = new URL(request.url ?? '/', `http://${request.headers.host}`);
     const path = url.pathname;
-    const rawPresetId =
-      path.startsWith(PRESET_PREFIX) && path.length > PRESET_PREFIX.length
-        ? path.slice(PRESET_PREFIX.length)
+    const rawCharacterId =
+      path.startsWith(CHARACTER_PREFIX) && path.length > CHARACTER_PREFIX.length
+        ? path.slice(CHARACTER_PREFIX.length)
         : undefined;
-    let presetId: string | undefined;
-    if (rawPresetId !== undefined) {
+    let characterId: string | undefined;
+    if (rawCharacterId !== undefined) {
       try {
-        presetId = decodeURIComponent(rawPresetId);
+        characterId = decodeURIComponent(rawCharacterId);
       } catch {
-        presetId = undefined;
+        characterId = undefined;
       }
-      if (presetId === undefined || !PRESET_ID.test(presetId)) throw new HttpError(400, _('invalid preset id'));
+      if (characterId === undefined || !CHARACTER_ID.test(characterId)) {
+        throw new HttpError(400, _('invalid character id'));
+      }
     }
 
     if (method === 'GET' && path === '/api/state') return json(response, 200, state());
@@ -367,12 +491,12 @@ export function createAdminServer(options: AdminOptions): Server {
       const calls = callsFrom(lines);
       return json(response, 200, {
         skipped,
-        presets: byPreset(calls),
+        characters: byCharacter(calls),
         calls: calls.slice(0, RECENT_CALLS).map((call) => ({
           start: new Date(call.start).toISOString(),
           seconds: call.seconds,
           lines: call.lines,
-          preset: call.preset,
+          character: call.character,
           provider: call.provider,
           llmModel: call.llmModel,
           summary: summarizeCall(call),
@@ -460,7 +584,12 @@ export function createAdminServer(options: AdminOptions): Server {
       }
       const shown = file ?? (source === 'active' ? settings.profile : null) ?? null;
       return json(response, 200, {
-        ...describeKnowledge(withAssistantName(profile, voiceName(settings)), new Date(), transferOverride(env)),
+        ...describeKnowledge(
+          withAssistantName(profile, speaker(settings, profile).name),
+          new Date(),
+          transferOverride(env),
+          speaker(settings, profile).persona,
+        ),
         file: shown,
         source,
         ...editing(shown),
@@ -472,8 +601,10 @@ export function createAdminServer(options: AdminOptions): Server {
       if (typeof wanted.file !== 'string') throw new HttpError(400, _('"file" must be a file name'));
       const { raw } = store.readRaw(wanted.file);
       const { profile } = applyDraft(raw, parseDraft(wanted.draft), wanted.file);
+      const settings = current();
+      const { name, persona } = speaker(settings, profile);
       return json(response, 200, {
-        systemPrompt: buildInstructions(withAssistantName(profile, voiceName(current())), new Date()),
+        systemPrompt: buildInstructions(withAssistantName(profile, name), new Date(), persona),
       });
     }
 
@@ -498,6 +629,10 @@ export function createAdminServer(options: AdminOptions): Server {
       const [file = '', action, ...extra] = parts;
       if (extra.length === 0 && action === undefined && method === 'PUT') {
         const wanted = body(await readBody(request));
+        const picked = isRecord(wanted.draft) ? wanted.draft.character : undefined;
+        if (typeof picked === 'string' && picked !== '' && !findCharacter(current(), DEFAULT_TENANT, picked)) {
+          throw new HttpError(400, _('no character with id %s').replace('%s', picked));
+        }
         return json(response, 200, store.save(file, wanted.revision, wanted.draft));
       }
       if (extra.length === 0 && action === 'history' && method === 'GET') {
@@ -534,72 +669,102 @@ export function createAdminServer(options: AdminOptions): Server {
       );
     }
 
-    if (method === 'POST' && path === '/api/presets') {
-      const preset = body(await readBody(request));
-      return json(
-        response,
-        201,
-        update((settings) => ({ ...settings, presets: [...settings.presets, preset] })),
-      );
-    }
+    if (method === 'GET' && path === '/api/characters') return json(response, 200, charactersView());
 
-    if (method === 'PUT' && presetId) {
-      const preset = body(await readBody(request));
-      return json(
-        response,
-        200,
-        update((settings) => {
-          if (!settings.presets.some((entry) => entry.id === presetId)) {
-            throw new HttpError(404, _('no preset with id %s').replace('%s', presetId));
-          }
-          const renamed = slot(preset.id);
-          const active = { ...settings.active };
-          // A renamed preset keeps its place: `active` points at ids, and dropping the voice
-          // mid-edit would silently move the next call to another one.
-          for (const key of ['primary', 'fallback'] as ActiveSlot[]) {
-            if (active[key] === presetId && renamed) active[key] = renamed;
-          }
-          return {
-            ...settings,
-            active,
-            presets: settings.presets.map((entry) => (entry.id === presetId ? preset : entry)),
-          };
-        }),
-      );
-    }
-
-    if (method === 'DELETE' && presetId) {
-      return json(
-        response,
-        200,
-        update((settings) => {
-          const presets = settings.presets.filter((entry) => entry.id !== presetId);
-          const active: Settings['active'] = {};
-          for (const key of ['primary', 'fallback'] as ActiveSlot[]) {
-            const id = settings.active[key];
-            if (id && id !== presetId && presets.some((entry) => entry.id === id)) active[key] = id;
-          }
-          // A fallback without a primary is not a configuration the agent can read (see
-          // `parseSettings`): deleting the primary drops the pair.
-          if (!active.primary) delete active.fallback;
-          return { ...settings, presets, active };
-        }),
-      );
-    }
-
-    if (method === 'PUT' && path === '/api/active') {
+    if (method === 'POST' && path === '/api/characters') {
       const wanted = body(await readBody(request));
-      return json(
-        response,
-        200,
-        update((settings) => ({
-          ...settings,
-          active: {
-            ...(slot(wanted.primary) && { primary: slot(wanted.primary) }),
-            ...(slot(wanted.fallback) && { fallback: slot(wanted.fallback) }),
-          },
-        })),
-      );
+      const settings = current();
+      if (settings.characters.length >= MAX_CHARACTERS) {
+        throw new HttpError(400, _('there are too many characters'));
+      }
+      const taken = (id: string) => Boolean(findCharacter(settings, DEFAULT_TENANT, id));
+      let id: string;
+      if (wanted.id !== undefined && wanted.id !== '') {
+        if (typeof wanted.id !== 'string') throw new HttpError(400, _('invalid character id'));
+        id = wanted.id;
+        if (taken(id)) throw new HttpError(409, _('a character with this id already exists'));
+      } else {
+        const base = slug(typeof wanted.name === 'string' ? wanted.name : '');
+        const free = (n: number) => (n === 1 ? base : `${base}-${n}`);
+        let n = 1;
+        while (taken(free(n)) || free(n) === RESERVED_CHARACTER_ID) n++;
+        id = free(n);
+      }
+      const character = {
+        ...characterFields(wanted),
+        id,
+        tenantId: DEFAULT_TENANT,
+        color:
+          typeof wanted.color === 'string' && wanted.color
+            ? wanted.color
+            : PALETTE[settings.characters.length % PALETTE.length],
+      };
+      const next = update((before) => ({
+        ...before,
+        characters: [...before.characters, character],
+        // The first character is the one every venue speaks as until another is picked.
+        ...(!before.defaultCharacter && { defaultCharacter: id }),
+      }));
+      return json(response, 201, {
+        ...charactersView(),
+        created: findCharacter(next, DEFAULT_TENANT, id),
+      });
+    }
+
+    if (method === 'PUT' && path === '/api/characters/default') {
+      const wanted = body(await readBody(request));
+      requireRevision(current(), wanted.revision);
+      const id = slot(wanted.id) ?? '';
+      if (!findCharacter(current(), DEFAULT_TENANT, id)) {
+        throw new HttpError(404, _('no character with id %s').replace('%s', id));
+      }
+      update((settings) => ({ ...settings, defaultCharacter: id }));
+      return json(response, 200, charactersView());
+    }
+
+    if (method === 'PUT' && characterId) {
+      const wanted = body(await readBody(request));
+      requireRevision(current(), wanted.revision);
+      const existing = findCharacter(current(), DEFAULT_TENANT, characterId);
+      if (!existing) throw new HttpError(404, _('no character with id %s').replace('%s', characterId));
+      if (wanted.id !== undefined && wanted.id !== characterId) {
+        throw new HttpError(400, _('a character keeps its id'));
+      }
+      update((settings) => ({
+        ...settings,
+        characters: settings.characters.map((entry) =>
+          entry.tenantId === existing.tenantId && entry.id === existing.id
+            ? {
+                ...characterFields({ color: entry.color, ...wanted }),
+                id: entry.id,
+                tenantId: entry.tenantId,
+              }
+            : entry,
+        ),
+      }));
+      return json(response, 200, charactersView());
+    }
+
+    if (method === 'DELETE' && characterId) {
+      const wanted = body(await readBody(request));
+      const settings = current();
+      requireRevision(settings, wanted.revision);
+      if (!findCharacter(settings, DEFAULT_TENANT, characterId)) {
+        throw new HttpError(404, _('no character with id %s').replace('%s', characterId));
+      }
+      if (settings.defaultCharacter === characterId) {
+        throw new HttpError(409, _('the default character cannot be deleted: make another one the default first'));
+      }
+      if (venues().some((venue) => venue.character === characterId)) {
+        throw new HttpError(409, _('a venue still uses this character: pick another one for it first'));
+      }
+      update((before) => ({
+        ...before,
+        characters: before.characters.filter(
+          (entry) => !(entry.tenantId === DEFAULT_TENANT && entry.id === characterId),
+        ),
+      }));
+      return json(response, 200, charactersView());
     }
 
     if (method === 'PUT' && path === '/api/llm') {
@@ -611,7 +776,9 @@ export function createAdminServer(options: AdminOptions): Server {
           ...settings,
           llm: {
             ...(slot(wanted.model) && { model: slot(wanted.model) }),
-            ...(slot(wanted.fallbackModel) && { fallbackModel: slot(wanted.fallbackModel) }),
+            ...(slot(wanted.fallbackModel) && {
+              fallbackModel: slot(wanted.fallbackModel),
+            }),
             ...(maybeNumber(wanted.attemptTimeoutS) !== undefined && {
               attemptTimeoutS: maybeNumber(wanted.attemptTimeoutS),
             }),
@@ -628,7 +795,7 @@ export function createAdminServer(options: AdminOptions): Server {
       }
       const choice = isRecord(wanted.voice)
         ? choiceFromInline(wanted.voice)
-        : choiceFor(current(), slot(wanted.preset));
+        : choiceFor(current(), slot(wanted.character));
       const audio = await options.synthesize(choice, text);
       const { wav, sampleRate } = previewWav(audio, Boolean(wanted.phone));
       response.writeHead(200, {

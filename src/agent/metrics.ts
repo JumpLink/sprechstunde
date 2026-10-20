@@ -22,9 +22,21 @@ export function metricsLine(m: metrics.AgentMetrics): Record<string, unknown> | 
         transcriptionDelayMs: m.transcriptionDelayMs,
       };
     case 'llm_metrics':
-      return { type: m.type, ts: m.timestamp, speechId: m.speechId, ttftMs: m.ttftMs, durationMs: m.durationMs };
+      return {
+        type: m.type,
+        ts: m.timestamp,
+        speechId: m.speechId,
+        ttftMs: m.ttftMs,
+        durationMs: m.durationMs,
+      };
     case 'tts_metrics':
-      return { type: m.type, ts: m.timestamp, speechId: m.speechId, ttfbMs: m.ttfbMs, durationMs: m.durationMs };
+      return {
+        type: m.type,
+        ts: m.timestamp,
+        speechId: m.speechId,
+        ttfbMs: m.ttfbMs,
+        durationMs: m.durationMs,
+      };
     default:
       return null;
   }
@@ -34,8 +46,8 @@ export interface CallConfig {
   jobId?: string;
   /** Id of the profile this call ran with. */
   profile?: string;
-  /** Settings preset the voice came from, or none when the environment decided. */
-  ttsPreset?: string;
+  /** Id of the character the voice came from, or none when the environment decided. */
+  character?: string;
   ttsProvider?: string;
   llmModel?: string;
   llmFallbackModel?: string;
@@ -52,7 +64,7 @@ export function callConfigLine(config: CallConfig, now = Date.now()): Record<str
     ts: now,
     jobId: config.jobId,
     profile: config.profile,
-    ttsPreset: config.ttsPreset,
+    character: config.character,
     ttsProvider: config.ttsProvider,
     llmModel: config.llmModel,
     llmFallbackModel: config.llmFallbackModel,

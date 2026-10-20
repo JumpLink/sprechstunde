@@ -1,6 +1,13 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { type CatalogDeps, createCatalog, type KugelLike, labelFromId, type MistralLike } from './catalog.js';
+import {
+  type CatalogDeps,
+  createCatalog,
+  type KugelLike,
+  labelFromId,
+  type MistralLike,
+  normalizeGender,
+} from './catalog.js';
 
 // Made-up data only: no real voice ids, no real account content.
 const KEY = 'sk-test-must-never-be-in-a-reason';
@@ -213,7 +220,7 @@ test('cartesia: sends key and version, follows the cursor, reads accent locales'
   assert.match(calls[0]!.url, /language=de(&|$)/);
   assert.match(calls[1]!.url, /starting_after=cv-1/);
   assert.deepEqual(result.voices, [
-    { id: 'cv-1', name: 'Test One', languages: ['de-DE'], gender: 'feminine', description: 'Warm' },
+    { id: 'cv-1', name: 'Test One', languages: ['de-DE'], description: 'Warm', gender: 'female' },
     { id: 'cv-2', name: 'Test Two', languages: ['de'] },
   ]);
   assert.equal(result.models.length, 1);
@@ -391,4 +398,13 @@ test('cartesia and pocket: static entries with a readable name', async () => {
     fetch: fakeFetch({ 'http://pocket.invalid:1/voices': () => jsonResponse({}, 404) }).fetch,
   }).get('pocket');
   assert.equal(pocket.models[0]!.label, 'Kyutai Pocket TTS');
+});
+
+test('normalizeGender: vendor words map to female, male or neutral; anything else stays unknown', () => {
+  assert.equal(normalizeGender('feminine'), 'female');
+  assert.equal(normalizeGender(' Female '), 'female');
+  assert.equal(normalizeGender('masculine'), 'male');
+  assert.equal(normalizeGender('M'), 'male');
+  assert.equal(normalizeGender('gender_neutral'), 'neutral');
+  for (const unknown of ['', 'child', null, undefined, 3]) assert.equal(normalizeGender(unknown), undefined);
 });

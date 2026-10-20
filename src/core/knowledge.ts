@@ -1,10 +1,15 @@
 import type { Fact, Profile } from './profile.js';
-import { buildInstructions } from './prompt.js';
+import { buildInstructions, type Persona } from './prompt.js';
 import { maskTransferTarget, type ToolDescriptor, toolDescriptors, transferRequest } from './tools.js';
 
 /** Everything a call knows and can do for one profile, as the admin UI shows it. Read-only. */
 export interface Knowledge {
-  profile: { id: string; assistantName: string; locale: string; timeZone: string };
+  profile: {
+    id: string;
+    assistantName: string;
+    locale: string;
+    timeZone: string;
+  };
   greeting: string;
   instructions: string;
   facts: Fact[];
@@ -24,6 +29,7 @@ export function describeKnowledge(
   profile: Profile,
   now: Date,
   override?: { number?: string; sipHost?: string },
+  persona?: Persona,
 ): Knowledge {
   const request = transferRequest(profile, override);
   return {
@@ -36,9 +42,14 @@ export function describeKnowledge(
     greeting: profile.greeting,
     instructions: profile.instructions,
     facts: profile.facts,
-    transfer: request ? { announce: request.announce, targetMasked: maskTransferTarget(request.target) } : null,
+    transfer: request
+      ? {
+          announce: request.announce,
+          targetMasked: maskTransferTarget(request.target),
+        }
+      : null,
     fallback: profile.fallback ?? null,
-    systemPrompt: buildInstructions(profile, now),
+    systemPrompt: buildInstructions(profile, now, persona),
     tools: toolDescriptors(),
   };
 }
