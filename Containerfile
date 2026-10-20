@@ -22,7 +22,7 @@ COPY profiles ./profiles
 # HF_HOME) and transformers.js puts the tokenizer into node_modules. Download as root with
 # HOME=/home/node so the runtime user finds both. Needs network at build time.
 RUN HOME=/home/node node dist/agent/main.js download-files && chown -R node:node /home/node/.cache
-RUN install -d -o node -g node /app/var/metrics /app/var/settings
+RUN install -d -o node -g node /app/var/metrics /app/var/settings /app/var/db
 USER node
 ENV SPRECHSTUNDE_METRICS_DIR=/app/var/metrics
 ENV SPRECHSTUNDE_SETTINGS_FILE=/app/var/settings/voice.json
