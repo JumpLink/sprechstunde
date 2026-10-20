@@ -1,0 +1,23 @@
+# Brings the stack up at boot and down at shutdown, on a host with rootful Podman.
+# Install (runbook: docs/deploy/proxmox-lxc.md):
+#   install -m 644 deploy/systemd/sprechstunde.service /etc/systemd/system/
+#   systemctl daemon-reload && systemctl enable --now sprechstunde
+# WorkingDirectory is the checkout; adjust it there if the checkout lives elsewhere.
+[Unit]
+Description=sprechstunde phone assistant stack
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=/opt/sprechstunde
+# Podman fails on missing bind-mount directories.
+ExecStartPre=/usr/bin/mkdir -p var/settings var/metrics var/transcripts var/voices var/profiles var/db
+ExecStart=/usr/bin/podman compose -f compose.yaml -f compose.server.yaml --profile agent up -d
+ExecStop=/usr/bin/podman compose -f compose.yaml -f compose.server.yaml --profile agent down
+TimeoutStartSec=300
+TimeoutStopSec=60
+
+[Install]
+WantedBy=multi-user.target
