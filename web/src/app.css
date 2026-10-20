@@ -15,6 +15,13 @@
   --destructive: oklch(0.55 0.2 27);
   --success: oklch(0.55 0.13 150);
   --ring: oklch(0.6 0.13 250);
+  /* One hue per vendor; as text on its own 14 % tint every one clears 4.5:1 in both themes. */
+  --vendor-kugel: oklch(0.42 0.15 295);
+  --vendor-cartesia: oklch(0.4 0.09 205);
+  --vendor-mistral: oklch(0.45 0.12 50);
+  --vendor-openrouter: oklch(0.44 0.15 355);
+  --vendor-pocket: oklch(0.42 0.1 135);
+  --vendor-other: oklch(0.45 0.02 255);
 }
 
 .dark {
@@ -29,6 +36,12 @@
   --destructive: oklch(0.7 0.17 25);
   --success: oklch(0.75 0.14 150);
   --ring: oklch(0.65 0.12 250);
+  --vendor-kugel: oklch(0.83 0.1 295);
+  --vendor-cartesia: oklch(0.83 0.08 205);
+  --vendor-mistral: oklch(0.84 0.1 55);
+  --vendor-openrouter: oklch(0.84 0.1 355);
+  --vendor-pocket: oklch(0.84 0.1 135);
+  --vendor-other: oklch(0.8 0.02 255);
 }
 
 @theme inline {

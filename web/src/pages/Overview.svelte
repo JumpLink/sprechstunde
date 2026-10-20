@@ -9,6 +9,7 @@
   import Badge from '$lib/ui/Badge.svelte';
   import Card from '$lib/ui/Card.svelte';
   import ChoiceLine from '$lib/ui/ChoiceLine.svelte';
+  import VendorBadge from '$lib/ui/VendorBadge.svelte';
   import Empty from '$lib/ui/Empty.svelte';
   import ModelName from '$lib/ui/ModelName.svelte';
   import Skeleton from '$lib/ui/Skeleton.svelte';
@@ -153,7 +154,10 @@
   <Card title={_('API keys')} description={_('Which providers this server can call')}>
     <div class="flex flex-wrap gap-2">
       {#each Object.entries(snapshot?.keys) as [provider, present] (provider)}
-        <Badge tone={present ? 'success' : 'neutral'}>{provider}: {present ? _('key set') : _('no key')}</Badge>
+        <span class="inline-flex items-center gap-1">
+          <VendorBadge {provider} />
+          <Badge tone={present ? 'success' : 'neutral'}>{present ? _('key set') : _('no key')}</Badge>
+        </span>
       {/each}
     </div>
   </Card>

@@ -64,8 +64,11 @@ web/src/lib/ui/Field.svelte
 web/src/lib/ui/ModelFacts.svelte
 web/src/lib/ui/ModelInfo.svelte
 web/src/lib/ui/ModelName.svelte
+web/src/lib/ui/RegionBadges.svelte
 web/src/lib/ui/Skeleton.svelte
+web/src/lib/ui/VendorBadge.svelte
 web/src/lib/utils.ts
+web/src/lib/vendor.ts
 web/src/lib/voices.ts
 web/src/main.ts
 web/src/pages/Calls.svelte
