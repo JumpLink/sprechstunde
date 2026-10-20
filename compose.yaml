@@ -1,6 +1,6 @@
 # Local telephony stack: provider <-TLS-> Asterisk <-UDP-> LiveKit SIP <-> LiveKit server <-> agent.
 # Everything runs with host networking and binds to 127.0.0.1 (except Asterisk's provider leg).
-# Ports: livekit 7880/7881 + udp 50000-50100, sip 5060 + rtp 10000-10100,
+# Ports: livekit 7880 + udp 50000-50100, sip 5060 + rtp 10000-10100,
 #        asterisk 5070 + rtp 12000-12100, redis 6379, pocket-tts 8090.
 services:
   redis:

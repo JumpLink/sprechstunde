@@ -6,8 +6,8 @@ server's `.env` and in the router's configuration, never in this repo.
 
 ## What the stack opens to the network
 
-Every service runs with host networking and binds to `127.0.0.1`: Valkey, LiveKit (7880, 7881, UDP
-50000-50100), LiveKit SIP (5060, UDP 10000-10100), the agent's health endpoint (8081) and the admin
+Every service runs with host networking and binds to `127.0.0.1`: Valkey, LiveKit (7880, UDP
+50000-50100; its ICE/TCP port is switched off with `tcp_port: 0`), LiveKit SIP (5060, UDP 10000-10100), the agent's health endpoint (8081) and the admin
 (8091). The one thing that must be reachable from outside is **Asterisk's RTP range**, UDP
 `SIP_RTP_START`-`SIP_RTP_END` (default 12000-12100). Nothing else gets a forward or a DNS entry. The
 admin has no sign-in yet (ADR step 3), so it is reached through an SSH tunnel only.
@@ -20,14 +20,20 @@ admin has no sign-in yet (ADR step 3), so it is reached through an SSH tunnel on
 | Features | `nesting=1,keyctl=1` |
 | Size | 4 cores, 6 GB RAM, 1 GB swap, 32 GB disk |
 | Autostart | `onboot=1`, ordered after the router |
+| Device | `/dev/net/tun`: `pct set <id> --dev0 /dev/net/tun` (image builds run their `RUN` steps behind pasta) |
+| DNS | `pct set <id> --nameserver <router-address>` before anything else: the LXC inherits the host's resolvers, which the guest network cannot reach |
 
 Inside the LXC:
 
 ```sh
 apt update && apt full-upgrade -y
 apt install -y podman git ca-certificates
-# `podman compose` needs a compose provider: podman-compose, or the docker-compose plugin
-apt install -y podman-compose
+# `podman compose` needs a compose provider. Not podman-compose 1.3.0 (Debian's default): it does
+# not expand `${VAR:-default}`, so containers get the literal text. Use docker-compose on Podman's socket.
+apt install -y docker-compose
+systemctl enable --now podman.socket
+mkdir -p /etc/containers/containers.conf.d
+printf '[engine]\ncompose_providers = ["/usr/bin/docker-compose"]\n' > /etc/containers/containers.conf.d/compose.conf
 git clone https://github.com/JumpLink/sprechstunde /opt/sprechstunde
 cd /opt/sprechstunde
 ```
@@ -56,15 +62,24 @@ yourself, do not paste it into a ticket or chat. Keys the server needs:
 
 ## Build, start, verify
 
+`.env` must exist first, with at least `LIVEKIT_API_KEY` and `LIVEKIT_API_SECRET`: compose refuses to
+read the files without them, build included. The first build takes about 5 minutes on the E3-1275 v5.
+`compose.server.yaml` runs `agent` and `admin` with `userns_mode: host` (`keep-id` fails in the LXC),
+so `var/` must belong to uid/gid 1000.
+
 ```sh
 cd /opt/sprechstunde
 mkdir -p var/settings var/metrics var/transcripts var/voices var/profiles var/db
+chown -R 1000:1000 var
 podman compose -f compose.yaml -f compose.server.yaml --profile agent build
 install -m 644 deploy/systemd/sprechstunde.service /etc/systemd/system/
 systemctl daemon-reload && systemctl enable --now sprechstunde
 ```
 
-The unit runs `up -d` at boot and `down` at shutdown; the compose files carry
+Until `.env` holds the trunk values the `asterisk` container exits with "SIP_PROVIDER_HOST must be
+set": expected, the rest of the stack runs.
+
+The unit needs `podman.socket` (it `Requires=` it) and runs `up -d` at boot and `down` at shutdown; the compose files carry
 `restart: unless-stopped`. Check:
 
 ```sh

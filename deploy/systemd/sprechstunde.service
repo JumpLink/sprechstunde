@@ -5,8 +5,10 @@
 # WorkingDirectory is the checkout; adjust it there if the checkout lives elsewhere.
 [Unit]
 Description=sprechstunde phone assistant stack
+# The compose provider (docker-compose) talks to Podman through its socket.
 Wants=network-online.target
-After=network-online.target
+Requires=podman.socket
+After=network-online.target podman.socket
 
 [Service]
 Type=oneshot

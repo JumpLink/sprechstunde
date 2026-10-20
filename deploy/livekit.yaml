@@ -7,7 +7,9 @@ log_level: info
 redis:
   address: 127.0.0.1:6379
 rtc:
-  tcp_port: 7881
+  # 0 = no ICE/TCP listener. LiveKit's default is 7881 on every interface; the SIP bridge and the
+  # agent are on this host and reach it over UDP, so the fallback only widens the attack surface.
+  tcp_port: 0
   port_range_start: 50000
   port_range_end: 50100
   use_external_ip: false
