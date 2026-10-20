@@ -14,6 +14,7 @@ src/admin/limiter.ts
 src/admin/line-diff.ts
 src/admin/main.ts
 src/admin/net-guard.ts
+src/admin/ocr.ts
 src/admin/preview.ts
 src/admin/profile-store.ts
 src/admin/robots.ts

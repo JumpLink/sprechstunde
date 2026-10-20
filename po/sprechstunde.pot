@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-20 14:55+0200\n"
+"POT-Creation-Date: 2026-10-20 14:56+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -202,6 +202,10 @@ msgstr ""
 #: src/admin/main.ts:67
 #, javascript-format
 msgid "settings file: %s"
+msgstr ""
+
+#: src/admin/ocr.ts:30
+msgid "the text could not be read from the document"
 msgstr ""
 
 #: src/admin/preview.ts:66 src/cli/speech.ts:31
