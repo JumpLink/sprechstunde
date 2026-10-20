@@ -56,6 +56,8 @@ keys may come later.
 ## Order
 
 1. Character editor with voice casting, with a tenant id in the data model from the start.
-2. SQLite and number-to-venue routing.
+2. SQLite and number-to-venue routing. Started with the knowledge sources (`src/admin/knowledge-*`): the admin
+   writes SQLite and publishes each venue's live text as a file next to the profile; the agent reads
+   only that file, never the database. Number-to-venue routing is still open.
 3. OIDC login and roles; the settings UI becomes the customer portal plus a platform admin area.
 4. Usage metering and limits per tenant, billing after that.

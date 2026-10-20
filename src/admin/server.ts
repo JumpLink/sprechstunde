@@ -44,6 +44,8 @@ import { CATALOG_TARGETS, type CatalogService, type CatalogTarget, createCatalog
 import { byCharacter, callsFrom, METRIC_NAMES, readMetrics, summarizeCall } from './latency.js';
 import { HttpError } from './http-error.js';
 import { applyDraft, createProfileStore, draftView, parseDraft, revisionOf } from './profile-store.js';
+import { type KnowledgeApi } from './knowledge-api.js';
+import { KnowledgeError } from './knowledge-service.js';
 import { findWebDir, serveStatic } from './static.js';
 import { previewWav, type Synthesizer } from './preview.js';
 
@@ -85,6 +87,8 @@ export interface AdminOptions {
   fetch?: typeof fetch;
   /** The built settings app; found next to this build when absent, `null` for none (tests). */
   webDir?: string | null;
+  /** The knowledge sources API; its routes answer 404 when absent. */
+  knowledge?: KnowledgeApi;
 }
 
 function loopbackHost(header: string | undefined): boolean {
@@ -845,6 +849,25 @@ export function createAdminServer(options: AdminOptions): Server {
       return;
     }
 
+    if (options.knowledge && path.startsWith('/api/knowledge/')) {
+      try {
+        const result = await options.knowledge({
+          method,
+          path,
+          query: url.searchParams,
+          body: async () => body(await readBody(request)),
+        });
+        if (result) return json(response, result.status, result.payload);
+      } catch (error) {
+        if (error instanceof KnowledgeError) {
+          const headers: Record<string, string> =
+            error.retryAfter === undefined ? {} : { 'retry-after': String(error.retryAfter) };
+          throw new HttpError(error.status, error.message, headers);
+        }
+        throw error;
+      }
+    }
+
     // Anything else that is not the API is the settings app: its files, or index.html for a page path.
     if ((method === 'GET' || method === 'HEAD') && !path.startsWith('/api/')) {
       const served = serveStatic(options.webDir === undefined ? findWebDir() : (options.webDir ?? undefined), path);
@@ -869,7 +892,15 @@ export function createAdminServer(options: AdminOptions): Server {
       const status = error instanceof HttpError ? error.status : 500;
       if (status === 500) console.error((error as Error).message);
       if (response.headersSent) return response.end();
-      json(response, status, { error: (error as Error).message });
+      // Only an HttpError was written for the page; anything else may name paths or SQL.
+      const payload = JSON.stringify({ error: error instanceof HttpError ? error.message : _('internal error') });
+      send(
+        response,
+        status,
+        'application/json; charset=utf-8',
+        payload,
+        error instanceof HttpError ? error.headers : {},
+      );
     });
   });
 }

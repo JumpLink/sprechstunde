@@ -195,3 +195,64 @@ export interface Knowledge {
     availableWhen: string;
   }>;
 }
+
+export type SourceKind = 'manual' | 'web' | 'sitemap';
+
+export interface KnowledgeSource {
+  id: string;
+  venue: string;
+  kind: SourceKind;
+  title: string;
+  url: string | null;
+  includeGlobs: string[];
+  excludeSelectors: string[];
+  refreshHours: number | null;
+  autoApprove: boolean;
+  lastCheckedAt: string | null;
+  lastFetchedAt: string | null;
+  lastError: string | null;
+  pendingCount: number;
+  sections: number;
+}
+
+export interface SourceRevision {
+  id: number;
+  sectionId: string;
+  origin: 'fetched' | 'edited';
+  status: 'pending' | 'approved' | 'rejected';
+  title: string;
+  url: string | null;
+  markdown: string;
+  fetchedAt: string | null;
+  author: string | null;
+  createdAt: string;
+  decidedAt: string | null;
+}
+
+export interface DiffLine {
+  kind: 'same' | 'add' | 'del';
+  text: string;
+}
+
+export interface SourceSection {
+  id: string;
+  url: string | null;
+  title: string;
+  liveRevisionId: number | null;
+  gone: boolean;
+  live: SourceRevision | null;
+  pending: SourceRevision | null;
+  diff: DiffLine[] | null;
+  diffChanged: number;
+  overwritesEdit: boolean;
+}
+
+export interface RefreshSummary {
+  pages: number;
+  unchanged: number;
+  pending: number;
+  approved: number;
+  gone: number;
+  failed: number;
+  error: string | null;
+}

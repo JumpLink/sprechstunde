@@ -338,8 +338,35 @@ does not come from its own page, which stops a browser elsewhere on the machine 
 it is not an admin panel to expose — do not forward the port, and do not put it on a public
 interface. Write requests need a same-origin `Origin` header, so a plain `curl` write is rejected by design.
 
+### Knowledge sources
+
+The **Sources** page gives each venue text the assistant answers from, next to the facts in its
+profile: your own Markdown, one web page, or the pages of a `sitemap.xml` (filtered by patterns such as
+`/menu/**`; links are not followed). Every fetch is stored as a revision. A page that changed does
+**not** go live by itself: the page shows a line diff and you accept or discard it. A source may opt
+into accepting changes without asking; a hand edit is a new revision, and a later fetch warns before it
+would overwrite one. Every section keeps its history.
+
+Fetching is polite and bounded: only `http(s)` on ports 80/443, a host that resolves to any private or
+local address is refused (the connection is pinned to the checked address, redirects are re-checked),
+`robots.txt` is obeyed, one request per second and host, 15 s, 5 MB, 30 pages per fetch. Fetched
+pages are converted with [cheerio](https://github.com/cheeriojs/cheerio),
+[turndown](https://github.com/mixmark-io/turndown) and turndown-plugin-gfm (all MIT).
+
+The sources live in SQLite (`var/db/sprechstunde.sqlite`, `SPRECHSTUNDE_DB`; every table carries a
+`tenant_id` and all SQL sits in one repository module). The admin is the only writer. When what is
+live changes it writes the venue's text atomically to `<profile>.knowledge.md` next to the profile; the
+agent reads that file at the start of a call and never opens the database. In the prompt each section
+carries its source, address and date, and the text is fenced as reference data, not instructions.
+Sources with an interval (default daily) are refreshed by the admin process while it runs.
+
+The admin has no login yet (ADR step 3): it must stay loopback-only until authentication lands. The
+sources API relies on the same `Host` and origin checks as the rest of it and does not relax them.
+
 ## Not tested yet
 
+- Fetching is tested against fakes and a loopback server, not against real sites, real `robots.txt`
+  files or a sitemap of a live venue. PDF and image sources (OCR) are not built yet.
 - The characters gallery and the casting wizard are covered by backend tests and a type check, not by
   automated browser tests. Voices of every vendor but Mistral have not been previewed through the
   wizard against the live APIs, and a gender that a vendor reports is taken as given.

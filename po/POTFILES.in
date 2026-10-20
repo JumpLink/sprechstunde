@@ -1,11 +1,24 @@
 src/admin/catalog.ts
+src/admin/fetch-safe.ts
+src/admin/html-markdown.ts
 src/admin/http-error.ts
+src/admin/knowledge-api.ts
+src/admin/knowledge-db.ts
+src/admin/knowledge-repo.ts
+src/admin/knowledge-runtime.ts
+src/admin/knowledge-service.ts
 src/admin/latency.ts
+src/admin/limiter.ts
+src/admin/line-diff.ts
 src/admin/main.ts
+src/admin/net-guard.ts
 src/admin/preview.ts
 src/admin/profile-store.ts
+src/admin/robots.ts
 src/admin/server.ts
+src/admin/sitemap.ts
 src/admin/static.ts
+src/admin/wildcard.ts
 src/agent/assistant.ts
 src/agent/echo.ts
 src/agent/llm.ts
@@ -32,6 +45,7 @@ src/cli/stt-try.ts
 src/cli/tts-try.ts
 src/cli/voice.ts
 src/core/audio.ts
+src/core/knowledge-snapshot.ts
 src/core/knowledge.ts
 src/core/profile.ts
 src/core/prompt.ts
@@ -42,6 +56,7 @@ src/core/tools.ts
 src/i18n.ts
 src/mistral.ts
 src/sip/register.ts
+src/types/turndown-plugin-gfm.d.ts
 web/src/App.svelte
 web/src/lib/api.ts
 web/src/lib/browse.ts
@@ -49,6 +64,7 @@ web/src/lib/casting.ts
 web/src/lib/favourites.svelte.ts
 web/src/lib/format.ts
 web/src/lib/i18n.svelte.ts
+web/src/lib/markdown.ts
 web/src/lib/models.svelte.ts
 web/src/lib/nav.ts
 web/src/lib/router.svelte.ts
@@ -64,6 +80,7 @@ web/src/lib/ui/ChoiceLine.svelte
 web/src/lib/ui/Confirm.svelte
 web/src/lib/ui/Empty.svelte
 web/src/lib/ui/Field.svelte
+web/src/lib/ui/Markdown.svelte
 web/src/lib/ui/ModelFacts.svelte
 web/src/lib/ui/ModelInfo.svelte
 web/src/lib/ui/ModelName.svelte
@@ -80,6 +97,7 @@ web/src/pages/Knowledge.svelte
 web/src/pages/Llm.svelte
 web/src/pages/Models.svelte
 web/src/pages/Overview.svelte
+web/src/pages/Sources.svelte
 web/src/pages/characters/CastCard.svelte
 web/src/pages/characters/Wizard.svelte
 web/src/pages/models/ModelList.svelte

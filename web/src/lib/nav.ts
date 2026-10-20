@@ -1,4 +1,4 @@
-import { BookOpen, Boxes, Brain, Gauge, PhoneCall, Users } from '@lucide/svelte';
+import { BookOpen, Boxes, Brain, Gauge, Library, PhoneCall, Users } from '@lucide/svelte';
 import type { Component } from 'svelte';
 import { _ } from './i18n.svelte';
 
@@ -15,5 +15,6 @@ export const navItems = (): NavItem[] => [
   { path: '/llm', label: _('Language model'), icon: Brain },
   { path: '/models', label: _('Models'), icon: Boxes },
   { path: '/knowledge', label: _('Knowledge'), icon: BookOpen },
+  { path: '/sources', label: _('Sources'), icon: Library },
   { path: '/calls', label: _('Calls'), icon: PhoneCall },
 ];

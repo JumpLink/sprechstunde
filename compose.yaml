@@ -164,4 +164,6 @@ services:
       - ./var/profiles:/app/var/profiles:z
       # Read-only: the UI reports the measurements, the agent is the one that writes them.
       - ./var/metrics:/app/var/metrics:ro,z
+      # Only the admin opens the database; the agent reads the published <profile>.knowledge.md instead.
+      - ./var/db:/app/var/db:z
     restart: unless-stopped

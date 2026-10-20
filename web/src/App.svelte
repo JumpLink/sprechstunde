@@ -13,6 +13,7 @@
   import Llm from './pages/Llm.svelte';
   import Models from './pages/Models.svelte';
   import Overview from './pages/Overview.svelte';
+  import Sources from './pages/Sources.svelte';
   
 
   const items = $derived(navItems());
@@ -83,6 +84,8 @@
         <Models />
       {:else if current.path === '/knowledge'}
         <Knowledge />
+      {:else if current.path === '/sources'}
+        <Sources />
       {:else}
         <Calls />
       {/if}
@@ -90,7 +93,7 @@
   </div>
 
   <nav
-    class="fixed inset-x-0 bottom-0 z-30 grid grid-cols-6 border-t bg-card md:hidden"
+    class="fixed inset-x-0 bottom-0 z-30 grid grid-cols-7 border-t bg-card md:hidden"
     aria-label={_('Main navigation')}
   >
     {#each items as item (item.path)}
