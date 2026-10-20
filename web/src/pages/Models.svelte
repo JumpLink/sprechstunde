@@ -79,7 +79,7 @@
                   </Badge>
                 {/each}
                 {#if group.some((model) => model.deprecated)}<Badge tone="warning">{_('Deprecated')}</Badge>{/if}
-                {#if names.length > 0}<Badge>{fill(_('%s aliases'), names.length)}</Badge>{/if}
+                {#if names.length > 0}<Badge>{fill(_('Aliases: %s'), names.length)}</Badge>{/if}
               </div>
               <p class="text-xs break-all text-muted-foreground">{main.id}</p>
               <ModelFacts {target} model={main} clamp />

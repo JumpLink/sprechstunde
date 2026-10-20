@@ -1057,8 +1057,8 @@ msgstr "Veraltet"
 
 #: web/src/pages/Models.svelte:82
 #, javascript-format
-msgid "%s aliases"
-msgstr "%s Aliase"
+msgid "Aliases: %s"
+msgstr "Aliase: %s"
 
 #: web/src/pages/Models.svelte:91
 msgid "follows the newest version"
