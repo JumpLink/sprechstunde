@@ -95,6 +95,10 @@ export interface FetchRequest {
   types?: string[];
   /** Skip robots.txt: only for robots.txt itself. */
   ignoreRobots?: boolean;
+  /** Return the bytes as they are (a PDF, a picture) instead of decoding text. */
+  binary?: boolean;
+  /** A larger cap than the fetcher's default, for documents. */
+  maxBytes?: number;
 }
 
 export interface FetchResult {
@@ -102,6 +106,8 @@ export interface FetchResult {
   url: string;
   contentType: string;
   text: string;
+  /** Only for a `binary` request. */
+  bytes?: Buffer;
 }
 
 function version(): string {
@@ -321,6 +327,7 @@ export function createSafeFetcher(options: SafeFetchOptions = {}) {
         }
         try {
           const bytes = await read(response.body, response.headers['content-length'], limit);
+          if (request.binary) return { url: url.href, contentType, text: '', bytes };
           return { url: url.href, contentType, text: decode(bytes, response.headers['content-type'] ?? '') };
         } catch (error) {
           if (error instanceof FetchRefused) throw error;
@@ -377,7 +384,7 @@ export function createSafeFetcher(options: SafeFetchOptions = {}) {
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), timeoutMs);
       try {
-        return await get(start, request, maxBytes, controller.signal, async (url) => {
+        return await get(start, request, request.maxBytes ?? maxBytes, controller.signal, async (url) => {
           if (request.ignoreRobots) return;
           const rules = await robotsFor(url, controller.signal);
           if (!rules.allowed(`${url.pathname}${url.search}`)) {

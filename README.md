@@ -360,13 +360,37 @@ agent reads that file at the start of a call and never opens the database. In th
 carries its source, address and date, and the text is fenced as reference data, not instructions.
 Sources with an interval (default daily) are refreshed by the admin process while it runs.
 
+**PDF and picture sources** are read by Mistral OCR (`mistral-ocr-latest`) and then follow the same
+review as a page: one pending revision, a diff, accept or discard. Upload a PDF (up to 20 MB, one per
+source) or pictures (PNG, JPEG, WebP, up to 10 MB each, up to 30, read in the order added) on the
+Sources page, or give the address of the file; the address goes through the same safe fetcher as a web
+page and is refreshed the same way, but is read again only when its bytes changed, as is an upload
+with the same SHA-256. The type comes from the first bytes, not from the name or the content type.
+Pages are capped at 30 per document (the review says so when it cut). The originals sit next to the
+database under `var/db/files/<tenant>/<sha256>`, never in the profiles directory, and are served only
+by the admin API, a PDF as a download and a picture inline, both under a sandbox policy.
+
+**Data protection:** the uploaded document itself is sent to Mistral for OCR, through the endpoint
+`SPRECHSTUNDE_MISTRAL_SERVER` selects (`eu` keeps processing in the EU). That is a processing of the
+venue's documents by a processor: cover it in the data processing agreement (AVV) before using it with
+a customer's files. Whether an AVV with Mistral is on file is not verified here.
+
+The assistant is told never to promise that a dish is free of an allergen: it repeats only what the
+facts or the reference data state and otherwise says it does not know and offers a person. That is
+a prompt rule, a model can still get it wrong; an OCR misreading of an allergen list is the reason the
+review step exists, so read those lines.
+
 The admin has no login yet (ADR step 3): it must stay loopback-only until authentication lands. The
 sources API relies on the same `Host` and origin checks as the rest of it and does not relax them.
 
 ## Not tested yet
 
 - Fetching is tested against fakes and a loopback server, not against real sites, real `robots.txt`
-  files or a sitemap of a live venue. PDF and image sources (OCR) are not built yet.
+  files or a sitemap of a live venue.
+- OCR was called live once on 2026-10-20 (EU endpoint, `mistral-ocr-latest`) with a generated one-page
+  PDF and a PNG, and read both correctly. Real menus, scans, handwriting, multi-page and 30-page
+  documents, the page cap against the real API and the cost per page are unverified, as is the
+  upload from a browser (drag and drop and the file picker have no automated browser test).
 - The characters gallery and the casting wizard are covered by backend tests and a type check, not by
   automated browser tests. Voices of every vendor but Mistral have not been previewed through the
   wizard against the live APIs, and a gender that a vendor reports is taken as given.

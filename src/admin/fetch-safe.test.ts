@@ -365,3 +365,60 @@ test('fetch: every connection is given up - redirect hops, refusals and the fina
   await assert.rejects(r.fetcher.fetch('https://venue.example/gone'));
   assert.deepEqual(closed, ['hop', 'last', 'refused']);
 });
+
+test('fetch: a binary request returns the bytes untouched, within its own cap, and keeps the other rules', async () => {
+  const pdf = Buffer.from('%PDF-1.4\n\u00ff\u00fe binary', 'latin1');
+  const { fetcher, seen } = rig(
+    {
+      'https://venue.example/robots.txt': page('User-agent: *\nDisallow: /private', 'text/plain'),
+      'https://venue.example/menu.pdf': {
+        status: 200,
+        headers: { 'content-type': 'application/pdf' },
+        body: chunksOf(pdf),
+      },
+      // a function: each request needs a body that has not been read yet
+      'https://venue.example/big.pdf': () => ({
+        status: 200,
+        headers: { 'content-type': 'application/pdf' },
+        body: chunksOf(Buffer.alloc(100)),
+      }),
+      'https://venue.example/page.html': page('<p>x</p>'),
+      'https://venue.example/private/menu.pdf': {
+        status: 200,
+        headers: { 'content-type': 'application/pdf' },
+        body: chunksOf(pdf),
+      },
+    },
+    undefined,
+    { maxBytes: 50 },
+  );
+  const result = await fetcher.fetch('https://venue.example/menu.pdf', {
+    binary: true,
+    types: ['application/pdf'],
+  });
+  assert.deepEqual(result.bytes, pdf);
+  assert.equal(result.text, '');
+  assert.match(seen.at(-1)!.headers.accept ?? '', /application\/pdf/);
+  await assert.rejects(
+    fetcher.fetch('https://venue.example/big.pdf', { binary: true, types: ['application/pdf'] }),
+    refused('size'),
+  );
+  const big = await fetcher.fetch('https://venue.example/big.pdf', {
+    binary: true,
+    types: ['application/pdf'],
+    maxBytes: 200,
+  });
+  assert.equal(big.bytes?.length, 100);
+  await assert.rejects(
+    fetcher.fetch('https://venue.example/page.html', { binary: true, types: ['application/pdf'] }),
+    refused('type'),
+  );
+  await assert.rejects(
+    fetcher.fetch('https://venue.example/private/menu.pdf', { binary: true, types: ['application/pdf'] }),
+    refused('robots'),
+  );
+});
+
+async function* chunksOf(bytes: Buffer): AsyncGenerator<Uint8Array> {
+  yield bytes;
+}

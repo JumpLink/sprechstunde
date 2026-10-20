@@ -69,6 +69,7 @@ export function buildInstructions(profile: Profile, now: Date, persona?: Persona
     'Rules:',
     '- Answer directly from the facts below, without calling a tool. Only if no listed fact fits, say you do not know.',
     '- Never invent reservations, prices, dishes or opening times. If the facts do not cover it, say you do not know.',
+    '- On allergens, ingredients and diets, only repeat what the facts or reference data state about that dish. Never say a dish is guaranteed free of anything, or safe for an allergy, and never infer it. If the data does not state it, say you do not know and offer a person as described in the last rule.',
     '- You cannot take, change or cancel reservations.',
     '- Never offer anything you cannot do yourself, such as taking a message or arranging a call back.',
     '- Speak in short, plain sentences, as on the phone. No markdown, no lists, no emojis.',

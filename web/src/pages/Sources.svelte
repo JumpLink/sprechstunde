@@ -1,12 +1,12 @@
 <script lang="ts">
-  import { AlertTriangle, Check, FileText, Globe, History, Network, Plus, RefreshCw, Trash2, X } from '@lucide/svelte';
+  import { AlertTriangle, Check, FileText, FileType, Globe, History, Image as ImageIcon, Network, Plus, RefreshCw, Trash2, Upload, X } from '@lucide/svelte';
   import { Dialog } from 'bits-ui';
   import { toast } from 'svelte-sonner';
-  import { ApiError, api, message } from '$lib/api';
+  import { ApiError, api, message, upload } from '$lib/api';
   import { when } from '$lib/format';
   import { _, currentLanguage, fill } from '$lib/i18n.svelte';
   import { app } from '$lib/store.svelte';
-  import type { KnowledgeSource, RefreshSummary, SourceKind, SourceRevision, SourceSection } from '$lib/types';
+  import type { KnowledgeSource, RefreshSummary, SourceFileInfo, SourceKind, SourceRevision, SourceSection } from '$lib/types';
   import Badge from '$lib/ui/Badge.svelte';
   import Button from '$lib/ui/Button.svelte';
   import Card from '$lib/ui/Card.svelte';
@@ -17,14 +17,23 @@
   import Skeleton from '$lib/ui/Skeleton.svelte';
   import { controlClass } from '$lib/utils';
 
-  const icons = { manual: FileText, web: Globe, sitemap: Network };
+  const icons = { manual: FileText, web: Globe, sitemap: Network, pdf: FileType, image: ImageIcon };
   const kindLabel = (kind: SourceKind): string =>
-    kind === 'manual' ? _('Text') : kind === 'web' ? _('Web page') : _('Sitemap');
+    ({ manual: _('Text'), web: _('Web page'), sitemap: _('Sitemap'), pdf: _('PDF'), image: _('Pictures') })[kind];
+  const isDocument = (kind: SourceKind): boolean => kind === 'pdf' || kind === 'image';
+  // The server enforces the same limits; this only saves a doomed upload.
+  const MAX_PDF = 20 * 1024 * 1024;
+  const MAX_IMAGE = 10 * 1024 * 1024;
+  const sizeLimit = (kind: SourceKind): number => (kind === 'pdf' ? MAX_PDF : MAX_IMAGE);
+  const megabytes = (bytes: number): string => `${Math.round((bytes / 1024 / 1024) * 10) / 10} MB`;
 
   let venue = $state('');
   let sources = $state<KnowledgeSource[]>();
   let openId = $state<string>();
   let sections = $state<SourceSection[]>();
+  let files = $state<SourceFileInfo[]>([]);
+  let picked = $state<File[]>([]);
+  let dragging = $state(false);
   let published = $state<{ text: string; stale: boolean }>();
   let busy = $state<string>();
   let drafts = $state<Record<string, string>>({});
@@ -63,7 +72,9 @@
   }
   async function loadOpen(): Promise<void> {
     if (!openId) return void (sections = undefined);
-    sections = (await api<{ sections: SourceSection[] }>('GET', `/api/knowledge/sources/${openId}`)).sections;
+    const detail = await api<{ sections: SourceSection[]; files: SourceFileInfo[] }>('GET', `/api/knowledge/sources/${openId}`);
+    sections = detail.sections;
+    files = detail.files;
     drafts = {};
     previewing = {};
   }
@@ -140,6 +151,7 @@
 
   function startAdd(): void {
     kind = 'web';
+    picked = [];
     title = url = text = globs = '';
     hours = '24';
     auto = false;
@@ -148,19 +160,58 @@
 
   const create = (): Promise<void> =>
     run('add', async () => {
+      const withUrl = !isDocument(kind) || url.trim() !== '';
       const made = await api<KnowledgeSource>('POST', '/api/knowledge/sources', {
         venue,
         kind,
         title,
-        ...(kind === 'manual' ? { markdown: text } : { url, refreshHours: hours === '' ? null : Number(hours), autoApprove: auto }),
+        ...(kind === 'manual' ? { markdown: text } : withUrl ? { url, refreshHours: hours === '' ? null : Number(hours), autoApprove: auto } : { autoApprove: auto }),
         ...(kind === 'sitemap' && { includeGlobs: globs.split('\n').map((line) => line.trim()).filter(Boolean) }),
       });
       adding = false;
       await loadList();
+      if (isDocument(kind) && !withUrl) await sendFiles(made.id, picked);
       if (kind !== 'manual') await fetchNow(made);
       openId = made.id;
       await loadOpen();
     });
+
+  /** A PDF source holds one file, so only the first counts; pictures keep the order they were picked in. */
+  const accepted = (wanted: SourceKind, list: File[]): File[] => {
+    const chosen = wanted === 'pdf' ? list.slice(0, 1) : list;
+    const tooBig = chosen.find((file) => file.size > sizeLimit(wanted));
+    if (tooBig) {
+      toast.error(fill(_('%s is larger than %s'), tooBig.name, megabytes(sizeLimit(wanted))));
+      return [];
+    }
+    return chosen;
+  };
+
+  async function sendFiles(sourceId: string, list: File[]): Promise<void> {
+    for (const file of list) await upload(`/api/knowledge/sources/${sourceId}/files`, file);
+  }
+
+  const addFiles = (source: KnowledgeSource, list: File[]): Promise<void> =>
+    run('upload', async () => {
+      const chosen = accepted(source.kind, list);
+      if (chosen.length === 0) return;
+      // A new PDF replaces the old one; pictures are added behind the ones that are there.
+      await sendFiles(source.id, chosen);
+      toast.success(_('Uploaded: press "Read now" to read it'));
+      await refreshView();
+    });
+
+  const clearFiles = (source: KnowledgeSource): Promise<void> =>
+    run('clear', async () => {
+      await api('DELETE', `/api/knowledge/sources/${source.id}/files`);
+      await refreshView();
+    });
+
+  const dropped = (event: DragEvent, take: (list: File[]) => void): void => {
+    event.preventDefault();
+    dragging = false;
+    take(Array.from(event.dataTransfer?.files ?? []));
+  };
 
   const remove = (): Promise<void> =>
     run('remove', async () => {
@@ -175,7 +226,7 @@
     source.lastError
       ? { tone: 'danger', label: _('Fetch failed') }
       : source.kind !== 'manual' && !source.lastCheckedAt
-        ? { tone: 'neutral', label: _('Not fetched yet') }
+        ? { tone: 'neutral', label: isDocument(source.kind) ? _('Not read yet') : _('Not fetched yet') }
         : source.pendingCount > 0
         ? { tone: 'warning', label: fill(_('%s to review'), source.pendingCount) }
         : { tone: 'success', label: _('Up to date') };
@@ -207,7 +258,7 @@
       {#if !sources}
         <Skeleton class="h-24" />
       {:else if sources.length === 0}
-        <Empty title={_('No sources yet')}>{_('Add a web page, a sitemap or your own text.')}</Empty>
+        <Empty title={_('No sources yet')}>{_('Add a web page, a sitemap, a PDF, pictures or your own text.')}</Empty>
       {:else}
         <ul class="divide-y">
           {#each sources as source (source.id)}
@@ -224,13 +275,13 @@
                 >
                   <span class="block truncate font-medium">{source.title}</span>
                   <span class="block truncate text-xs text-muted-foreground">
-                    {source.lastFetchedAt ? fill(_('Fetched %s'), when(source.lastFetchedAt, language)) : source.kind === 'manual' ? kindLabel('manual') : _('Not fetched yet')}
+                    {source.lastFetchedAt ? fill(_('Fetched %s'), when(source.lastFetchedAt, language)) : source.kind === 'manual' ? kindLabel('manual') : isDocument(source.kind) ? _('Not read yet') : _('Not fetched yet')}
                   </span>
                 </button>
                 <Badge tone={state.tone}>{state.label}</Badge>
                 {#if source.kind !== 'manual'}
                   <Button size="sm" variant="outline" disabled={busy !== undefined} onclick={() => fetchNow(source)}>
-                    <RefreshCw class="size-4 {busy === `fetch-${source.id}` ? 'animate-spin' : ''}" />{_('Fetch now')}
+                    <RefreshCw class="size-4 {busy === `fetch-${source.id}` ? 'animate-spin' : ''}" />{isDocument(source.kind) ? _('Read now') : _('Fetch now')}
                   </Button>
                 {/if}
                 <Button
@@ -252,8 +303,54 @@
 
               {#if openId === source.id}
                 <div class="mt-3 space-y-3 sm:pl-8">
+                  {#if isDocument(source.kind)}
+                    <div class="space-y-3 rounded-lg border p-3">
+                      {#if files.length > 0}
+                        <ul class="flex flex-wrap gap-3">
+                          {#each files as file (file.position)}
+                            <li class="w-28 text-xs">
+                              {#if file.mime.startsWith('image/')}
+                                <a href="/api/knowledge/sources/{source.id}/files/{file.position}" target="_blank" rel="noopener noreferrer">
+                                  <img src="/api/knowledge/sources/{source.id}/files/{file.position}" alt={file.name} class="h-28 w-28 rounded-md border object-cover" loading="lazy" />
+                                </a>
+                              {:else}
+                                <FileType class="size-10 text-muted-foreground" aria-hidden="true" />
+                              {/if}
+                              <a href="/api/knowledge/sources/{source.id}/files/{file.position}" target="_blank" rel="noopener noreferrer" class="mt-1 block truncate text-primary underline" title={file.name}>{file.name}</a>
+                              <span class="text-muted-foreground">{megabytes(file.bytes)}</span>
+                            </li>
+                          {/each}
+                        </ul>
+                      {/if}
+                      {#if source.ocrPages !== null}
+                        <p class="text-xs text-muted-foreground">{fill(_('%s pages read'), source.ocrPages)}</p>
+                      {/if}
+                      {#if !source.url}
+                        <div class="flex flex-wrap gap-2">
+                          <label class="inline-flex cursor-pointer items-center gap-2 rounded-md border px-3 py-1.5 text-sm hover:bg-muted">
+                            <Upload class="size-4" />{source.kind === 'pdf' ? _('Replace PDF') : _('Add pictures')}
+                            <input
+                              type="file"
+                              class="sr-only"
+                              accept={source.kind === 'pdf' ? 'application/pdf' : 'image/png,image/jpeg,image/webp'}
+                              multiple={source.kind === 'image'}
+                              disabled={busy !== undefined}
+                              onchange={(e) => {
+                                void addFiles(source, Array.from(e.currentTarget.files ?? []));
+                                e.currentTarget.value = '';
+                              }}
+                            />
+                          </label>
+                          {#if source.kind === 'image' && files.length > 0}
+                            <Button size="sm" variant="ghost" disabled={busy !== undefined} onclick={() => clearFiles(source)}>{_('Remove all pictures')}</Button>
+                          {/if}
+                        </div>
+                      {/if}
+                    </div>
+                  {/if}
                   {#if source.kind !== 'manual'}
                     <div class="flex flex-wrap items-end gap-4 rounded-lg border p-3">
+                      {#if source.url || !isDocument(source.kind)}
                       <Field label={_('Fetch again every')} for="refresh-{source.id}">
                         <select
                           id="refresh-{source.id}"
@@ -267,6 +364,7 @@
                           <option value="168">{_('Week')}</option>
                         </select>
                       </Field>
+                      {/if}
                       <label class="flex items-center gap-2 pb-2 text-sm">
                         <input
                           type="checkbox"
@@ -281,7 +379,7 @@
                   {#if !sections}
                     <Skeleton class="h-24" />
                   {:else if sections.length === 0}
-                    <Empty title={_('Nothing fetched yet')}>{_('Press "Fetch now".')}</Empty>
+                    <Empty title={isDocument(source.kind) ? _('Nothing read yet') : _('Nothing fetched yet')}>{isDocument(source.kind) ? _('Upload a file, then press "Read now".') : _('Press "Fetch now".')}</Empty>
                   {/if}
                   {#each sections ?? [] as section (section.id)}
                     <div class="space-y-3 rounded-lg border p-3">
@@ -302,6 +400,11 @@
                       {#if section.pending && section.diff}
                         <div class="space-y-2 rounded-md border border-amber-500/40 p-2">
                           <p class="text-sm font-medium">{fill(_('The page changed: %s lines differ'), section.diffChanged)}</p>
+                          {#if section.pending.note?.startsWith('capped:')}
+                            <p class="flex items-start gap-2 text-sm text-amber-700 dark:text-amber-300" role="alert">
+                              <AlertTriangle class="mt-0.5 size-4 shrink-0" />{fill(_('Only the first %s pages were read.'), section.pending.note.slice(7))}
+                            </p>
+                          {/if}
                           {#if section.overwritesEdit}
                             <p class="flex items-start gap-2 text-sm text-amber-700 dark:text-amber-300" role="alert">
                               <AlertTriangle class="mt-0.5 size-4 shrink-0" />{_('Accepting replaces the text you edited by hand.')}
@@ -383,15 +486,18 @@
           void create();
         }}
       >
-        <div class="grid grid-cols-3 gap-2" role="radiogroup" aria-label={_('Kind')}>
-          {#each ['web', 'sitemap', 'manual'] as const as option}
+        <div class="grid grid-cols-3 gap-2 sm:grid-cols-5" role="radiogroup" aria-label={_('Kind')}>
+          {#each ['web', 'sitemap', 'pdf', 'image', 'manual'] as const as option}
             {@const Icon = icons[option]}
             <button
               type="button"
               role="radio"
               aria-checked={kind === option}
               class="flex flex-col items-center gap-1 rounded-lg border p-3 text-sm {kind === option ? 'border-primary bg-primary/10 text-primary' : 'hover:bg-muted'}"
-              onclick={() => (kind = option)}
+              onclick={() => {
+                kind = option;
+                picked = [];
+              }}
             >
               <Icon class="size-5" />{kindLabel(option)}
             </button>
@@ -405,14 +511,47 @@
             <textarea id="s-text" class="{controlClass} min-h-40" bind:value={text}></textarea>
           </Field>
         {:else}
-          <Field label={kind === 'web' ? _('Web address') : _('Address of the sitemap')} for="s-url">
-            <input id="s-url" type="url" class={controlClass} bind:value={url} required placeholder={kind === 'web' ? 'https://example.com/menu' : 'https://example.com/sitemap.xml'} />
+          {#if isDocument(kind)}
+            <p class="text-sm text-muted-foreground">{_('The document is read by Mistral OCR at Mistral (EU) and its text waits for your review.')}</p>
+            <div
+              role="group"
+              aria-label={_('Files')}
+              class="rounded-lg border border-dashed p-4 text-center text-sm {dragging ? 'border-primary bg-primary/10' : ''}"
+              ondragover={(e) => {
+                e.preventDefault();
+                dragging = true;
+              }}
+              ondragleave={() => (dragging = false)}
+              ondrop={(e) => dropped(e, (list) => (picked = accepted(kind, list)))}
+            >
+              <label class="cursor-pointer text-primary underline">
+                {kind === 'pdf' ? _('Choose a PDF') : _('Choose pictures')}
+                <input
+                  type="file"
+                  class="sr-only"
+                  accept={kind === 'pdf' ? 'application/pdf' : 'image/png,image/jpeg,image/webp'}
+                  multiple={kind === 'image'}
+                  onchange={(e) => (picked = accepted(kind, Array.from(e.currentTarget.files ?? [])))}
+                />
+              </label>
+              <span class="text-muted-foreground"> {_('or drop them here')}</span>
+              <p class="mt-1 text-xs text-muted-foreground">{kind === 'pdf' ? fill(_('Up to %s'), megabytes(MAX_PDF)) : fill(_('PNG, JPEG or WebP, up to %s each'), megabytes(MAX_IMAGE))}</p>
+              {#if picked.length > 0}
+                <ol class="mt-2 list-inside list-decimal text-left text-xs">
+                  {#each picked as file}<li class="truncate">{file.name}</li>{/each}
+                </ol>
+              {/if}
+            </div>
+          {/if}
+          <Field label={kind === 'web' ? _('Web address') : kind === 'sitemap' ? _('Address of the sitemap') : _('Or the address of the file')} for="s-url">
+            <input id="s-url" type="url" class={controlClass} bind:value={url} required={!isDocument(kind)} placeholder={kind === 'web' ? 'https://example.com/menu' : kind === 'sitemap' ? 'https://example.com/sitemap.xml' : 'https://example.com/card.pdf'} />
           </Field>
           {#if kind === 'sitemap'}
             <Field label={_('Only these pages')} for="s-globs" hint={_('One pattern per line, such as /menu/**. Empty takes every page.')}>
               <textarea id="s-globs" class="{controlClass} min-h-20 font-mono" bind:value={globs}></textarea>
             </Field>
           {/if}
+          {#if !isDocument(kind) || url.trim() !== ''}
           <Field label={_('Fetch again every')} for="s-hours">
             <select id="s-hours" class={controlClass} bind:value={hours}>
               <option value="">{_('Never')}</option>
@@ -421,6 +560,7 @@
               <option value="168">{_('Week')}</option>
             </select>
           </Field>
+          {/if}
           <label class="flex items-center gap-2 text-sm">
             <input type="checkbox" bind:checked={auto} />{_('Accept changes without asking')}
           </label>
@@ -429,7 +569,7 @@
           <Dialog.Close>
             {#snippet child({ props })}<Button {...props} type="button" variant="outline">{_('Cancel')}</Button>{/snippet}
           </Dialog.Close>
-          <Button type="submit" disabled={busy !== undefined || !title.trim() || (kind !== 'manual' && !url.trim())}>{_('Add')}</Button>
+          <Button type="submit" disabled={busy !== undefined || !title.trim() || (kind !== 'manual' && !url.trim() && !(isDocument(kind) && picked.length > 0))}>{_('Add')}</Button>
         </div>
       </form>
     </Dialog.Content>

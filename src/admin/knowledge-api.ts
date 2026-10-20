@@ -1,5 +1,6 @@
 import { _ } from '../i18n.js';
 import { PROFILE_FILE } from '../core/settings.js';
+import { MAX_UPLOAD_BYTES } from './file-kinds.js';
 import { KnowledgeError, type KnowledgeService, type NewSourceInput } from './knowledge-service.js';
 
 export interface ApiRequest {
@@ -8,11 +9,16 @@ export interface ApiRequest {
   query: URLSearchParams;
   /** Parsed lazily: a GET has no body to read. */
   body: () => Promise<Record<string, unknown>>;
+  /** The body as it is, for an upload; refuses one above `limit` bytes. */
+  raw: (limit: number) => Promise<Buffer>;
+  header: (name: string) => string | undefined;
 }
 
 export interface ApiResult {
   status: number;
   payload: unknown;
+  /** An original file to hand out instead of JSON. */
+  file?: { name: string; mime: string; bytes: Buffer };
 }
 
 export interface KnowledgeApiOptions {
@@ -120,6 +126,27 @@ export function createKnowledgeApi(options: KnowledgeApiOptions) {
         return ok(await service.refresh(tenantId, sourceId));
       } finally {
         refreshing.delete(sourceId);
+      }
+    }
+
+    if (area === 'sources' && action === 'files') {
+      const sourceId = idOf(id);
+      if (parts.length === 3 && method === 'POST') {
+        // The name travels in a header, URI-encoded: the body is the file and nothing else.
+        let name: string | undefined;
+        try {
+          name = decodeURIComponent(request.header('x-file-name') ?? '');
+        } catch {
+          name = undefined;
+        }
+        return ok(service.addFile(tenantId, sourceId, { name, bytes: await request.raw(MAX_UPLOAD_BYTES) }), 201);
+      }
+      if (parts.length === 3 && method === 'DELETE') {
+        service.clearFiles(tenantId, sourceId);
+        return ok({ ok: true });
+      }
+      if (parts.length === 4 && method === 'GET') {
+        return { status: 200, payload: null, file: service.file(tenantId, sourceId, numberId(parts[3])) };
       }
     }
 

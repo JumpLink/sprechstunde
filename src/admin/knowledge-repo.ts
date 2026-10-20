@@ -7,7 +7,7 @@
 import { randomBytes } from 'node:crypto';
 import type { DatabaseSync, SQLInputValue } from 'node:sqlite';
 
-export type SourceKind = 'manual' | 'web' | 'sitemap';
+export type SourceKind = 'manual' | 'web' | 'sitemap' | 'pdf' | 'image';
 export type RevisionStatus = 'pending' | 'approved' | 'rejected';
 export type RevisionOrigin = 'fetched' | 'edited';
 
@@ -26,6 +26,18 @@ export interface Source {
   lastFetchedAt: string | null;
   lastError: string | null;
   createdAt: string;
+  /** Document sources: the set of files the live reading came from (see `fileSetSha`), and its page count. */
+  ocrSha: string | null;
+  ocrPages: number | null;
+}
+
+/** One original file of a document source; `position` is the page order of pictures. */
+export interface SourceFile {
+  position: number;
+  sha256: string;
+  name: string;
+  mime: string;
+  bytes: number;
 }
 
 export interface Section {
@@ -119,6 +131,16 @@ const sourceOf = (row: Row): Source => ({
   lastFetchedAt: maybe(row.last_fetched_at),
   lastError: maybe(row.last_error),
   createdAt: text(row.created_at),
+  ocrSha: maybe(row.ocr_sha),
+  ocrPages: row.ocr_pages === null ? null : Number(row.ocr_pages),
+});
+
+const fileOf = (row: Row): SourceFile => ({
+  position: Number(row.position),
+  sha256: text(row.sha256),
+  name: text(row.name),
+  mime: text(row.mime),
+  bytes: Number(row.bytes),
 });
 
 const sectionOf = (row: Row): Section => ({
@@ -215,7 +237,7 @@ export function createKnowledgeRepo(db: DatabaseSync) {
         /** Sources with an automatic refresh, for the scheduler. */
         refreshable(): Source[] {
           return all(
-            `SELECT * FROM source WHERE tenant_id = ? AND kind != 'manual' AND refresh_hours IS NOT NULL ORDER BY created_at, id`,
+            `SELECT * FROM source WHERE tenant_id = ? AND url IS NOT NULL AND refresh_hours IS NOT NULL ORDER BY created_at, id`,
             tenantId,
           ).map(sourceOf);
         },
@@ -251,6 +273,54 @@ export function createKnowledgeRepo(db: DatabaseSync) {
             tenantId,
             id,
           );
+        },
+
+        files(sourceId: string): SourceFile[] {
+          return all(
+            'SELECT * FROM source_file WHERE tenant_id = ? AND source_id = ? ORDER BY position',
+            tenantId,
+            sourceId,
+          ).map(fileOf);
+        },
+
+        /** Appends at the end; returns the stored row. */
+        addFile(sourceId: string, input: Omit<SourceFile, 'position'>): SourceFile {
+          const next = one(
+            'SELECT COALESCE(MAX(position), 0) + 1 AS next FROM source_file WHERE tenant_id = ? AND source_id = ?',
+            tenantId,
+            sourceId,
+          );
+          const position = Number(next!.next);
+          run(
+            `INSERT INTO source_file (tenant_id, source_id, position, sha256, name, mime, bytes)
+             VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            tenantId,
+            sourceId,
+            position,
+            input.sha256,
+            input.name,
+            input.mime,
+            input.bytes,
+          );
+          return { position, ...input };
+        },
+
+        clearFiles(sourceId: string): void {
+          run('DELETE FROM source_file WHERE tenant_id = ? AND source_id = ?', tenantId, sourceId);
+        },
+
+        /** How many source files of this tenant still use the stored file with this hash. */
+        fileUsers(sha256: string): number {
+          const row = one(
+            'SELECT COUNT(*) AS used FROM source_file WHERE tenant_id = ? AND sha256 = ?',
+            tenantId,
+            sha256,
+          );
+          return Number(row!.used);
+        },
+
+        setOcr(id: string, sha: string | null, pages: number | null): void {
+          run('UPDATE source SET ocr_sha = ?, ocr_pages = ? WHERE tenant_id = ? AND id = ?', sha, pages, tenantId, id);
         },
 
         deleteSource(id: string): boolean {

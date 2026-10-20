@@ -6,6 +6,7 @@ import { join } from 'node:path';
 import { after, test } from 'node:test';
 import type { SafeFetcher } from './fetch-safe.js';
 import { createKnowledgeRuntime, runDue } from './knowledge-runtime.js';
+import type { Ocr } from './ocr.js';
 import { createAdminServer } from './server.js';
 
 const servers: Array<{ close: () => void }> = [];
@@ -15,7 +16,7 @@ after(() => {
 
 const PAGE = 'https://venue.example/menu';
 
-async function start() {
+async function start(ocr?: Ocr) {
   const dir = mkdtempSync(join(tmpdir(), 'sprechstunde-knowledge-'));
   const profiles = join(dir, 'profiles');
   mkdirSync(profiles);
@@ -27,7 +28,7 @@ async function start() {
       return { url: address, contentType: 'text/html', text: body };
     },
   } as SafeFetcher;
-  const runtime = createKnowledgeRuntime(env, fetcher);
+  const runtime = createKnowledgeRuntime(env, fetcher, ocr);
   const server = createAdminServer({
     settingsPath: join(dir, 'voice.json'),
     metricsDir: join(dir, 'metrics'),
@@ -49,7 +50,13 @@ async function start() {
       },
       body: payload === undefined ? undefined : JSON.stringify(payload),
     });
-  return { call, profiles, runtime, setBody: (next: string) => (body = next) };
+  const upload = (path: string, bytes: Uint8Array | string, name = 'card.pdf') =>
+    fetch(`${url}${path}`, {
+      method: 'POST',
+      headers: { origin: url, 'content-type': 'application/octet-stream', 'x-file-name': encodeURIComponent(name) },
+      body: bytes,
+    });
+  return { call, upload, profiles, runtime, setBody: (next: string) => (body = next) };
 }
 
 test('knowledge API: add, fetch, review, edit, publish - and the file the agent reads', async () => {
@@ -148,4 +155,55 @@ test('a second refresh of the same source within the cooldown is a 429 with Retr
   const again = await r.call('POST', path, {});
   assert.equal(again.status, 429);
   assert.ok(Number(again.headers.get('retry-after')) > 0);
+});
+
+test('knowledge API: a PDF is uploaded, read, reviewed and handed back with safe headers', async () => {
+  const reads: number[] = [];
+  const r = await start(async (document) => {
+    reads.push(document.bytes.length);
+    return ['# Starters\nSoup 4'];
+  });
+  const made = await r.call('POST', '/api/knowledge/sources', { venue: 'venue.json', kind: 'pdf', title: 'Card' });
+  assert.equal(made.status, 201);
+  const { id } = (await made.json()) as { id: string };
+
+  const pdf = Buffer.from('%PDF-1.4\nfake');
+  assert.equal((await r.upload(`/api/knowledge/sources/${id}/files`, 'plain text, not a PDF')).status, 400);
+  const sent = await r.upload(`/api/knowledge/sources/${id}/files`, pdf, 'Mittags karte ä.pdf');
+  assert.equal(sent.status, 201);
+  assert.equal(((await sent.json()) as { name: string }).name, 'Mittags karte ä.pdf');
+  assert.equal((await r.upload(`/api/knowledge/sources/${id}/files`, pdf, 'x.pdf')).status, 201);
+
+  const refreshed = await r.call('POST', `/api/knowledge/sources/${id}/refresh`, {});
+  assert.equal(((await refreshed.json()) as { pending: number }).pending, 1);
+  assert.deepEqual(reads, [pdf.length]);
+
+  const detail = (await (await r.call('GET', `/api/knowledge/sources/${id}`)).json()) as {
+    files: Array<{ position: number; name: string }>;
+    sections: Array<{ pending: { markdown: string } }>;
+  };
+  assert.equal(detail.files.length, 1);
+  assert.equal(detail.sections[0]!.pending.markdown, '# Starters\nSoup 4');
+
+  const original = await r.call('GET', `/api/knowledge/sources/${id}/files/1`);
+  assert.equal(original.status, 200);
+  assert.equal(original.headers.get('content-type'), 'application/pdf');
+  assert.match(
+    original.headers.get('content-disposition') ?? '',
+    /^attachment; filename="x\.pdf"; filename\*=UTF-8''x\.pdf$/,
+  );
+  assert.equal(original.headers.get('x-content-type-options'), 'nosniff');
+  assert.match(original.headers.get('content-security-policy') ?? '', /sandbox/);
+  assert.deepEqual(Buffer.from(await original.arrayBuffer()), pdf);
+  assert.equal((await r.call('GET', `/api/knowledge/sources/${id}/files/9`)).status, 404);
+  assert.equal((await r.call('GET', `/api/knowledge/sources/${id}/files/x`)).status, 400);
+
+  const big = await r.upload(`/api/knowledge/sources/${id}/files`, Buffer.alloc(21 * 1024 * 1024));
+  assert.equal(big.status, 413);
+
+  const stranger = await fetch(`${new URL(sent.url).origin}/api/knowledge/sources/${id}/files`, {
+    method: 'POST',
+    body: pdf,
+  });
+  assert.ok(stranger.status >= 400 && stranger.status < 500, 'a write without the page origin is refused');
 });

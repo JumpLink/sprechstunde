@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-20 14:35+0200\n"
+"POT-Creation-Date: 2026-10-20 15:08+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -31,63 +31,63 @@ msgstr ""
 msgid "the request failed: %s"
 msgstr ""
 
-#: src/admin/fetch-safe.ts:196 src/admin/knowledge-service.ts:119
+#: src/admin/fetch-safe.ts:202 src/admin/knowledge-service.ts:145
 msgid "only http and https addresses can be fetched"
 msgstr ""
 
-#: src/admin/fetch-safe.ts:199
+#: src/admin/fetch-safe.ts:205
 msgid "an address with a user name or password is not accepted"
 msgstr ""
 
-#: src/admin/fetch-safe.ts:203
+#: src/admin/fetch-safe.ts:209
 msgid "only the default web ports are accepted"
 msgstr ""
 
-#: src/admin/fetch-safe.ts:215 src/admin/fetch-safe.ts:218
+#: src/admin/fetch-safe.ts:221 src/admin/fetch-safe.ts:224
 msgid "the host name could not be resolved"
 msgstr ""
 
-#: src/admin/fetch-safe.ts:221
+#: src/admin/fetch-safe.ts:227
 msgid "this address leads to a private or internal network"
 msgstr ""
 
-#: src/admin/fetch-safe.ts:241 src/admin/fetch-safe.ts:247
+#: src/admin/fetch-safe.ts:247 src/admin/fetch-safe.ts:253
 msgid "the page is too large"
 msgstr ""
 
-#: src/admin/fetch-safe.ts:301 src/admin/fetch-safe.ts:327
+#: src/admin/fetch-safe.ts:307 src/admin/fetch-safe.ts:334
 msgid "the page took too long to answer"
 msgstr ""
 
-#: src/admin/fetch-safe.ts:302 src/admin/fetch-safe.ts:328
+#: src/admin/fetch-safe.ts:308 src/admin/fetch-safe.ts:335
 msgid "the page could not be fetched"
 msgstr ""
 
-#: src/admin/fetch-safe.ts:306
+#: src/admin/fetch-safe.ts:312
 msgid "the page answered with a redirect without a target"
 msgstr ""
 
-#: src/admin/fetch-safe.ts:307
+#: src/admin/fetch-safe.ts:313
 msgid "the page redirects too often"
 msgstr ""
 
-#: src/admin/fetch-safe.ts:311
+#: src/admin/fetch-safe.ts:317
 msgid "the page redirects to an invalid address"
 msgstr ""
 
-#: src/admin/fetch-safe.ts:316
+#: src/admin/fetch-safe.ts:322
 msgid "the page answered with an error"
 msgstr ""
 
-#: src/admin/fetch-safe.ts:320
+#: src/admin/fetch-safe.ts:326 src/admin/knowledge-service.ts:289
 msgid "the page is not a kind of document that can be read"
 msgstr ""
 
-#: src/admin/fetch-safe.ts:375 src/admin/knowledge-service.ts:116
+#: src/admin/fetch-safe.ts:382 src/admin/knowledge-service.ts:142
 msgid "this is not a valid web address"
 msgstr ""
 
-#: src/admin/fetch-safe.ts:384
+#: src/admin/fetch-safe.ts:391
 msgid "the site asks robots not to fetch this page"
 msgstr ""
 
@@ -104,89 +104,143 @@ msgstr ""
 msgid "\"%s\" is not a valid CSS selector"
 msgstr ""
 
-#: src/admin/knowledge-api.ts:46
+#: src/admin/knowledge-api.ts:52
 msgid "\"venue\" must be the name of a .json file in the profiles directory"
 msgstr ""
 
-#: src/admin/knowledge-api.ts:48
+#: src/admin/knowledge-api.ts:54
 msgid "no such venue"
 msgstr ""
 
-#: src/admin/knowledge-api.ts:52 src/admin/knowledge-api.ts:57
+#: src/admin/knowledge-api.ts:58 src/admin/knowledge-api.ts:63
 msgid "invalid id"
 msgstr ""
 
-#: src/admin/knowledge-api.ts:111
+#: src/admin/knowledge-api.ts:117
 msgid "this source is being fetched right now"
 msgstr ""
 
-#: src/admin/knowledge-api.ts:114
+#: src/admin/knowledge-api.ts:120
 msgid "this source was fetched a moment ago: try again shortly"
 msgstr ""
 
-#: src/admin/knowledge-api.ts:134
+#: src/admin/knowledge-api.ts:161
 msgid "\"baseRevisionId\" must be the revision the page loaded, or null"
 msgstr ""
 
-#: src/admin/knowledge-service.ts:95
+#: src/admin/knowledge-service.ts:113
 #, javascript-format
 msgid "at most %s patterns are allowed"
 msgstr ""
 
-#: src/admin/knowledge-service.ts:99
+#: src/admin/knowledge-service.ts:117
 #, javascript-format
 msgid "a pattern may have at most %s characters"
 msgstr ""
 
-#: src/admin/knowledge-service.ts:111
+#: src/admin/knowledge-service.ts:131 src/admin/knowledge-service.ts:691
+msgid "\"refreshHours\" must be a whole number of hours, or null"
+msgstr ""
+
+#: src/admin/knowledge-service.ts:137
 msgid "\"url\" must be a web address"
 msgstr ""
 
-#: src/admin/knowledge-service.ts:161
+#: src/admin/knowledge-service.ts:187 src/admin/knowledge-service.ts:659
 msgid "not found"
 msgstr ""
 
-#: src/admin/knowledge-service.ts:254
+#: src/admin/knowledge-service.ts:321 src/admin/server.ts:927
+msgid "internal error"
+msgstr ""
+
+#: src/admin/knowledge-service.ts:329
+msgid "no file has been uploaded yet"
+msgstr ""
+
+#: src/admin/knowledge-service.ts:340
+msgid "a stored file is missing: upload it again"
+msgstr ""
+
+#: src/admin/knowledge-service.ts:347
+msgid "no text was found in the document"
+msgstr ""
+
+#: src/admin/knowledge-service.ts:392
 #, javascript-format
 msgid "a venue may have at most %s sources"
 msgstr ""
 
-#: src/admin/knowledge-service.ts:258
+#: src/admin/knowledge-service.ts:396
 #, javascript-format
 msgid "\"kind\" must be one of: %s"
 msgstr ""
 
-#: src/admin/knowledge-service.ts:261
+#: src/admin/knowledge-service.ts:400
 msgid "Notes"
 msgstr ""
 
-#: src/admin/knowledge-service.ts:261 web/src/pages/Sources.svelte:22
+#: src/admin/knowledge-service.ts:401 src/admin/knowledge-service.ts:402
+#: web/src/pages/Sources.svelte:22
 msgid "Web page"
 msgstr ""
 
-#: src/admin/knowledge-service.ts:264 src/admin/knowledge-service.ts:409
+#: src/admin/knowledge-service.ts:403
+msgid "Document"
+msgstr ""
+
+#: src/admin/knowledge-service.ts:404
+msgid "Photos"
+msgstr ""
+
+#: src/admin/knowledge-service.ts:422 src/admin/knowledge-service.ts:565
 msgid "the text is too long"
 msgstr ""
 
-#: src/admin/knowledge-service.ts:295 src/admin/knowledge-service.ts:472
-msgid "\"refreshHours\" must be a whole number of hours, or null"
-msgstr ""
-
-#: src/admin/knowledge-service.ts:319
+#: src/admin/knowledge-service.ts:474
 msgid "a text source has nothing to fetch"
 msgstr ""
 
-#: src/admin/knowledge-service.ts:384 src/admin/knowledge-service.ts:395
+#: src/admin/knowledge-service.ts:540 src/admin/knowledge-service.ts:551
 msgid "this change was already decided: reload the page"
 msgstr ""
 
-#: src/admin/knowledge-service.ts:408
+#: src/admin/knowledge-service.ts:564
 msgid "\"markdown\" must be text"
 msgstr ""
 
-#: src/admin/knowledge-service.ts:411
+#: src/admin/knowledge-service.ts:567
 msgid ""
 "this section changed since you loaded it: reload and make the change again"
+msgstr ""
+
+#: src/admin/knowledge-service.ts:606 src/admin/knowledge-service.ts:647
+msgid "this source takes no files"
+msgstr ""
+
+#: src/admin/knowledge-service.ts:608
+msgid "this source is fetched from a web address and takes no uploaded files"
+msgstr ""
+
+#: src/admin/knowledge-service.ts:611
+msgid "this is not a PDF or a picture (PNG, JPEG or WebP)"
+msgstr ""
+
+#: src/admin/knowledge-service.ts:615
+msgid "this source takes a PDF"
+msgstr ""
+
+#: src/admin/knowledge-service.ts:615
+msgid "this source takes pictures"
+msgstr ""
+
+#: src/admin/knowledge-service.ts:618
+msgid "the file is too large"
+msgstr ""
+
+#: src/admin/knowledge-service.ts:621
+#, javascript-format
+msgid "at most %s pictures are allowed"
 msgstr ""
 
 #: src/admin/main.ts:23
@@ -202,6 +256,10 @@ msgstr ""
 #: src/admin/main.ts:67
 #, javascript-format
 msgid "settings file: %s"
+msgstr ""
+
+#: src/admin/ocr.ts:30
+msgid "the text could not be read from the document"
 msgstr ""
 
 #: src/admin/preview.ts:66 src/cli/speech.ts:31
@@ -245,12 +303,12 @@ msgid "no profile %s"
 msgstr ""
 
 #: src/admin/profile-store.ts:165 src/admin/profile-store.ts:346
-#: src/admin/server.ts:263
+#: src/admin/server.ts:280
 #, javascript-format
 msgid "%s is not valid JSON"
 msgstr ""
 
-#: src/admin/profile-store.ts:166 src/admin/server.ts:264
+#: src/admin/profile-store.ts:166 src/admin/server.ts:281
 msgid "top level must be an object"
 msgstr ""
 
@@ -258,8 +316,8 @@ msgstr ""
 msgid "a transfer needs a target: enter a phone number"
 msgstr ""
 
-#: src/admin/profile-store.ts:236 src/admin/server.ts:613
-#: src/admin/server.ts:666 src/admin/server.ts:694
+#: src/admin/profile-store.ts:236 src/admin/server.ts:630
+#: src/admin/server.ts:683 src/admin/server.ts:711
 msgid "\"file\" must be the name of a .json file in the profiles directory"
 msgstr ""
 
@@ -268,7 +326,7 @@ msgstr ""
 msgid "invalid version"
 msgstr ""
 
-#: src/admin/profile-store.ts:312 src/admin/server.ts:476
+#: src/admin/profile-store.ts:312 src/admin/server.ts:493
 msgid "\"revision\" must be the revision the page loaded"
 msgstr ""
 
@@ -285,124 +343,120 @@ msgstr ""
 msgid "a profile with this name already exists"
 msgstr ""
 
-#: src/admin/server.ts:116
+#: src/admin/server.ts:116 src/admin/server.ts:132
 msgid "the request body is too large"
 msgstr ""
 
-#: src/admin/server.ts:132
+#: src/admin/server.ts:149
 msgid "the request body must be a JSON object"
 msgstr ""
 
-#: src/admin/server.ts:162 src/admin/server.ts:167
+#: src/admin/server.ts:179 src/admin/server.ts:184
 #, javascript-format
 msgid "\"%s\" must be a short plain string"
 msgstr ""
 
-#: src/admin/server.ts:198 src/admin/server.ts:578
+#: src/admin/server.ts:215 src/admin/server.ts:595
 msgid "the vendor sample could not be fetched"
 msgstr ""
 
-#: src/admin/server.ts:344
+#: src/admin/server.ts:361
 #, javascript-format
 msgid "\"provider\" must be one of: %s"
 msgstr ""
 
-#: src/admin/server.ts:372
+#: src/admin/server.ts:389
 msgid "no voice is configured"
 msgstr ""
 
-#: src/admin/server.ts:376 src/admin/server.ts:673 src/admin/server.ts:758
-#: src/admin/server.ts:768 src/admin/server.ts:792
+#: src/admin/server.ts:393 src/admin/server.ts:690 src/admin/server.ts:775
+#: src/admin/server.ts:785 src/admin/server.ts:809
 #, javascript-format
 msgid "no character with id %s"
 msgstr ""
 
-#: src/admin/server.ts:479
+#: src/admin/server.ts:496
 msgid ""
 "the characters changed since you loaded them: reload and make the change "
 "again"
 msgstr ""
 
-#: src/admin/server.ts:485
+#: src/admin/server.ts:502
 msgid "this server answers on 127.0.0.1 only"
 msgstr ""
 
-#: src/admin/server.ts:487
+#: src/admin/server.ts:504
 msgid "a change must come from the page this server serves"
 msgstr ""
 
-#: src/admin/server.ts:503 src/admin/server.ts:722
+#: src/admin/server.ts:520 src/admin/server.ts:739
 msgid "invalid character id"
 msgstr ""
 
-#: src/admin/server.ts:532
+#: src/admin/server.ts:549
 msgid "unknown catalog"
 msgstr ""
 
-#: src/admin/server.ts:536
+#: src/admin/server.ts:553
 msgid "\"language\" must be a BCP-47 tag"
 msgstr ""
 
-#: src/admin/server.ts:551 src/admin/server.ts:565
+#: src/admin/server.ts:568 src/admin/server.ts:582
 msgid "unknown provider"
 msgstr ""
 
-#: src/admin/server.ts:558
+#: src/admin/server.ts:575
 msgid "no sample for this voice"
 msgstr ""
 
-#: src/admin/server.ts:572
+#: src/admin/server.ts:589
 msgid "no picture for this voice"
 msgstr ""
 
-#: src/admin/server.ts:640 src/admin/server.ts:652
+#: src/admin/server.ts:657 src/admin/server.ts:669
 msgid "\"file\" must be a file name"
 msgstr ""
 
-#: src/admin/server.ts:654
+#: src/admin/server.ts:671
 msgid "\"from\" must be a file name or null"
 msgstr ""
 
-#: src/admin/server.ts:690
+#: src/admin/server.ts:707
 msgid "\"file\" must be a file name or null"
 msgstr ""
 
-#: src/admin/server.ts:717
+#: src/admin/server.ts:734
 msgid "there are too many characters"
 msgstr ""
 
-#: src/admin/server.ts:724
+#: src/admin/server.ts:741
 msgid "a character with this id already exists"
 msgstr ""
 
-#: src/admin/server.ts:770
+#: src/admin/server.ts:787
 msgid "a character keeps its id"
 msgstr ""
 
-#: src/admin/server.ts:795
+#: src/admin/server.ts:812
 msgid ""
 "the default character cannot be deleted: make another one the default first"
 msgstr ""
 
-#: src/admin/server.ts:798
+#: src/admin/server.ts:815
 msgid "a venue still uses this character: pick another one for it first"
 msgstr ""
 
-#: src/admin/server.ts:833
+#: src/admin/server.ts:850
 #, javascript-format
 msgid "the text may have at most %s characters"
 msgstr ""
 
-#: src/admin/server.ts:879
+#: src/admin/server.ts:910
 msgid "the settings app is not built: run `npm run web:build`"
 msgstr ""
 
-#: src/admin/server.ts:887
+#: src/admin/server.ts:918
 msgid "unknown route"
-msgstr ""
-
-#: src/admin/server.ts:896
-msgid "internal error"
 msgstr ""
 
 #: src/agent/assistant.ts:76
@@ -754,7 +808,7 @@ msgstr ""
 msgid "Knowledge"
 msgstr ""
 
-#: web/src/lib/nav.ts:18 web/src/pages/Sources.svelte:203
+#: web/src/lib/nav.ts:18 web/src/pages/Sources.svelte:254
 msgid "Sources"
 msgstr ""
 
@@ -762,8 +816,8 @@ msgstr ""
 msgid "Calls"
 msgstr ""
 
-#: web/src/lib/ui/Confirm.svelte:28 web/src/pages/Sources.svelte:338
-#: web/src/pages/Sources.svelte:430 web/src/pages/characters/Wizard.svelte:310
+#: web/src/lib/ui/Confirm.svelte:28 web/src/pages/Sources.svelte:441
+#: web/src/pages/Sources.svelte:570 web/src/pages/characters/Wizard.svelte:310
 msgid "Cancel"
 msgstr ""
 
@@ -979,8 +1033,8 @@ msgstr ""
 msgid "Hear greeting"
 msgstr ""
 
-#: web/src/pages/Characters.svelte:129 web/src/pages/Sources.svelte:332
-#: web/src/pages/Sources.svelte:336
+#: web/src/pages/Characters.svelte:129 web/src/pages/Sources.svelte:435
+#: web/src/pages/Sources.svelte:439
 msgid "Edit"
 msgstr ""
 
@@ -1058,7 +1112,7 @@ msgid "Use this profile"
 msgstr ""
 
 #: web/src/pages/Knowledge.svelte:227 web/src/pages/Knowledge.svelte:495
-#: web/src/pages/Sources.svelte:298 web/src/pages/Sources.svelte:443
+#: web/src/pages/Sources.svelte:396 web/src/pages/Sources.svelte:583
 msgid "History"
 msgstr ""
 
@@ -1232,12 +1286,12 @@ msgstr ""
 msgid "Unsaved changes"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:476 web/src/pages/Sources.svelte:313
+#: web/src/pages/Knowledge.svelte:476 web/src/pages/Sources.svelte:416
 msgid "Discard"
 msgstr ""
 
 #: web/src/pages/Knowledge.svelte:477 web/src/pages/Llm.svelte:73
-#: web/src/pages/Sources.svelte:334 web/src/pages/characters/Wizard.svelte:457
+#: web/src/pages/Sources.svelte:437 web/src/pages/characters/Wizard.svelte:457
 msgid "Save"
 msgstr ""
 
@@ -1274,7 +1328,7 @@ msgstr ""
 msgid "Restore"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:515 web/src/pages/Sources.svelte:459
+#: web/src/pages/Knowledge.svelte:515 web/src/pages/Sources.svelte:599
 #: web/src/pages/voices/VoiceBrowser.svelte:331
 msgid "Close"
 msgstr ""
@@ -1419,8 +1473,8 @@ msgstr ""
 msgid "no key"
 msgstr ""
 
-#: web/src/pages/Sources.svelte:22 web/src/pages/Sources.svelte:325
-#: web/src/pages/Sources.svelte:404
+#: web/src/pages/Sources.svelte:22 web/src/pages/Sources.svelte:428
+#: web/src/pages/Sources.svelte:510
 msgid "Text"
 msgstr ""
 
@@ -1428,237 +1482,328 @@ msgstr ""
 msgid "Sitemap"
 msgstr ""
 
-#: web/src/pages/Sources.svelte:105
+#: web/src/pages/Sources.svelte:22
+msgid "PDF"
+msgstr ""
+
+#: web/src/pages/Sources.svelte:22
+msgid "Pictures"
+msgstr ""
+
+#: web/src/pages/Sources.svelte:116
 #, javascript-format
 msgid "%s changes wait for your review"
 msgstr ""
 
-#: web/src/pages/Sources.svelte:106
+#: web/src/pages/Sources.svelte:117
 msgid "Nothing new"
 msgstr ""
 
-#: web/src/pages/Sources.svelte:113
+#: web/src/pages/Sources.svelte:124
 msgid "Change accepted"
 msgstr ""
 
-#: web/src/pages/Sources.svelte:113
+#: web/src/pages/Sources.svelte:124
 msgid "Change discarded"
 msgstr ""
 
-#: web/src/pages/Sources.svelte:124
+#: web/src/pages/Sources.svelte:135
 msgid "Saved"
 msgstr ""
 
-#: web/src/pages/Sources.svelte:171
+#: web/src/pages/Sources.svelte:184
+#, javascript-format
+msgid "%s is larger than %s"
+msgstr ""
+
+#: web/src/pages/Sources.svelte:200
+msgid "Uploaded: press \"Read now\" to read it"
+msgstr ""
+
+#: web/src/pages/Sources.svelte:222
 msgid "Source removed"
 msgstr ""
 
-#: web/src/pages/Sources.svelte:176
+#: web/src/pages/Sources.svelte:227
 msgid "Fetch failed"
 msgstr ""
 
-#: web/src/pages/Sources.svelte:178 web/src/pages/Sources.svelte:227
+#: web/src/pages/Sources.svelte:229 web/src/pages/Sources.svelte:278
+msgid "Not read yet"
+msgstr ""
+
+#: web/src/pages/Sources.svelte:229 web/src/pages/Sources.svelte:278
 msgid "Not fetched yet"
 msgstr ""
 
-#: web/src/pages/Sources.svelte:180
+#: web/src/pages/Sources.svelte:231
 #, javascript-format
 msgid "%s to review"
 msgstr ""
 
-#: web/src/pages/Sources.svelte:181
+#: web/src/pages/Sources.svelte:232
 msgid "Up to date"
 msgstr ""
 
-#: web/src/pages/Sources.svelte:188 web/src/pages/Sources.svelte:194
+#: web/src/pages/Sources.svelte:239 web/src/pages/Sources.svelte:245
 msgid "Venue"
 msgstr ""
 
-#: web/src/pages/Sources.svelte:188
+#: web/src/pages/Sources.svelte:239
 msgid ""
 "Sources belong to one venue. The assistant of that venue answers from them."
 msgstr ""
 
-#: web/src/pages/Sources.svelte:192
+#: web/src/pages/Sources.svelte:243
 msgid "No venue profile found"
 msgstr ""
 
-#: web/src/pages/Sources.svelte:203
+#: web/src/pages/Sources.svelte:254
 msgid ""
 "Web pages are fetched, then you decide what goes live. Your own text is live "
 "at once."
 msgstr ""
 
-#: web/src/pages/Sources.svelte:205 web/src/pages/Sources.svelte:377
+#: web/src/pages/Sources.svelte:256 web/src/pages/Sources.svelte:480
 msgid "Add source"
 msgstr ""
 
-#: web/src/pages/Sources.svelte:210
+#: web/src/pages/Sources.svelte:261
 msgid "No sources yet"
 msgstr ""
 
-#: web/src/pages/Sources.svelte:210
-msgid "Add a web page, a sitemap or your own text."
+#: web/src/pages/Sources.svelte:261
+msgid "Add a web page, a sitemap, a PDF, pictures or your own text."
 msgstr ""
 
-#: web/src/pages/Sources.svelte:227
+#: web/src/pages/Sources.svelte:278
 #, javascript-format
 msgid "Fetched %s"
 msgstr ""
 
-#: web/src/pages/Sources.svelte:233
+#: web/src/pages/Sources.svelte:284
+msgid "Read now"
+msgstr ""
+
+#: web/src/pages/Sources.svelte:284
 msgid "Fetch now"
 msgstr ""
 
-#: web/src/pages/Sources.svelte:239 web/src/pages/Sources.svelte:469
+#: web/src/pages/Sources.svelte:290 web/src/pages/Sources.svelte:609
 msgid "Remove source"
 msgstr ""
 
-#: web/src/pages/Sources.svelte:257 web/src/pages/Sources.svelte:416
+#: web/src/pages/Sources.svelte:326
+#, javascript-format
+msgid "%s pages read"
+msgstr ""
+
+#: web/src/pages/Sources.svelte:331
+msgid "Replace PDF"
+msgstr ""
+
+#: web/src/pages/Sources.svelte:331
+msgid "Add pictures"
+msgstr ""
+
+#: web/src/pages/Sources.svelte:345
+msgid "Remove all pictures"
+msgstr ""
+
+#: web/src/pages/Sources.svelte:354 web/src/pages/Sources.svelte:555
 msgid "Fetch again every"
 msgstr ""
 
-#: web/src/pages/Sources.svelte:264 web/src/pages/Sources.svelte:418
+#: web/src/pages/Sources.svelte:361 web/src/pages/Sources.svelte:557
 msgid "Never"
 msgstr ""
 
-#: web/src/pages/Sources.svelte:265 web/src/pages/Sources.svelte:419
+#: web/src/pages/Sources.svelte:362 web/src/pages/Sources.svelte:558
 msgid "6 hours"
 msgstr ""
 
-#: web/src/pages/Sources.svelte:266 web/src/pages/Sources.svelte:420
+#: web/src/pages/Sources.svelte:363 web/src/pages/Sources.svelte:559
 msgid "Day"
 msgstr ""
 
-#: web/src/pages/Sources.svelte:267 web/src/pages/Sources.svelte:421
+#: web/src/pages/Sources.svelte:364 web/src/pages/Sources.svelte:560
 msgid "Week"
 msgstr ""
 
-#: web/src/pages/Sources.svelte:276 web/src/pages/Sources.svelte:425
+#: web/src/pages/Sources.svelte:374 web/src/pages/Sources.svelte:565
 msgid "Accept changes without asking"
 msgstr ""
 
-#: web/src/pages/Sources.svelte:284
+#: web/src/pages/Sources.svelte:382
+msgid "Nothing read yet"
+msgstr ""
+
+#: web/src/pages/Sources.svelte:382
 msgid "Nothing fetched yet"
 msgstr ""
 
-#: web/src/pages/Sources.svelte:284
+#: web/src/pages/Sources.svelte:382
+msgid "Upload a file, then press \"Read now\"."
+msgstr ""
+
+#: web/src/pages/Sources.svelte:382
 msgid "Press \"Fetch now\"."
 msgstr ""
 
-#: web/src/pages/Sources.svelte:296
+#: web/src/pages/Sources.svelte:394
 msgid "No longer listed"
 msgstr ""
 
-#: web/src/pages/Sources.svelte:297 web/src/pages/Sources.svelte:452
+#: web/src/pages/Sources.svelte:395 web/src/pages/Sources.svelte:592
 msgid "Edited by hand"
 msgstr ""
 
-#: web/src/pages/Sources.svelte:304
+#: web/src/pages/Sources.svelte:402
 #, javascript-format
 msgid "The page changed: %s lines differ"
 msgstr ""
 
-#: web/src/pages/Sources.svelte:307
+#: web/src/pages/Sources.svelte:405
+#, javascript-format
+msgid "Only the first %s pages were read."
+msgstr ""
+
+#: web/src/pages/Sources.svelte:410
 msgid "Accepting replaces the text you edited by hand."
 msgstr ""
 
-#: web/src/pages/Sources.svelte:312
+#: web/src/pages/Sources.svelte:415
 msgid "Accept"
 msgstr ""
 
-#: web/src/pages/Sources.svelte:336
+#: web/src/pages/Sources.svelte:439
 msgid "Preview"
 msgstr ""
 
-#: web/src/pages/Sources.svelte:342
+#: web/src/pages/Sources.svelte:445
 msgid "Not live yet."
 msgstr ""
 
-#: web/src/pages/Sources.svelte:344
+#: web/src/pages/Sources.svelte:447
 msgid "Not live yet: accept the change above to publish it."
 msgstr ""
 
-#: web/src/pages/Sources.svelte:356
+#: web/src/pages/Sources.svelte:459
 msgid "What the bot knows"
 msgstr ""
 
-#: web/src/pages/Sources.svelte:356
+#: web/src/pages/Sources.svelte:459
 msgid ""
 "Exactly the text the assistant gets from your sources, with where each part "
 "comes from."
 msgstr ""
 
-#: web/src/pages/Sources.svelte:359
+#: web/src/pages/Sources.svelte:462
 msgid ""
 "Publishing failed and is being retried. The bot still has the older text."
 msgstr ""
 
-#: web/src/pages/Sources.svelte:365
+#: web/src/pages/Sources.svelte:468
 msgid "Nothing yet"
 msgstr ""
 
-#: web/src/pages/Sources.svelte:365
+#: web/src/pages/Sources.svelte:468
 msgid "Accepted sources show up here."
 msgstr ""
 
-#: web/src/pages/Sources.svelte:378
+#: web/src/pages/Sources.svelte:481
 msgid "Pages are fetched politely: the site's robots.txt is respected."
 msgstr ""
 
-#: web/src/pages/Sources.svelte:386
+#: web/src/pages/Sources.svelte:489
 msgid "Kind"
 msgstr ""
 
-#: web/src/pages/Sources.svelte:400
+#: web/src/pages/Sources.svelte:506
 msgid "Title"
 msgstr ""
 
-#: web/src/pages/Sources.svelte:404
+#: web/src/pages/Sources.svelte:510
 msgid "Markdown works."
 msgstr ""
 
-#: web/src/pages/Sources.svelte:408
+#: web/src/pages/Sources.svelte:515
+msgid ""
+"The document is read by Mistral OCR at Mistral (EU) and its text waits for "
+"your review."
+msgstr ""
+
+#: web/src/pages/Sources.svelte:518
+msgid "Files"
+msgstr ""
+
+#: web/src/pages/Sources.svelte:528
+msgid "Choose a PDF"
+msgstr ""
+
+#: web/src/pages/Sources.svelte:528
+msgid "Choose pictures"
+msgstr ""
+
+#: web/src/pages/Sources.svelte:537
+msgid "or drop them here"
+msgstr ""
+
+#: web/src/pages/Sources.svelte:538
+#, javascript-format
+msgid "Up to %s"
+msgstr ""
+
+#: web/src/pages/Sources.svelte:538
+#, javascript-format
+msgid "PNG, JPEG or WebP, up to %s each"
+msgstr ""
+
+#: web/src/pages/Sources.svelte:546
 msgid "Web address"
 msgstr ""
 
-#: web/src/pages/Sources.svelte:408
+#: web/src/pages/Sources.svelte:546
 msgid "Address of the sitemap"
 msgstr ""
 
-#: web/src/pages/Sources.svelte:412
+#: web/src/pages/Sources.svelte:546
+msgid "Or the address of the file"
+msgstr ""
+
+#: web/src/pages/Sources.svelte:550
 msgid "Only these pages"
 msgstr ""
 
-#: web/src/pages/Sources.svelte:412
+#: web/src/pages/Sources.svelte:550
 msgid "One pattern per line, such as /menu/**. Empty takes every page."
 msgstr ""
 
-#: web/src/pages/Sources.svelte:432
+#: web/src/pages/Sources.svelte:572
 msgid "Add"
 msgstr ""
 
-#: web/src/pages/Sources.svelte:450
+#: web/src/pages/Sources.svelte:590
 msgid "Accepted"
 msgstr ""
 
-#: web/src/pages/Sources.svelte:450
+#: web/src/pages/Sources.svelte:590
 msgid "Waiting"
 msgstr ""
 
-#: web/src/pages/Sources.svelte:450
+#: web/src/pages/Sources.svelte:590
 msgid "Discarded"
 msgstr ""
 
-#: web/src/pages/Sources.svelte:452
+#: web/src/pages/Sources.svelte:592
 msgid "Fetched"
 msgstr ""
 
-#: web/src/pages/Sources.svelte:467
+#: web/src/pages/Sources.svelte:607
 msgid "Remove this source?"
 msgstr ""
 
-#: web/src/pages/Sources.svelte:468
+#: web/src/pages/Sources.svelte:608
 msgid ""
 "Its fetched texts and their history are deleted, and the assistant stops "
 "using them."

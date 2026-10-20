@@ -1,5 +1,7 @@
 src/admin/catalog.ts
 src/admin/fetch-safe.ts
+src/admin/file-kinds.ts
+src/admin/file-store.ts
 src/admin/html-markdown.ts
 src/admin/http-error.ts
 src/admin/knowledge-api.ts
@@ -12,6 +14,7 @@ src/admin/limiter.ts
 src/admin/line-diff.ts
 src/admin/main.ts
 src/admin/net-guard.ts
+src/admin/ocr.ts
 src/admin/preview.ts
 src/admin/profile-store.ts
 src/admin/robots.ts

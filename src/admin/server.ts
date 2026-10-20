@@ -124,6 +124,23 @@ async function readBody(request: IncomingMessage): Promise<unknown> {
   }
 }
 
+async function readRaw(request: IncomingMessage, limit: number): Promise<Buffer> {
+  const chunks: Buffer[] = [];
+  let size = 0;
+  for await (const chunk of request) {
+    size += (chunk as Buffer).length;
+    if (size > limit) throw new HttpError(413, _('the request body is too large'));
+    chunks.push(chunk as Buffer);
+  }
+  return Buffer.concat(chunks);
+}
+
+/** `filename*` carries any name safely; the plain one is the ASCII fallback old clients read. */
+function disposition(kind: 'inline' | 'attachment', name: string): string {
+  const ascii = name.replace(/[^\x20-\x7e]|["\\;]/g, '_');
+  return `${kind}; filename="${ascii}"; filename*=UTF-8''${encodeURIComponent(name).replace(/['()*]/g, (c) => `%${c.charCodeAt(0).toString(16).toUpperCase()}`)}`;
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
@@ -856,7 +873,21 @@ export function createAdminServer(options: AdminOptions): Server {
           path,
           query: url.searchParams,
           body: async () => body(await readBody(request)),
+          raw: (limit) => readRaw(request, limit),
+          header: (name) => {
+            const value = request.headers[name];
+            return Array.isArray(value) ? value[0] : value;
+          },
         });
+        if (result?.file) {
+          const { name, mime, bytes } = result.file;
+          // Pictures show inside the page; a PDF is downloaded rather than opened in this origin. The
+          // sandbox policy keeps even a file that slipped past the byte check from running anything.
+          return send(response, 200, mime, bytes, {
+            'content-disposition': disposition(mime.startsWith('image/') ? 'inline' : 'attachment', name),
+            'content-security-policy': "default-src 'none'; sandbox",
+          });
+        }
         if (result) return json(response, result.status, result.payload);
       } catch (error) {
         if (error instanceof KnowledgeError) {

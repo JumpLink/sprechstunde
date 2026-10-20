@@ -18,6 +18,18 @@ export async function api<T>(method: string, path: string, body?: unknown): Prom
   return payload as T;
 }
 
+/** One file as the raw body; the name travels in a header because the body is the file. */
+export async function upload<T>(path: string, file: File): Promise<T> {
+  const response = await fetch(path, {
+    method: 'POST',
+    headers: { 'content-type': 'application/octet-stream', 'x-file-name': encodeURIComponent(file.name) },
+    body: file,
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) throw new ApiError(response.status, payload.error || response.statusText);
+  return payload as T;
+}
+
 export interface PreviewResult {
   url: string;
   ttfaMs: number;
