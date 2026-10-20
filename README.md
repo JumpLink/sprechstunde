@@ -189,6 +189,11 @@ SPRECHSTUNDE_TTS_FALLBACK_PROVIDER=mistral SPRECHSTUNDE_TTS_FALLBACK_VOICE=<voic
 If you use Mistral's API, check the training opt-out in the admin panel (Privacy → "Anonymous
 improvement data").
 
+### Running on a server
+
+`compose.server.yaml` and `deploy/systemd/sprechstunde.service` run the same stack in a Proxmox LXC
+with rootful Podman; see [docs/deploy/proxmox-lxc.md](docs/deploy/proxmox-lxc.md).
+
 ### Latency and robustness
 
 What the agent does beyond the defaults, and why:

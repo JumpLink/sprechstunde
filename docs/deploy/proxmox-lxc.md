@@ -1,0 +1,151 @@
+# Running sprechstunde in a Proxmox LXC
+
+The same `compose.yaml` as on a workstation, plus `compose.server.yaml`, in an unprivileged Debian 13
+LXC with rootful Podman. Every value below is a placeholder (`<…>`): the real ones live in the
+server's `.env` and in the router's configuration, never in this repo.
+
+## What the stack opens to the network
+
+Every service runs with host networking and binds to `127.0.0.1`: Valkey, LiveKit (7880, 7881, UDP
+50000-50100), LiveKit SIP (5060, UDP 10000-10100), the agent's health endpoint (8081) and the admin
+(8091). The one thing that must be reachable from outside is **Asterisk's RTP range**, UDP
+`SIP_RTP_START`-`SIP_RTP_END` (default 12000-12100). Nothing else gets a forward or a DNS entry. The
+admin has no sign-in yet (ADR step 3), so it is reached through an SSH tunnel only.
+
+## LXC
+
+| Setting | Value |
+|---|---|
+| Template | Debian 13, unprivileged |
+| Features | `nesting=1,keyctl=1` |
+| Size | 4 cores, 6 GB RAM, 1 GB swap, 32 GB disk |
+| Autostart | `onboot=1`, ordered after the router |
+
+Inside the LXC:
+
+```sh
+apt update && apt full-upgrade -y
+apt install -y podman git ca-certificates
+# `podman compose` needs a compose provider: podman-compose, or the docker-compose plugin
+apt install -y podman-compose
+git clone https://github.com/JumpLink/sprechstunde /opt/sprechstunde
+cd /opt/sprechstunde
+```
+
+Smoke-test Podman before anything else: `podman run --rm docker.io/library/debian:trixie-slim true`,
+then the stack with `up -d --force-recreate` a few times. Repeated `crun` errors (`uid_map`, `devpts`,
+mount) mean an unprivileged LXC is the wrong home; use a VM with the same settings instead.
+
+## `.env`
+
+Copy `.env.example` to `/opt/sprechstunde/.env` (mode 600) and fill it in by hand; transfer it
+yourself, do not paste it into a ticket or chat. Keys the server needs:
+
+- `LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET`: any random pair.
+- `MISTRAL_API_KEY`, `SPRECHSTUNDE_MISTRAL_SERVER`; `KUGELAUDIO_API_KEY` / `CARTESIA_API_KEY` /
+  `OPENROUTER_API_KEY` only for the vendors in use.
+- `SPRECHSTUNDE_MODE=assistant`, `SPRECHSTUNDE_PROFILE`, the `SPRECHSTUNDE_TTS_*` and
+  `SPRECHSTUNDE_LLM_*` values.
+- `SIP_PROVIDER_HOST`, `_DOMAIN`, `_USER`, `_PASSWORD`, `_NUMBER`, `SIP_PROVIDER_MEDIA_ENCRYPTION`,
+  `TRANSFER_TARGET_NUMBER`.
+- Behind NAT: `SIP_PUBLIC_ADDRESS` (the router's public IPv4), optionally
+  `SIP_PUBLIC_SIGNALING_ADDRESS`, `SIP_LOCAL_NET` (the networks that need no rewriting; the default is
+  all private ranges) and `SIP_RTP_START` / `SIP_RTP_END`. The router's forward must cover exactly
+  that range.
+- Leave `SPRECHSTUNDE_TRANSCRIPT_DIR` unset: `compose.server.yaml` forces it empty anyway.
+
+## Build, start, verify
+
+```sh
+cd /opt/sprechstunde
+mkdir -p var/settings var/metrics var/transcripts var/voices var/profiles var/db
+podman compose -f compose.yaml -f compose.server.yaml --profile agent build
+install -m 644 deploy/systemd/sprechstunde.service /etc/systemd/system/
+systemctl daemon-reload && systemctl enable --now sprechstunde
+```
+
+The unit runs `up -d` at boot and `down` at shutdown; the compose files carry
+`restart: unless-stopped`. Check:
+
+```sh
+podman ps --format '{{.Names}} {{.Status}}'        # all up, agent "healthy"
+curl -s -o /dev/null -w '%{http_code}\n' http://127.0.0.1:8081/   # 200
+ss -ltnu | grep -E ':(8081|8091|7880|5060|5070) '  # every one on 127.0.0.1
+podman exec <asterisk container> asterisk -rx 'pjsip show registrations'   # Registered
+```
+
+## Admin through an SSH tunnel
+
+The admin listens on `127.0.0.1:8091` inside the LXC. From the workstation, through the Proxmox host:
+
+```sh
+ssh -J <user>@<proxmox-host> -L 8091:127.0.0.1:8091 <user>@<lxc-address>
+```
+
+then open `http://127.0.0.1:8091`. Do not forward 8091 on the router or publish it under a domain
+before ADR step 3.
+
+## NAT forward
+
+On the router in front of the LXC, one rule:
+
+| Protocol | From | Destination port range | To |
+|---|---|---|---|
+| UDP | any (see below) | `<SIP_RTP_START>`-`<SIP_RTP_END>` | `<lxc-address>`, same range |
+
+No rule for the admin. Whether the provider sends media from fixed networks is **not verified**;
+restricting the source needs a primary source from the provider, so leave it open until then.
+
+A SIP port forward should not be needed: Asterisk registers outbound over TLS and the provider's
+inbound INVITEs arrive over that registration (`line=yes`). That is **unverified** for a server
+behind NAT; the first inbound test call settles it.
+
+## Moving the trunk
+
+The provider allows few contacts per number, and a second registration from another place takes calls
+away from the first. Register in **one place at a time**.
+
+To the server:
+
+1. On the workstation: `podman compose stop asterisk` (it unregisters on stop). Check with
+   `npm run sip:contacts` that no contact is left.
+2. On the server: start the stack with the trunk values in `.env`, wait for `Registered`.
+3. Place a test call: audio both ways, transfer, caller number.
+
+Back: stop `asterisk` on the server first, confirm the registration is gone, then start it on the
+workstation. A killed container leaves its contact behind for about two hours.
+
+## Updating and rolling back
+
+```sh
+cd /opt/sprechstunde
+git fetch && git log --oneline HEAD..origin/main     # what is coming
+git rev-parse HEAD > ~/sprechstunde.previous         # the way back
+git pull --ff-only
+podman compose -f compose.yaml -f compose.server.yaml --profile agent build
+systemctl restart sprechstunde
+```
+
+Roll back with `git checkout $(cat ~/sprechstunde.previous)`, rebuild, restart. A schema migration of
+`var/db` is not undone by that: restore the backup (below) first if a release migrated it.
+
+## Backup and restore
+
+State that exists nowhere else: `var/db` (knowledge database and `var/db/files`, the uploaded
+originals), `var/settings/voice.json`, `var/profiles`, and `.env`. They are declared in
+`.werkstatt-state.json`. `var/metrics` is numbers only and can be lost.
+
+- Include the LXC in the Proxmox Backup Server job. A snapshot taken while the admin writes can
+  catch the SQLite file mid-write: for a consistent copy stop the admin first
+  (`podman compose stop admin`) or run `sqlite3 var/db/<file>.sqlite ".backup <target>"`.
+- Restore the LXC from PBS, or copy `var/` back into a fresh checkout, `systemctl start sprechstunde`.
+- The `.env` is in the LXC backup too, so protect the backup like the secret it contains.
+
+## Known limits
+
+- No sign-in: the admin stays on loopback behind the tunnel until ADR step 3.
+- Pocket TTS on this CPU class is unmeasured; the E3-1275 v5 is older than the i9 the README's figures
+  come from. Measure it through the admin preview before using it for calls.
+- Inbound calls without a SIP forward, source networks of the provider's media, and a
+  server-side fetch of real web sources are unverified.
+- Transcripts are off by design; debugging a call means reading the container logs and the metrics.

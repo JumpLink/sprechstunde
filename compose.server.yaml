@@ -1,0 +1,26 @@
+# Overlay for a server (the Proxmox LXC in docs/deploy/proxmox-lxc.md):
+#   podman compose -f compose.yaml -f compose.server.yaml --profile agent up -d
+# compose.yaml already runs every service with host networking on 127.0.0.1, so the only socket
+# the machine opens to the network is Asterisk's RTP range (SIP_RTP_START-SIP_RTP_END, UDP); the
+# admin (8091) and the agent's health endpoint (8081) listen on loopback. This file pins what a
+# server must not leave to chance.
+services:
+  agent:
+    environment:
+      # Transcripts hold what callers say. Never on a server.
+      SPRECHSTUNDE_TRANSCRIPT_DIR: ""
+      SPRECHSTUNDE_MODE: "${SPRECHSTUNDE_MODE:-assistant}"
+    restart: unless-stopped
+
+  admin:
+    environment:
+      # No sign-in yet (ADR step 3): reachable through an SSH tunnel to loopback only.
+      SPRECHSTUNDE_ADMIN_PORT: "${SPRECHSTUNDE_ADMIN_PORT:-8091}"
+    restart: unless-stopped
+
+  asterisk:
+    environment:
+      # Same pair as the NAT forward on the router.
+      SIP_RTP_START: "${SIP_RTP_START:-12000}"
+      SIP_RTP_END: "${SIP_RTP_END:-12100}"
+    restart: unless-stopped

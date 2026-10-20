@@ -22,6 +22,15 @@ export default defineAgent({
   },
 });
 
+/** The health endpoint answers on loopback only: the watchdog below is its one reader, and on a server the default (all interfaces) would publish it. */
+export function serverOptions(env: NodeJS.ProcessEnv): ServerOptions {
+  return new ServerOptions({
+    agent: fileURLToPath(import.meta.url),
+    agentName: env.SPRECHSTUNDE_AGENT_NAME || 'sprechstunde',
+    host: '127.0.0.1',
+  });
+}
+
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   // `start` runs under a restart policy (the container); in a `dev` terminal an exit only stops it.
   if (process.argv[2] === 'start') {
@@ -32,10 +41,5 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
       failures: 4,
     });
   }
-  cli.runApp(
-    new ServerOptions({
-      agent: fileURLToPath(import.meta.url),
-      agentName: process.env.SPRECHSTUNDE_AGENT_NAME || 'sprechstunde',
-    }),
-  );
+  cli.runApp(serverOptions(process.env));
 }
