@@ -173,9 +173,10 @@ export function createKnowledgeService(options: ServiceOptions) {
     t: TenantRepo,
     source: Source,
     page: { url: string; title: string; markdown: string },
+    listed: string,
   ): 'unchanged' | 'pending' | 'approved' => {
     const at = stamp();
-    const sectionUrl = source.kind === 'web' ? (source.url ?? page.url) : page.url;
+    const sectionUrl = source.kind === 'web' ? (source.url ?? listed) : listed;
     const section =
       t.sectionByUrl(source.id, sectionUrl) ??
       t.addSection(source.id, { url: sectionUrl, title: cleanTitle(page.title, source.title), createdAt: at });
@@ -342,7 +343,7 @@ export function createKnowledgeService(options: ServiceOptions) {
         try {
           const page = await fetchPage(source, address);
           reached++;
-          const result = repo.transaction(() => takePage(t, source, page));
+          const result = repo.transaction(() => takePage(t, source, page, address));
           summary.pages++;
           summary[result]++;
         } catch (error) {

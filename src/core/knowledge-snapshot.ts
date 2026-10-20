@@ -1,4 +1,15 @@
-import { mkdirSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import {
+  closeSync,
+  fsyncSync,
+  mkdirSync,
+  openSync,
+  readdirSync,
+  readFileSync,
+  renameSync,
+  rmSync,
+  statSync,
+  writeSync,
+} from 'node:fs';
 import { basename, dirname, join } from 'node:path';
 import { profileFilePath } from './settings.js';
 
@@ -77,8 +88,26 @@ export function publishSnapshot(path: string, text: string): void {
   }
   mkdirSync(dirname(path), { recursive: true });
   const temp = `${path}.${process.pid}.tmp`;
-  writeFileSync(temp, text, { mode: 0o644 });
+  const fd = openSync(temp, 'w', 0o644);
+  try {
+    writeSync(fd, text);
+    fsyncSync(fd);
+  } finally {
+    closeSync(fd);
+  }
   renameSync(temp, path);
+}
+
+/** Removes what a crash left between writing and renaming a snapshot. */
+export function cleanSnapshotTemps(dir: string): void {
+  try {
+    for (const name of readdirSync(dir)) {
+      if (!/\.knowledge\.md\.\d+\.tmp$/.test(name)) continue;
+      rmSync(join(dir, name), { force: true });
+    }
+  } catch {
+    // no directory yet: nothing to clean
+  }
 }
 
 /** The published text, or undefined when there is none or it is not readable. */

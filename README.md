@@ -360,6 +360,9 @@ agent reads that file at the start of a call and never opens the database. In th
 carries its source, address and date, and the text is fenced as reference data, not instructions.
 Sources with an interval (default daily) are refreshed by the admin process while it runs.
 
+The admin has no login yet (ADR step 3): it must stay loopback-only until authentication lands. The
+sources API relies on the same `Host` and origin checks as the rest of it and does not relax them.
+
 ## Not tested yet
 
 - Fetching is tested against fakes and a loopback server, not against real sites, real `robots.txt`

@@ -12,6 +12,7 @@ const html = (body: string, title = 'Page') =>
 
 function rig(pages: Record<string, string | Error>) {
   let hook: (() => Promise<void>) | undefined;
+  const redirect: Record<string, string> = {};
   const failing = { publish: false };
   const logged: string[] = [];
   const bodies = { ...pages };
@@ -24,7 +25,7 @@ function rig(pages: Record<string, string | Error>) {
       if (body === undefined) throw new FetchRefused('status', 'the page answered with an error');
       if (body instanceof Error) throw body;
       const isXml = body.startsWith('<?xml') || body.startsWith('<urlset') || body.startsWith('<sitemapindex');
-      return { url: address, contentType: isXml ? 'application/xml' : 'text/html', text: body };
+      return { url: redirect[address] ?? address, contentType: isXml ? 'application/xml' : 'text/html', text: body };
     },
   } as SafeFetcher;
   const published: Array<{ tenant: string; venue: string; text: string }> = [];
@@ -44,6 +45,7 @@ function rig(pages: Record<string, string | Error>) {
   return {
     service,
     repo,
+    redirect,
     onFetch: (fn: () => Promise<void>) => (hook = fn),
     published,
     failing,
@@ -383,4 +385,21 @@ test('refreshes share a small number of fetch slots', async () => {
   });
   await Promise.all(sources.map((source) => inner.refresh(T, source.id)));
   assert.ok(peak >= 1 && peak <= 2, `peak ${peak}`);
+});
+
+test('a sitemap page that redirects keeps its section under the listed address', async () => {
+  const listed = 'https://venue.example/a';
+  const r = rig({
+    'https://venue.example/sitemap.xml': '<urlset><url><loc>https://venue.example/a</loc></url></urlset>',
+    [listed]: html('<p>A</p>'),
+  });
+  const base = { venue: 'v.json', kind: 'sitemap', title: 'Site', url: 'https://venue.example/sitemap.xml' } as const;
+  const source = await r.service.addSource(T, base);
+  r.redirect[listed] = 'https://venue.example/moved';
+  await r.service.refresh(T, source.id);
+  await r.service.refresh(T, source.id);
+  const { sections } = r.service.detail(T, source.id);
+  assert.equal(sections.length, 1);
+  assert.equal(sections[0]!.url, listed);
+  assert.equal(sections[0]!.gone, false);
 });

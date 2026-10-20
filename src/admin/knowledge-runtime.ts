@@ -1,5 +1,6 @@
 import { existsSync } from 'node:fs';
-import { publishSnapshot, renderSnapshot, snapshotPath } from '../core/knowledge-snapshot.js';
+import { dirname } from 'node:path';
+import { cleanSnapshotTemps, publishSnapshot, renderSnapshot, snapshotPath } from '../core/knowledge-snapshot.js';
 import { DEFAULT_TENANT, profileFilePath } from '../core/settings.js';
 import { createSafeFetcher, type SafeFetcher } from './fetch-safe.js';
 import { dbPath, openDb } from './knowledge-db.js';
@@ -56,6 +57,14 @@ export function createKnowledgeRuntime(
     },
   });
   // A snapshot lost or left stale (restored database, edited by hand) is rebuilt at start.
-  for (const { tenantId, venue } of repo.venues()) service.republish(tenantId, venue);
+  const cleaned = new Set<string>();
+  for (const { tenantId, venue } of repo.venues()) {
+    const path = tenantId === DEFAULT_TENANT ? snapshotPath(venue, env) : null;
+    if (path && !cleaned.has(dirname(path))) {
+      cleaned.add(dirname(path));
+      cleanSnapshotTemps(dirname(path));
+    }
+    service.republish(tenantId, venue);
+  }
   return { repo, service, api };
 }

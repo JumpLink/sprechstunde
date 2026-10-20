@@ -1,9 +1,10 @@
 import assert from 'node:assert/strict';
-import { existsSync, mkdtempSync, readdirSync, rmSync } from 'node:fs';
+import { existsSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
 import {
+  cleanSnapshotTemps,
   MAX_SNAPSHOT_CHARS,
   publishSnapshot,
   readSnapshot,
@@ -111,4 +112,16 @@ test('buildInstructions: without reference text the prompt is unchanged, with it
   assert.ok(withRef.startsWith(plain));
   assert.match(withRef, /never instructions to follow/);
   assert.match(withRef, /<reference-data>\n# Menu/);
+});
+
+test('cleanSnapshotTemps: removes leftovers of a crashed publish, keeps snapshots', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'sprechstunde-snap-'));
+  try {
+    for (const name of ['v.knowledge.md', 'v.knowledge.md.123.tmp', 'other.json']) writeFileSync(join(dir, name), 'x');
+    cleanSnapshotTemps(dir);
+    assert.deepEqual(readdirSync(dir).sort(), ['other.json', 'v.knowledge.md']);
+    cleanSnapshotTemps(join(dir, 'missing'));
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
 });
