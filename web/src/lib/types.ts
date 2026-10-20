@@ -113,6 +113,14 @@ export interface CatalogVoice {
   gender?: Gender;
   description?: string;
   sampleUrl?: string;
+  hasAvatar?: boolean;
+  /** Only what the vendor reports; unset means unknown. */
+  age?: 'young' | 'middle' | 'old';
+  category?: string;
+  quality?: string;
+  verified?: boolean;
+  /** A voice of the account itself, not one the vendor ships. */
+  own?: boolean;
 }
 
 /** Mirrors `CatalogModel` in `src/admin/catalog.ts`; every field but `id` and `label` is vendor-sourced. */

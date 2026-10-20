@@ -3,6 +3,7 @@
   import { _, fill } from '$lib/i18n.svelte';
   import { catalogOf, ensureCatalogs, modelsInUse } from '$lib/models.svelte';
   import { app } from '$lib/store.svelte';
+  import { vendorOf } from '$lib/vendor';
   import type { Catalog, CatalogModel } from '$lib/types';
   import Badge from '$lib/ui/Badge.svelte';
   import Card from '$lib/ui/Card.svelte';
@@ -40,7 +41,7 @@
       uses.some((use) => use.target === target && use.role === role && group.some((model) => model.id === use.id)),
     );
   const used = (target: string, id: string): boolean => uses.some((use) => use.target === target && use.id === id);
-  const title = (target: string): string => (target === 'llm' ? _('Language models (Mistral)') : target);
+  const title = (target: string): string => (target === 'llm' ? _('Language models (Mistral)') : vendorOf(target).name);
 </script>
 
 <div class="relative">

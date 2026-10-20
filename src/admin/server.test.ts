@@ -1669,3 +1669,49 @@ test('GET /api/state: kugelEu tells whether the configured key speaks from the E
   const none = await start();
   assert.equal(((await (await fetch(`${none.url}/api/state`)).json()) as { kugelEu: boolean }).kugelEu, false);
 });
+
+test('GET /api/avatar proxies the catalog picture: https, image only, size-capped, never a client URL', async () => {
+  const pictures = {
+    ...SAMPLE_CATALOG,
+    get: async () => ({
+      provider: 'kugel' as const,
+      available: true,
+      models: [],
+      voices: [
+        { id: 'a', name: 'A', languages: [], avatarUrl: 'https://vendor.invalid/a.png', hasAvatar: true },
+        { id: 'b', name: 'B', languages: [] },
+        { id: 'c', name: 'C', languages: [], avatarUrl: 'http://vendor.invalid/c.png', hasAvatar: true },
+        { id: 'd', name: 'D', languages: [], avatarUrl: 'https://vendor.invalid/d.html', hasAvatar: true },
+        { id: 'e', name: 'E', languages: [], avatarUrl: 'https://vendor.invalid/e.png', hasAvatar: true },
+        { id: 'f', name: 'F', languages: [], avatarUrl: 'https://vendor.invalid/f.svg', hasAvatar: true },
+      ],
+      fetchedAt: '2026-01-01T00:00:00.000Z',
+    }),
+  };
+  const fetched: string[] = [];
+  const fakeFetch = (async (address: string) => {
+    fetched.push(address);
+    if (address.endsWith('.html')) return new Response('<p>', { headers: { 'content-type': 'text/html' } });
+    if (address.endsWith('.svg')) return new Response('<svg/>', { headers: { 'content-type': 'image/svg+xml' } });
+    if (address.endsWith('e.png')) {
+      return new Response(new Uint8Array(1024 * 1024 + 1), { headers: { 'content-type': 'image/png' } });
+    }
+    return new Response(new Uint8Array([9, 8]), { headers: { 'content-type': 'image/png' } });
+  }) as unknown as typeof fetch;
+  const harness = await start({ catalog: pictures, fetch: fakeFetch });
+
+  const ok = await fetch(`${harness.url}/api/avatar?provider=kugel&voice=a`);
+  assert.equal(ok.status, 200);
+  assert.equal(ok.headers.get('content-type'), 'image/png');
+  assert.match(ok.headers.get('cache-control') ?? '', /max-age/);
+  assert.deepEqual([...new Uint8Array(await ok.arrayBuffer())], [9, 8]);
+
+  for (const query of ['voice=nobody', 'voice=b', 'voice=https://evil.invalid/x.png']) {
+    assert.equal((await fetch(`${harness.url}/api/avatar?provider=kugel&${query}`)).status, 404, query);
+  }
+  assert.equal((await fetch(`${harness.url}/api/avatar?provider=llm&voice=a`)).status, 400);
+  for (const voice of ['c', 'd', 'e', 'f']) {
+    assert.equal((await fetch(`${harness.url}/api/avatar?provider=kugel&voice=${voice}`)).status, 502, voice);
+  }
+  assert.ok(!fetched.includes('http://vendor.invalid/c.png'));
+});

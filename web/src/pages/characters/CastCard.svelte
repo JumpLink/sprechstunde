@@ -1,10 +1,11 @@
 <script lang="ts">
   import { Check, Loader, Play } from '@lucide/svelte';
   import { _, fill } from '$lib/i18n.svelte';
-  import { app } from '$lib/store.svelte';
   import type { Candidate } from '$lib/casting';
   import { genderLabel } from '$lib/voices';
   import Badge from '$lib/ui/Badge.svelte';
+  import RegionBadges from '$lib/ui/RegionBadges.svelte';
+  import VendorBadge from '$lib/ui/VendorBadge.svelte';
   import Button from '$lib/ui/Button.svelte';
   import { cn } from '$lib/utils';
 
@@ -29,9 +30,8 @@
       <span class="break-words">{candidate.name}</span>
     </p>
     <p class="mt-1.5 flex flex-wrap gap-1.5">
-      <Badge>{candidate.provider}</Badge>
-      {#if candidate.provider === 'pocket'}<Badge tone="success">{_('Local')}</Badge>{/if}
-      {#if candidate.provider === 'kugel' && app.state?.kugelEu}<Badge tone="success">{_('EU endpoint')}</Badge>{/if}
+      <VendorBadge provider={candidate.provider} model={candidate.model} />
+      <RegionBadges provider={candidate.provider} />
       {#if candidate.gender}<Badge>{genderLabel(candidate.gender)}</Badge>{/if}
     </p>
     {#if candidate.description}<p class="mt-2 line-clamp-2 text-xs text-muted-foreground">{candidate.description}</p>{/if}

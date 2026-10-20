@@ -13,6 +13,14 @@ export interface Candidate {
   /** Only what the vendor reports; unset means unknown. */
   gender?: Gender;
   description?: string;
+  languages: string[];
+  hasSample?: boolean;
+  hasAvatar?: boolean;
+  age?: 'young' | 'middle' | 'old';
+  category?: string;
+  quality?: string;
+  verified?: boolean;
+  own?: boolean;
 }
 
 export const specKey = (spec: { provider: string; model?: string; voice?: string }): string =>
@@ -25,10 +33,12 @@ export const specOf = (candidate: Candidate): VoiceSpec => ({
 });
 
 const speaksLanguage = (voice: CatalogVoice, provider: string, language: string): boolean =>
+  !language ||
   voice.languages.some((tag) => tag === language || tag.startsWith(`${language}-`)) ||
   // A local Pocket server speaks the one language it was set up with; when it does not say which, it is the deployment's.
   (provider === 'pocket' && voice.languages.length === 0);
 
+/** Every voice of the loaded catalogs that speaks `language`; an empty language means all of them. */
 export function candidatesFrom(catalogs: Array<Catalog | undefined>, language: string): Candidate[] {
   const result: Candidate[] = [];
   for (const catalog of catalogs) {
@@ -42,6 +52,14 @@ export function candidatesFrom(catalogs: Array<Catalog | undefined>, language: s
         name: voice.name,
         ...(voice.gender && { gender: voice.gender }),
         ...(voice.description && { description: voice.description }),
+        languages: voice.languages,
+        ...(voice.sampleUrl && { hasSample: true }),
+        ...(voice.hasAvatar && { hasAvatar: true }),
+        ...(voice.age && { age: voice.age }),
+        ...(voice.category && { category: voice.category }),
+        ...(voice.quality && { quality: voice.quality }),
+        ...(voice.verified && { verified: true }),
+        ...(voice.own && { own: true }),
       });
     }
   }

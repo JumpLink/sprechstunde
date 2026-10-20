@@ -46,6 +46,10 @@ export async function preview(
 export const sampleUrl = (provider: string, voice: string, model?: string): string =>
   `/api/sample?${new URLSearchParams({ provider, voice, ...(model && { model }) })}`;
 
+/** The vendor's picture of a catalog voice, fetched by the server like the sample. */
+export const avatarUrl = (provider: string, voice: string, model?: string): string =>
+  `/api/avatar?${new URLSearchParams({ provider, voice, ...(model && { model }) })}`;
+
 export function revoke(url: string | undefined): void {
   if (url) URL.revokeObjectURL(url);
 }

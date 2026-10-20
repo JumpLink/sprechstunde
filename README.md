@@ -286,10 +286,13 @@ models (with the vendor voice catalog), knowledge and tools, calls. For developm
 It keeps a gallery of **characters** — a name, a gender, a voice with a fallback voice, an optional
 manner of speaking and an initials avatar. A venue (profile) picks its character in the knowledge
 editor; without a pick it speaks as the default one. A casting wizard creates or edits a character:
-who (name, gender, manner), casting (German voices from every vendor, each reading the venue's real
-greeting with the new name and showing the time to first audio; the gender filter applies only to
-voices whose vendor reports a gender, the rest sit in a separate group), an A/B comparison of two
-favourites, and a fallback voice that is pre-selected (another vendor, local first). "Phone quality"
+who (name, gender, manner), casting (a voice browser over every vendor's voices: filter by vendor,
+language, gender, age, category and quality, only EU endpoint or only local, search, tabs for all,
+own and favourite voices, a recommended row and paged results; each voice plays the vendor sample or
+reads the venue's real greeting with the new name and shows the time to first audio; the gender from
+the first step pre-sets the filter, and voices whose vendor states no gender stay reachable as
+"unknown"; favourites live in the browser's local storage for now), an A/B comparison of two
+picks, and a fallback voice that is pre-selected (another vendor, local first). "Phone quality"
 resamples a sample to the 8 kHz a line carries. The manner reaches the system prompt as a short
 speaking-style section; the gender only changes how the German prompt names the assistant.
 `voice.json` is schema version 2; a file from before (presets) loads and is migrated, with the gender

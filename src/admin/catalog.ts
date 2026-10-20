@@ -62,7 +62,20 @@ export interface CatalogVoice {
   gender?: VoiceGender;
   description?: string;
   sampleUrl?: string;
+  /** The vendor's picture of the voice; fetched by the server for the page (`/api/avatar`), never by the browser. */
+  avatarUrl?: string;
+  hasAvatar?: boolean;
+  /** Only what the vendor reports; unset means unknown. */
+  age?: VoiceAge;
+  /** The vendor's own category word (Kugel: premade, cloned, narrative, …). */
+  category?: string;
+  quality?: string;
+  verified?: boolean;
+  /** A voice of the account itself (cloned or designed there), not one the vendor ships. */
+  own?: boolean;
 }
+
+export type VoiceAge = 'young' | 'middle' | 'old';
 
 export type VoiceGender = 'female' | 'male' | 'neutral';
 
@@ -85,6 +98,12 @@ export interface KugelLike {
         name: string;
         description?: string;
         sex?: string;
+        age?: string;
+        category?: string;
+        quality?: string;
+        verified?: boolean;
+        isPublic?: boolean;
+        avatarUrl?: string;
         supportedLanguages: string[];
         sampleUrl?: string;
       }>;
@@ -132,6 +151,8 @@ export interface MistralLike {
           name: string;
           languages?: string[];
           gender?: string | null;
+          age?: number | null;
+          userId?: string | null;
           description?: string | null;
         }>;
         total: number;
@@ -225,18 +246,42 @@ export function normalizeGender(value: unknown): VoiceGender | undefined {
   return undefined;
 }
 
-function voice(entry: Omit<CatalogVoice, 'gender'> & { gender?: string }): CatalogVoice {
+/** Vendor words (`middle_aged`) or a stated age in years, in three bands; anything else stays unknown. */
+export function normalizeAge(value: unknown): VoiceAge | undefined {
+  if (typeof value === 'number') {
+    if (!Number.isFinite(value) || value <= 0) return undefined;
+    return value < 30 ? 'young' : value < 60 ? 'middle' : 'old';
+  }
+  if (typeof value !== 'string') return undefined;
+  const word = value
+    .trim()
+    .toLowerCase()
+    .replace(/[\s-]+/g, '_');
+  if (['young', 'child', 'teen'].includes(word)) return 'young';
+  if (['middle_aged', 'middle', 'adult'].includes(word)) return 'middle';
+  if (['old', 'older', 'elderly', 'senior'].includes(word)) return 'old';
+  return undefined;
+}
+
+type VoiceInput = Omit<CatalogVoice, 'gender' | 'age' | 'hasAvatar'> & { gender?: string; age?: unknown };
+
+function voice(entry: VoiceInput): CatalogVoice {
   // Drop empty optionals so a response never carries `"gender": null`-style noise.
   const result: CatalogVoice = {
     id: entry.id,
     name: entry.name,
     languages: entry.languages,
   };
-  for (const key of ['model', 'description', 'sampleUrl'] as const) {
+  for (const key of ['model', 'description', 'sampleUrl', 'avatarUrl', 'category', 'quality'] as const) {
     if (entry[key]) result[key] = entry[key];
   }
+  if (result.avatarUrl) result.hasAvatar = true;
+  if (entry.verified) result.verified = true;
+  if (entry.own) result.own = true;
   const gender = normalizeGender(entry.gender);
   if (gender) result.gender = gender;
+  const age = normalizeAge(entry.age);
+  if (age) result.age = age;
   return result;
 }
 
@@ -267,6 +312,13 @@ async function fetchKugel(context: Context): Promise<Fetched> {
           gender: entry.sex,
           description: entry.description,
           sampleUrl: entry.sampleUrl,
+          avatarUrl: entry.avatarUrl,
+          age: entry.age,
+          category: entry.category,
+          quality: entry.quality,
+          verified: entry.verified,
+          // A public voice is the vendor's; the others belong to the account.
+          own: entry.isPublic === false,
         }),
       );
     }
@@ -398,6 +450,9 @@ async function fetchMistral(context: Context): Promise<Fetched> {
           name: entry.name,
           languages: entry.languages ?? [],
           gender: entry.gender ?? undefined,
+          age: entry.age ?? undefined,
+          // Presets carry no user id; a voice somebody created does.
+          own: Boolean(entry.userId),
           description: entry.description ?? undefined,
         }),
       );
@@ -510,6 +565,7 @@ async function fetchCartesia(context: Context): Promise<Fetched> {
           name: str(entry.name) ?? id,
           languages: locales.length > 0 ? (locales as string[]) : ([str(entry.language)].filter((l) => l) as string[]),
           gender: str(entry.gender),
+          own: entry.is_owner === true,
           description: str(entry.description) ?? str(entry.tagline),
         }),
       );

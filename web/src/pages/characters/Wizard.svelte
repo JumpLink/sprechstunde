@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { ArrowLeft, ArrowRight, CircleDot, Mars, Play, RefreshCw, Venus } from '@lucide/svelte';
+  import { ArrowLeft, ArrowRight, CircleDot, Mars, Play, Venus } from '@lucide/svelte';
   import { onDestroy, untrack } from 'svelte';
   import { toast } from 'svelte-sonner';
   import { api, message } from '$lib/api';
@@ -10,8 +10,6 @@
     greetingWithName,
     type Heard,
     loadGreeting,
-    mixOf,
-    poolFor,
     previewCache,
     specKey,
     specOf,
@@ -27,8 +25,8 @@
   import Card from '$lib/ui/Card.svelte';
   import ChoiceLine from '$lib/ui/ChoiceLine.svelte';
   import Field from '$lib/ui/Field.svelte';
-  import Skeleton from '$lib/ui/Skeleton.svelte';
   import { cn, controlClass } from '$lib/utils';
+  import VoiceBrowser from '../voices/VoiceBrowser.svelte';
   import CastCard from './CastCard.svelte';
 
   interface Props {
@@ -45,8 +43,6 @@
 
   const MAX_NAME = 60;
   const MAX_TONE = 300;
-  const SHOWN = 5;
-  const SHOWN_UNKNOWN = 4;
 
   // The wizard is keyed by what it was opened with, so reading the props once is what is wanted.
   /* svelte-ignore state_referenced_locally */
@@ -57,18 +53,12 @@
   let tone = $state(initial?.tone ?? '');
   let step = $state<Step>('who');
   let phone = $state(false);
-  let showUnknown = $state(false);
-  let shown = $state<Candidate[]>([]);
-  let shownUnknown = $state<Candidate[]>([]);
   let favourites = $state<Candidate[]>([]);
   let chosen = $state<Candidate>();
   let fallbackKey = $state('');
   let assignFile = $state('');
   let plays = $state<Record<string, { busy?: boolean; ttfaMs?: number; error?: string }>>({});
   let busy = $state(false);
-  let shuffledFor = -1;
-  const seen = new Set<string>();
-  const seenUnknown = new Set<string>();
   const cache = previewCache();
 
   onDestroy(() => cache.clear());
@@ -85,7 +75,6 @@
   $effect(() => ensureCatalogs(providers));
   const loading = $derived(providers.some((provider) => !catalogOf(provider)));
   const candidates = $derived(candidatesFrom(providers.map((provider) => catalogOf(provider)), 'de'));
-  const pool = $derived(poolFor(candidates, gender ?? 'neutral'));
 
   /** A saved or picked voice as a card, with the vendor's name for it when the catalog knows it. */
   function candidateOf(spec: VoiceSpec): Candidate {
@@ -96,36 +85,17 @@
       voice: spec.voice ?? '',
       name: listed?.name ?? spec.voice ?? spec.provider,
       ...(listed?.gender && { gender: listed.gender }),
+      languages: listed?.languages ?? [],
     };
   }
 
   const startVoice = $derived(seed ?? initial?.voice);
   /* svelte-ignore state_referenced_locally */
-  const pinned = $derived(startVoice ? candidateOf(startVoice) : undefined);
   const same = (a: Candidate, b: Candidate): boolean => specKey(specOf(a)) === specKey(specOf(b));
-  const cards = $derived(pinned && !shown.some((card) => same(card, pinned)) ? [pinned, ...shown] : shown);
 
   $effect(() => {
     if (startVoice && favourites.length === 0) favourites = [untrack(() => candidateOf(startVoice))];
   });
-
-  function reshuffle(): void {
-    shown = mixOf(pool.known, SHOWN, seen);
-    // With nobody reporting the gender there is nothing else to show, so the other group opens by itself.
-    if (pool.known.length === 0) showUnknown = true;
-    shownUnknown = showUnknown ? mixOf(pool.unknown, SHOWN_UNKNOWN, seenUnknown) : [];
-  }
-
-  $effect(() => {
-    if (step === 'casting' && candidates.length > 0 && candidates.length !== shuffledFor) {
-      shuffledFor = candidates.length;
-      untrack(reshuffle);
-    }
-  });
-
-  function toggleUnknown(): void {
-    shownUnknown = showUnknown ? mixOf(pool.unknown, SHOWN_UNKNOWN, seenUnknown) : [];
-  }
 
   const isFavourite = (candidate: Candidate): boolean => favourites.some((favourite) => same(favourite, candidate));
 
@@ -200,7 +170,6 @@
     event?.preventDefault();
     if (!canNext) return;
     if (step === 'who') {
-      shuffledFor = -1;
       go('casting');
     } else if (step === 'casting') {
       if (favourites.length > 1) {
@@ -352,54 +321,21 @@
           <input type="checkbox" class="size-4 accent-primary" bind:checked={phone} />
           {_('Phone quality (8 kHz)')}
         </label>
-        <Button variant="outline" size="sm" onclick={reshuffle}><RefreshCw class="size-4" />{_('Other voices')}</Button>
       {/snippet}
-      {#if loading && candidates.length === 0}
-        <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {#each [1, 2, 3] as n (n)}<Skeleton class="h-48" />{/each}
-        </div>
-      {:else if candidates.length === 0}
-        <p class="text-sm text-muted-foreground">{_('No vendor offers a German voice right now. Check the API keys.')}</p>
-      {:else}
-        {#if pool.known.length === 0 && gender !== 'neutral'}
-          <p class="mb-3 text-sm text-muted-foreground">{_('No vendor says which of its voices match this gender. Listen and choose.')}</p>
-        {/if}
-        <ul class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {#each cards as candidate (specKey(specOf(candidate)))}
-            <CastCard
-              {candidate}
-              heard={plays[specKey(specOf(candidate))]}
-              selected={isFavourite(candidate)}
-              selectLabel={isFavourite(candidate) ? _('Chosen') : _('Pick')}
-              onplay={() => play(specOf(candidate))}
-              onselect={() => pick(candidate)}
-            />
-          {/each}
-        </ul>
-        {#if pool.unknown.length > 0}
-          <div class="mt-4 border-t pt-3">
-            <label class="flex items-center gap-2 text-sm">
-              <input type="checkbox" class="size-4 accent-primary" bind:checked={showUnknown} onchange={toggleUnknown} />
-              {fill(_('Show voices of unknown gender (%s)'), pool.unknown.length)}
-            </label>
-            {#if showUnknown}
-              <h3 class="mt-3 mb-2 text-sm font-medium">{_('Gender unknown')}</h3>
-              <ul class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {#each shownUnknown as candidate (specKey(specOf(candidate)))}
-                  <CastCard
-                    {candidate}
-                    heard={plays[specKey(specOf(candidate))]}
-                    selected={isFavourite(candidate)}
-                    selectLabel={isFavourite(candidate) ? _('Chosen') : _('Pick')}
-                    onplay={() => play(specOf(candidate))}
-                    onselect={() => pick(candidate)}
-                  />
-                {/each}
-              </ul>
-            {/if}
-          </div>
-        {/if}
-      {/if}
+      <VoiceBrowser
+        {candidates}
+        {loading}
+        {gender}
+        hide={['language']}
+        selected={favourites}
+        heard={plays}
+        onpick={pick}
+        onhear={(candidate) => play(specOf(candidate))}
+        onstop={() => cache.stop()}
+        actionLabel={favourites.length > 1 ? _('Compare') : _('Next')}
+        actionDisabled={!canNext}
+        onaction={() => next()}
+      />
       <p class="mt-4 text-sm text-muted-foreground" aria-live="polite">
         {favourites.length > 1
           ? fill(_('Two favourites picked: %1 and %2. Next, hear them back to back.'), favourites[0]!.name, favourites[1]!.name)
@@ -410,7 +346,6 @@
     </Card>
     <div class="flex flex-wrap justify-between gap-2">
       <Button variant="outline" onclick={back}><ArrowLeft class="size-4" />{_('Back')}</Button>
-      <Button onclick={() => next()} disabled={!canNext}>{_('Next')}<ArrowRight class="size-4" /></Button>
     </div>
   {:else if step === 'compare'}
     <Card title={_('Compare')} description={_('The same sentence in both voices. Choose the one that fits.')}>
