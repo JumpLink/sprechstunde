@@ -99,11 +99,15 @@ export function options(candidates: Candidate[], filters: Filters, context: Cont
     for (const value of values) counts.set(value, (counts.get(value) ?? 0) + (pass ? 1 : 0));
   }
   const order = facet === 'gender' ? GENDER_ORDER : facet === 'age' ? AGE_ORDER : undefined;
-  return [...counts]
-    .map(([value, count]) => ({ value, count }))
-    .toSorted((a, b) =>
-      order ? order.indexOf(a.value) - order.indexOf(b.value) : b.count - a.count || a.value.localeCompare(b.value),
-    );
+  return (
+    [...counts]
+      .map(([value, count]) => ({ value, count }))
+      // An option no voice is left for is noise, unless it is chosen and must stay undoable.
+      .filter(({ value, count }) => count > 0 || filters.facets[facet].has(value))
+      .toSorted((a, b) =>
+        order ? order.indexOf(a.value) - order.indexOf(b.value) : b.count - a.count || a.value.localeCompare(b.value),
+      )
+  );
 }
 
 /**
@@ -131,9 +135,12 @@ export function activeCount(filters: Filters): number {
 const isHighQuality = (quality: string | undefined): boolean =>
   ['high', 'premium', 'ultra', 'studio'].includes(quality?.toLowerCase() ?? '');
 
-/** Verified voices first, then the ones the vendor rates high. */
+/** A face and a vendor sample make a voice easy to judge, so they weigh most; then verified, then high quality. */
 export const score = (candidate: Candidate): number =>
-  (candidate.verified ? 2 : 0) + (isHighQuality(candidate.quality) ? 1 : 0);
+  (candidate.hasAvatar ? 3 : 0) +
+  (candidate.hasSample ? 3 : 0) +
+  (candidate.verified ? 2 : 0) +
+  (isHighQuality(candidate.quality) ? 1 : 0);
 
 /**
  * `count` voices to start from, mixed across vendors: each vendor offers its best-scored ones,

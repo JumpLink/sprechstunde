@@ -11,6 +11,7 @@
     type Facet,
     type Filters,
     filtered,
+    matches,
     recommend,
     type Tab,
   } from '$lib/browse';
@@ -81,13 +82,20 @@
 
   const context = $derived<Context>({ kugelEu: app.state?.kugelEu ?? false, favourites: favourites.keys });
   const list = $derived(filtered(candidates, filters, context));
-  // Kugel reports every voice of this account as private, so "own" only tells something where it sets some voices apart.
-  const anyOwn = $derived(candidates.some((candidate) => candidate.own) && candidates.some((candidate) => !candidate.own));
+  // Own voices only help where some voices are not own and some are in view; Kugel reports its whole catalog as own.
+  const ownInView = $derived(
+    candidates.filter((candidate) => candidate.own && matches(candidate, { ...filters, tab: 'all' }, context)).length,
+  );
+  const anyOwn = $derived(
+    filters.tab === 'own' || (ownInView > 0 && candidates.some((candidate) => !candidate.own)),
+  );
   const showRecommended = $derived(filters.tab === 'all' && filters.search.trim() === '' && list.length > RECOMMENDED);
   const recommended = $derived.by(() => {
     void round;
     return showRecommended ? recommend(list, RECOMMENDED, seen) : [];
   });
+  const recommendedKeys = $derived(new Set(recommended.map(key)));
+  const rest = $derived(list.filter((candidate) => !recommendedKeys.has(key(candidate))));
   const tabs = $derived<Array<{ value: Tab; title: string }>>([
     { value: 'all', title: _('All') },
     ...(anyOwn ? [{ value: 'own' as const, title: _('Own voices') }] : []),
@@ -231,13 +239,13 @@
         </Empty>
       {:else}
         <ul class="space-y-2">
-          {#each list.slice(0, shown) as candidate (key(candidate))}
+          {#each rest.slice(0, shown) as candidate (key(candidate))}
             <VoiceRow {...rowProps(candidate)} />
           {/each}
         </ul>
-        {#if list.length > shown}
+        {#if rest.length > shown}
           <div class="flex justify-center">
-            <Button variant="outline" onclick={() => (shown += PAGE)}>{fill(_('Load more (%s left)'), list.length - shown)}</Button>
+            <Button variant="outline" onclick={() => (shown += PAGE)}>{fill(_('Load more (%s left)'), rest.length - shown)}</Button>
           </div>
         {/if}
       {/if}
