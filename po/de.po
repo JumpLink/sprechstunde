@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-20 14:11+0200\n"
+"POT-Creation-Date: 2026-10-20 14:16+0200\n"
 "PO-Revision-Date: 2026-10-19 23:10+0200\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -117,7 +117,8 @@ msgstr "diese Quelle wird gerade abgerufen"
 
 #: src/admin/knowledge-api.ts:124
 msgid "\"baseRevisionId\" must be the revision the page loaded, or null"
-msgstr "„baseRevisionId“ muss die Revision sein, die die Seite geladen hat, oder null"
+msgstr ""
+"„baseRevisionId“ muss die Revision sein, die die Seite geladen hat, oder null"
 
 #: src/admin/knowledge-service.ts:85
 msgid "\"url\" must be a web address"
@@ -136,7 +137,7 @@ msgstr "„kind“ muss einer dieser Werte sein: %s"
 msgid "Notes"
 msgstr "Notizen"
 
-#: src/admin/knowledge-service.ts:205
+#: src/admin/knowledge-service.ts:205 web/src/pages/Sources.svelte:22
 msgid "Web page"
 msgstr "Webseite"
 
@@ -707,23 +708,23 @@ msgstr ""
 msgid "SPRECHSTUNDE_MISTRAL_SERVER must be global, eu, us or a URL"
 msgstr "SPRECHSTUNDE_MISTRAL_SERVER muss global, eu, us oder eine URL sein"
 
-#: web/src/App.svelte:30 web/src/App.svelte:94
+#: web/src/App.svelte:31 web/src/App.svelte:97
 msgid "Main navigation"
 msgstr "Hauptnavigation"
 
-#: web/src/App.svelte:46
+#: web/src/App.svelte:47
 msgid "Not found"
 msgstr "Nicht gefunden"
 
-#: web/src/App.svelte:51
+#: web/src/App.svelte:52
 msgid "Switch language"
 msgstr "Sprache wechseln"
 
-#: web/src/App.svelte:57
+#: web/src/App.svelte:58
 msgid "Switch between light and dark"
 msgstr "Zwischen hell und dunkel wechseln"
 
-#: web/src/App.svelte:75
+#: web/src/App.svelte:76
 msgid "There is no such page."
 msgstr "Diese Seite gibt es nicht."
 
@@ -763,11 +764,16 @@ msgstr "Modelle"
 msgid "Knowledge"
 msgstr "Wissen"
 
-#: web/src/lib/nav.ts:18 web/src/pages/Calls.svelte:45
+#: web/src/lib/nav.ts:18 web/src/pages/Sources.svelte:203
+msgid "Sources"
+msgstr "Quellen"
+
+#: web/src/lib/nav.ts:19 web/src/pages/Calls.svelte:45
 msgid "Calls"
 msgstr "Anrufe"
 
-#: web/src/lib/ui/Confirm.svelte:28 web/src/pages/characters/Wizard.svelte:310
+#: web/src/lib/ui/Confirm.svelte:28 web/src/pages/Sources.svelte:338
+#: web/src/pages/Sources.svelte:425 web/src/pages/characters/Wizard.svelte:310
 msgid "Cancel"
 msgstr "Abbrechen"
 
@@ -983,7 +989,8 @@ msgstr "Keinem Betrieb zugewiesen"
 msgid "Hear greeting"
 msgstr "Begrüßung anhören"
 
-#: web/src/pages/Characters.svelte:129
+#: web/src/pages/Characters.svelte:129 web/src/pages/Sources.svelte:332
+#: web/src/pages/Sources.svelte:336
 msgid "Edit"
 msgstr "Bearbeiten"
 
@@ -1063,6 +1070,7 @@ msgid "Use this profile"
 msgstr "Dieses Profil verwenden"
 
 #: web/src/pages/Knowledge.svelte:227 web/src/pages/Knowledge.svelte:495
+#: web/src/pages/Sources.svelte:298 web/src/pages/Sources.svelte:438
 msgid "History"
 msgstr "Verlauf"
 
@@ -1244,12 +1252,12 @@ msgstr "Kopieren"
 msgid "Unsaved changes"
 msgstr "Ungespeicherte Änderungen"
 
-#: web/src/pages/Knowledge.svelte:476
+#: web/src/pages/Knowledge.svelte:476 web/src/pages/Sources.svelte:313
 msgid "Discard"
 msgstr "Verwerfen"
 
 #: web/src/pages/Knowledge.svelte:477 web/src/pages/Llm.svelte:73
-#: web/src/pages/characters/Wizard.svelte:457
+#: web/src/pages/Sources.svelte:334 web/src/pages/characters/Wizard.svelte:457
 msgid "Save"
 msgstr "Speichern"
 
@@ -1290,7 +1298,7 @@ msgstr "%s Byte"
 msgid "Restore"
 msgstr "Wiederherstellen"
 
-#: web/src/pages/Knowledge.svelte:515
+#: web/src/pages/Knowledge.svelte:515 web/src/pages/Sources.svelte:454
 #: web/src/pages/voices/VoiceBrowser.svelte:331
 msgid "Close"
 msgstr "Schließen"
@@ -1436,6 +1444,246 @@ msgstr "Schlüssel gesetzt"
 #: web/src/pages/Overview.svelte:159
 msgid "no key"
 msgstr "kein Schlüssel"
+
+#: web/src/pages/Sources.svelte:22 web/src/pages/Sources.svelte:325
+#: web/src/pages/Sources.svelte:399
+msgid "Text"
+msgstr "Text"
+
+#: web/src/pages/Sources.svelte:22
+msgid "Sitemap"
+msgstr "Sitemap"
+
+#: web/src/pages/Sources.svelte:105
+#, javascript-format
+msgid "%s changes wait for your review"
+msgstr "%s Änderungen warten auf deine Prüfung"
+
+#: web/src/pages/Sources.svelte:106
+msgid "Nothing new"
+msgstr "Nichts Neues"
+
+#: web/src/pages/Sources.svelte:113
+msgid "Change accepted"
+msgstr "Änderung übernommen"
+
+#: web/src/pages/Sources.svelte:113
+msgid "Change discarded"
+msgstr "Änderung verworfen"
+
+#: web/src/pages/Sources.svelte:124
+msgid "Saved"
+msgstr "Gespeichert"
+
+#: web/src/pages/Sources.svelte:171
+msgid "Source removed"
+msgstr "Quelle entfernt"
+
+#: web/src/pages/Sources.svelte:176
+msgid "Fetch failed"
+msgstr "Abruf fehlgeschlagen"
+
+#: web/src/pages/Sources.svelte:178 web/src/pages/Sources.svelte:227
+msgid "Not fetched yet"
+msgstr "Noch nicht abgerufen"
+
+#: web/src/pages/Sources.svelte:180
+#, javascript-format
+msgid "%s to review"
+msgstr "%s zu prüfen"
+
+#: web/src/pages/Sources.svelte:181
+msgid "Up to date"
+msgstr "Aktuell"
+
+#: web/src/pages/Sources.svelte:188 web/src/pages/Sources.svelte:194
+msgid "Venue"
+msgstr "Lokal"
+
+#: web/src/pages/Sources.svelte:188
+msgid ""
+"Sources belong to one venue. The assistant of that venue answers from them."
+msgstr "Quellen gehören zu einem Lokal. Dessen Assistent antwortet daraus."
+
+#: web/src/pages/Sources.svelte:192
+msgid "No venue profile found"
+msgstr "Kein Lokalprofil gefunden"
+
+#: web/src/pages/Sources.svelte:203
+msgid ""
+"Web pages are fetched, then you decide what goes live. Your own text is live "
+"at once."
+msgstr "Webseiten werden abgerufen, dann entscheidest du, was aktiv wird. Dein eigener Text ist sofort aktiv."
+
+#: web/src/pages/Sources.svelte:205 web/src/pages/Sources.svelte:372
+msgid "Add source"
+msgstr "Quelle hinzufügen"
+
+#: web/src/pages/Sources.svelte:210
+msgid "No sources yet"
+msgstr "Noch keine Quellen"
+
+#: web/src/pages/Sources.svelte:210
+msgid "Add a web page, a sitemap or your own text."
+msgstr "Füge eine Webseite, eine Sitemap oder einen eigenen Text hinzu."
+
+#: web/src/pages/Sources.svelte:227
+#, javascript-format
+msgid "Fetched %s"
+msgstr "Abgerufen %s"
+
+#: web/src/pages/Sources.svelte:233
+msgid "Fetch now"
+msgstr "Jetzt abrufen"
+
+#: web/src/pages/Sources.svelte:239 web/src/pages/Sources.svelte:464
+msgid "Remove source"
+msgstr "Quelle entfernen"
+
+#: web/src/pages/Sources.svelte:257 web/src/pages/Sources.svelte:411
+msgid "Fetch again every"
+msgstr "Erneut abrufen alle"
+
+#: web/src/pages/Sources.svelte:264 web/src/pages/Sources.svelte:413
+msgid "Never"
+msgstr "Nie"
+
+#: web/src/pages/Sources.svelte:265 web/src/pages/Sources.svelte:414
+msgid "6 hours"
+msgstr "6 Stunden"
+
+#: web/src/pages/Sources.svelte:266 web/src/pages/Sources.svelte:415
+msgid "Day"
+msgstr "Tag"
+
+#: web/src/pages/Sources.svelte:267 web/src/pages/Sources.svelte:416
+msgid "Week"
+msgstr "Woche"
+
+#: web/src/pages/Sources.svelte:276 web/src/pages/Sources.svelte:420
+msgid "Accept changes without asking"
+msgstr "Änderungen ohne Rückfrage übernehmen"
+
+#: web/src/pages/Sources.svelte:284
+msgid "Nothing fetched yet"
+msgstr "Noch nichts abgerufen"
+
+#: web/src/pages/Sources.svelte:284
+msgid "Press \"Fetch now\"."
+msgstr "Drücke „Jetzt abrufen“."
+
+#: web/src/pages/Sources.svelte:296
+msgid "No longer listed"
+msgstr "Nicht mehr gelistet"
+
+#: web/src/pages/Sources.svelte:297 web/src/pages/Sources.svelte:447
+msgid "Edited by hand"
+msgstr "Von Hand bearbeitet"
+
+#: web/src/pages/Sources.svelte:304
+#, javascript-format
+msgid "The page changed: %s lines differ"
+msgstr "Die Seite hat sich geändert: %s Zeilen weichen ab"
+
+#: web/src/pages/Sources.svelte:307
+msgid "Accepting replaces the text you edited by hand."
+msgstr "Übernehmen ersetzt den Text, den du von Hand bearbeitet hast."
+
+#: web/src/pages/Sources.svelte:312
+msgid "Accept"
+msgstr "Übernehmen"
+
+#: web/src/pages/Sources.svelte:336
+msgid "Preview"
+msgstr "Hörprobe"
+
+#: web/src/pages/Sources.svelte:342
+msgid "Not live yet."
+msgstr "Noch nicht aktiv."
+
+#: web/src/pages/Sources.svelte:344
+msgid "Not live yet: accept the change above to publish it."
+msgstr "Noch nicht aktiv: übernimm die Änderung oben, um sie zu veröffentlichen."
+
+#: web/src/pages/Sources.svelte:356
+msgid "What the bot knows"
+msgstr "Was der Bot weiß"
+
+#: web/src/pages/Sources.svelte:356
+msgid ""
+"Exactly the text the assistant gets from your sources, with where each part "
+"comes from."
+msgstr "Genau der Text, den der Assistent aus deinen Quellen bekommt, mit Herkunft jedes Teils."
+
+#: web/src/pages/Sources.svelte:360
+msgid "Nothing yet"
+msgstr "Noch nichts"
+
+#: web/src/pages/Sources.svelte:360
+msgid "Accepted sources show up here."
+msgstr "Übernommene Quellen erscheinen hier."
+
+#: web/src/pages/Sources.svelte:373
+msgid "Pages are fetched politely: the site's robots.txt is respected."
+msgstr "Seiten werden höflich abgerufen: Die robots.txt der Seite wird beachtet."
+
+#: web/src/pages/Sources.svelte:381
+msgid "Kind"
+msgstr "Art"
+
+#: web/src/pages/Sources.svelte:395
+msgid "Title"
+msgstr "Titel"
+
+#: web/src/pages/Sources.svelte:399
+msgid "Markdown works."
+msgstr "Markdown funktioniert."
+
+#: web/src/pages/Sources.svelte:403
+msgid "Web address"
+msgstr "Webadresse"
+
+#: web/src/pages/Sources.svelte:403
+msgid "Address of the sitemap"
+msgstr "Adresse der Sitemap"
+
+#: web/src/pages/Sources.svelte:407
+msgid "Only these pages"
+msgstr "Nur diese Seiten"
+
+#: web/src/pages/Sources.svelte:407
+msgid "One pattern per line, such as /menu/**. Empty takes every page."
+msgstr "Ein Muster pro Zeile, z. B. /menu/**. Leer nimmt jede Seite."
+
+#: web/src/pages/Sources.svelte:427
+msgid "Add"
+msgstr "Hinzufügen"
+
+#: web/src/pages/Sources.svelte:445
+msgid "Accepted"
+msgstr "Übernommen"
+
+#: web/src/pages/Sources.svelte:445
+msgid "Waiting"
+msgstr "Wartet"
+
+#: web/src/pages/Sources.svelte:445
+msgid "Discarded"
+msgstr "Verworfen"
+
+#: web/src/pages/Sources.svelte:447
+msgid "Fetched"
+msgstr "Abgerufen"
+
+#: web/src/pages/Sources.svelte:462
+msgid "Remove this source?"
+msgstr "Diese Quelle entfernen?"
+
+#: web/src/pages/Sources.svelte:463
+msgid ""
+"Its fetched texts and their history are deleted, and the assistant stops "
+"using them."
+msgstr "Ihre abgerufenen Texte und deren Verlauf werden gelöscht, und der Assistent nutzt sie nicht mehr."
 
 #: web/src/pages/characters/CastCard.svelte:42
 msgid "Synthesizing…"
@@ -1972,10 +2220,6 @@ msgstr "Hohe Qualität"
 #~ msgid "Gender unknown"
 #~ msgstr "Geschlecht unbekannt"
 
-#, javascript-format
-#~ msgid "Fetched %s"
-#~ msgstr "Abgerufen %s"
-
 #~ msgid "Provider"
 #~ msgstr "Anbieter"
 
@@ -2024,9 +2268,6 @@ msgstr "Hohe Qualität"
 
 #~ msgid "Edit preset"
 #~ msgstr "Preset bearbeiten"
-
-#~ msgid "Add preset"
-#~ msgstr "Preset hinzufügen"
 
 #~ msgid "ID"
 #~ msgstr "ID"
@@ -2108,9 +2349,6 @@ msgstr "Hohe Qualität"
 #~ msgid "Default (mistral-small-latest)"
 #~ msgstr "Standard (mistral-small-latest)"
 
-#~ msgid "Add"
-#~ msgstr "Hinzufügen"
-
 #, javascript-format
 #~ msgid "Delete the preset \"%s\"?"
 #~ msgstr "Voreinstellung „%s“ löschen?"
@@ -2118,9 +2356,6 @@ msgstr "Hohe Qualität"
 #, javascript-format
 #~ msgid "Failed: %s"
 #~ msgstr "Fehlgeschlagen: %s"
-
-#~ msgid "Saved."
-#~ msgstr "Gespeichert."
 
 #~ msgid "the environment"
 #~ msgstr "die Umgebung"
@@ -2185,9 +2420,6 @@ msgstr "Hohe Qualität"
 
 #~ msgid "file in the voices directory, Mistral only"
 #~ msgstr "Datei im Stimmenverzeichnis, nur Mistral"
-
-#~ msgid "Preview"
-#~ msgstr "Hörprobe"
 
 #~ msgid ""
 #~ "Synthesized through the same code a call uses. \"Phone\" resamples to 8 "

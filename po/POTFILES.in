@@ -62,6 +62,7 @@ web/src/lib/casting.ts
 web/src/lib/favourites.svelte.ts
 web/src/lib/format.ts
 web/src/lib/i18n.svelte.ts
+web/src/lib/markdown.ts
 web/src/lib/models.svelte.ts
 web/src/lib/nav.ts
 web/src/lib/router.svelte.ts
@@ -77,6 +78,7 @@ web/src/lib/ui/ChoiceLine.svelte
 web/src/lib/ui/Confirm.svelte
 web/src/lib/ui/Empty.svelte
 web/src/lib/ui/Field.svelte
+web/src/lib/ui/Markdown.svelte
 web/src/lib/ui/ModelFacts.svelte
 web/src/lib/ui/ModelInfo.svelte
 web/src/lib/ui/ModelName.svelte
@@ -93,6 +95,7 @@ web/src/pages/Knowledge.svelte
 web/src/pages/Llm.svelte
 web/src/pages/Models.svelte
 web/src/pages/Overview.svelte
+web/src/pages/Sources.svelte
 web/src/pages/characters/CastCard.svelte
 web/src/pages/characters/Wizard.svelte
 web/src/pages/models/ModelList.svelte

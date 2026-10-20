@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-20 14:12+0200\n"
+"POT-Creation-Date: 2026-10-20 14:18+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -141,7 +141,7 @@ msgstr ""
 msgid "Notes"
 msgstr ""
 
-#: src/admin/knowledge-service.ts:205
+#: src/admin/knowledge-service.ts:205 web/src/pages/Sources.svelte:22
 msgid "Web page"
 msgstr ""
 
@@ -675,23 +675,23 @@ msgstr ""
 msgid "SPRECHSTUNDE_MISTRAL_SERVER must be global, eu, us or a URL"
 msgstr ""
 
-#: web/src/App.svelte:30 web/src/App.svelte:94
+#: web/src/App.svelte:31 web/src/App.svelte:97
 msgid "Main navigation"
 msgstr ""
 
-#: web/src/App.svelte:46
+#: web/src/App.svelte:47
 msgid "Not found"
 msgstr ""
 
-#: web/src/App.svelte:51
+#: web/src/App.svelte:52
 msgid "Switch language"
 msgstr ""
 
-#: web/src/App.svelte:57
+#: web/src/App.svelte:58
 msgid "Switch between light and dark"
 msgstr ""
 
-#: web/src/App.svelte:75
+#: web/src/App.svelte:76
 msgid "There is no such page."
 msgstr ""
 
@@ -731,11 +731,16 @@ msgstr ""
 msgid "Knowledge"
 msgstr ""
 
-#: web/src/lib/nav.ts:18 web/src/pages/Calls.svelte:45
+#: web/src/lib/nav.ts:18 web/src/pages/Sources.svelte:203
+msgid "Sources"
+msgstr ""
+
+#: web/src/lib/nav.ts:19 web/src/pages/Calls.svelte:45
 msgid "Calls"
 msgstr ""
 
-#: web/src/lib/ui/Confirm.svelte:28 web/src/pages/characters/Wizard.svelte:310
+#: web/src/lib/ui/Confirm.svelte:28 web/src/pages/Sources.svelte:338
+#: web/src/pages/Sources.svelte:425 web/src/pages/characters/Wizard.svelte:310
 msgid "Cancel"
 msgstr ""
 
@@ -951,7 +956,8 @@ msgstr ""
 msgid "Hear greeting"
 msgstr ""
 
-#: web/src/pages/Characters.svelte:129
+#: web/src/pages/Characters.svelte:129 web/src/pages/Sources.svelte:332
+#: web/src/pages/Sources.svelte:336
 msgid "Edit"
 msgstr ""
 
@@ -1029,6 +1035,7 @@ msgid "Use this profile"
 msgstr ""
 
 #: web/src/pages/Knowledge.svelte:227 web/src/pages/Knowledge.svelte:495
+#: web/src/pages/Sources.svelte:298 web/src/pages/Sources.svelte:438
 msgid "History"
 msgstr ""
 
@@ -1202,12 +1209,12 @@ msgstr ""
 msgid "Unsaved changes"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:476
+#: web/src/pages/Knowledge.svelte:476 web/src/pages/Sources.svelte:313
 msgid "Discard"
 msgstr ""
 
 #: web/src/pages/Knowledge.svelte:477 web/src/pages/Llm.svelte:73
-#: web/src/pages/characters/Wizard.svelte:457
+#: web/src/pages/Sources.svelte:334 web/src/pages/characters/Wizard.svelte:457
 msgid "Save"
 msgstr ""
 
@@ -1244,7 +1251,7 @@ msgstr ""
 msgid "Restore"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:515
+#: web/src/pages/Knowledge.svelte:515 web/src/pages/Sources.svelte:454
 #: web/src/pages/voices/VoiceBrowser.svelte:331
 msgid "Close"
 msgstr ""
@@ -1387,6 +1394,246 @@ msgstr ""
 
 #: web/src/pages/Overview.svelte:159
 msgid "no key"
+msgstr ""
+
+#: web/src/pages/Sources.svelte:22 web/src/pages/Sources.svelte:325
+#: web/src/pages/Sources.svelte:399
+msgid "Text"
+msgstr ""
+
+#: web/src/pages/Sources.svelte:22
+msgid "Sitemap"
+msgstr ""
+
+#: web/src/pages/Sources.svelte:105
+#, javascript-format
+msgid "%s changes wait for your review"
+msgstr ""
+
+#: web/src/pages/Sources.svelte:106
+msgid "Nothing new"
+msgstr ""
+
+#: web/src/pages/Sources.svelte:113
+msgid "Change accepted"
+msgstr ""
+
+#: web/src/pages/Sources.svelte:113
+msgid "Change discarded"
+msgstr ""
+
+#: web/src/pages/Sources.svelte:124
+msgid "Saved"
+msgstr ""
+
+#: web/src/pages/Sources.svelte:171
+msgid "Source removed"
+msgstr ""
+
+#: web/src/pages/Sources.svelte:176
+msgid "Fetch failed"
+msgstr ""
+
+#: web/src/pages/Sources.svelte:178 web/src/pages/Sources.svelte:227
+msgid "Not fetched yet"
+msgstr ""
+
+#: web/src/pages/Sources.svelte:180
+#, javascript-format
+msgid "%s to review"
+msgstr ""
+
+#: web/src/pages/Sources.svelte:181
+msgid "Up to date"
+msgstr ""
+
+#: web/src/pages/Sources.svelte:188 web/src/pages/Sources.svelte:194
+msgid "Venue"
+msgstr ""
+
+#: web/src/pages/Sources.svelte:188
+msgid ""
+"Sources belong to one venue. The assistant of that venue answers from them."
+msgstr ""
+
+#: web/src/pages/Sources.svelte:192
+msgid "No venue profile found"
+msgstr ""
+
+#: web/src/pages/Sources.svelte:203
+msgid ""
+"Web pages are fetched, then you decide what goes live. Your own text is live "
+"at once."
+msgstr ""
+
+#: web/src/pages/Sources.svelte:205 web/src/pages/Sources.svelte:372
+msgid "Add source"
+msgstr ""
+
+#: web/src/pages/Sources.svelte:210
+msgid "No sources yet"
+msgstr ""
+
+#: web/src/pages/Sources.svelte:210
+msgid "Add a web page, a sitemap or your own text."
+msgstr ""
+
+#: web/src/pages/Sources.svelte:227
+#, javascript-format
+msgid "Fetched %s"
+msgstr ""
+
+#: web/src/pages/Sources.svelte:233
+msgid "Fetch now"
+msgstr ""
+
+#: web/src/pages/Sources.svelte:239 web/src/pages/Sources.svelte:464
+msgid "Remove source"
+msgstr ""
+
+#: web/src/pages/Sources.svelte:257 web/src/pages/Sources.svelte:411
+msgid "Fetch again every"
+msgstr ""
+
+#: web/src/pages/Sources.svelte:264 web/src/pages/Sources.svelte:413
+msgid "Never"
+msgstr ""
+
+#: web/src/pages/Sources.svelte:265 web/src/pages/Sources.svelte:414
+msgid "6 hours"
+msgstr ""
+
+#: web/src/pages/Sources.svelte:266 web/src/pages/Sources.svelte:415
+msgid "Day"
+msgstr ""
+
+#: web/src/pages/Sources.svelte:267 web/src/pages/Sources.svelte:416
+msgid "Week"
+msgstr ""
+
+#: web/src/pages/Sources.svelte:276 web/src/pages/Sources.svelte:420
+msgid "Accept changes without asking"
+msgstr ""
+
+#: web/src/pages/Sources.svelte:284
+msgid "Nothing fetched yet"
+msgstr ""
+
+#: web/src/pages/Sources.svelte:284
+msgid "Press \"Fetch now\"."
+msgstr ""
+
+#: web/src/pages/Sources.svelte:296
+msgid "No longer listed"
+msgstr ""
+
+#: web/src/pages/Sources.svelte:297 web/src/pages/Sources.svelte:447
+msgid "Edited by hand"
+msgstr ""
+
+#: web/src/pages/Sources.svelte:304
+#, javascript-format
+msgid "The page changed: %s lines differ"
+msgstr ""
+
+#: web/src/pages/Sources.svelte:307
+msgid "Accepting replaces the text you edited by hand."
+msgstr ""
+
+#: web/src/pages/Sources.svelte:312
+msgid "Accept"
+msgstr ""
+
+#: web/src/pages/Sources.svelte:336
+msgid "Preview"
+msgstr ""
+
+#: web/src/pages/Sources.svelte:342
+msgid "Not live yet."
+msgstr ""
+
+#: web/src/pages/Sources.svelte:344
+msgid "Not live yet: accept the change above to publish it."
+msgstr ""
+
+#: web/src/pages/Sources.svelte:356
+msgid "What the bot knows"
+msgstr ""
+
+#: web/src/pages/Sources.svelte:356
+msgid ""
+"Exactly the text the assistant gets from your sources, with where each part "
+"comes from."
+msgstr ""
+
+#: web/src/pages/Sources.svelte:360
+msgid "Nothing yet"
+msgstr ""
+
+#: web/src/pages/Sources.svelte:360
+msgid "Accepted sources show up here."
+msgstr ""
+
+#: web/src/pages/Sources.svelte:373
+msgid "Pages are fetched politely: the site's robots.txt is respected."
+msgstr ""
+
+#: web/src/pages/Sources.svelte:381
+msgid "Kind"
+msgstr ""
+
+#: web/src/pages/Sources.svelte:395
+msgid "Title"
+msgstr ""
+
+#: web/src/pages/Sources.svelte:399
+msgid "Markdown works."
+msgstr ""
+
+#: web/src/pages/Sources.svelte:403
+msgid "Web address"
+msgstr ""
+
+#: web/src/pages/Sources.svelte:403
+msgid "Address of the sitemap"
+msgstr ""
+
+#: web/src/pages/Sources.svelte:407
+msgid "Only these pages"
+msgstr ""
+
+#: web/src/pages/Sources.svelte:407
+msgid "One pattern per line, such as /menu/**. Empty takes every page."
+msgstr ""
+
+#: web/src/pages/Sources.svelte:427
+msgid "Add"
+msgstr ""
+
+#: web/src/pages/Sources.svelte:445
+msgid "Accepted"
+msgstr ""
+
+#: web/src/pages/Sources.svelte:445
+msgid "Waiting"
+msgstr ""
+
+#: web/src/pages/Sources.svelte:445
+msgid "Discarded"
+msgstr ""
+
+#: web/src/pages/Sources.svelte:447
+msgid "Fetched"
+msgstr ""
+
+#: web/src/pages/Sources.svelte:462
+msgid "Remove this source?"
+msgstr ""
+
+#: web/src/pages/Sources.svelte:463
+msgid ""
+"Its fetched texts and their history are deleted, and the assistant stops "
+"using them."
 msgstr ""
 
 #: web/src/pages/characters/CastCard.svelte:42
