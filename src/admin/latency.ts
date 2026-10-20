@@ -21,6 +21,7 @@ const METRICS = [
   ['eou_metrics', 'transcriptionDelayMs'],
   ['llm_metrics', 'ttftMs'],
   ['tts_metrics', 'ttfbMs'],
+  ['tts_stream', 'maxGapMs'],
 ] as const;
 
 export const METRIC_NAMES = METRICS.map(([type, field]) => `${type.split('_')[0]}.${field}`);

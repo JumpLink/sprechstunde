@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-20 11:20+0200\n"
+"POT-Creation-Date: 2026-10-20 13:47+0200\n"
 "PO-Revision-Date: 2026-10-19 23:10+0200\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -276,7 +276,7 @@ msgstr "Echo-Modus: Weiterleitung abgebrochen"
 msgid "starting assistant with profile"
 msgstr "Assistent startet mit Profil"
 
-#: src/agent/metrics.ts:98
+#: src/agent/metrics.ts:112
 #, javascript-format
 msgid "cannot write metrics to %s"
 msgstr "Metriken können nicht nach %s geschrieben werden"
@@ -311,12 +311,12 @@ msgid "LIVEKIT_URL, LIVEKIT_API_KEY and LIVEKIT_API_SECRET must be set"
 msgstr ""
 "LIVEKIT_URL, LIVEKIT_API_KEY und LIVEKIT_API_SECRET müssen gesetzt sein"
 
-#: src/agent/tts-provider.ts:65 src/agent/tts-provider.ts:157
+#: src/agent/tts-provider.ts:67 src/agent/tts-provider.ts:159
 msgid "%1 must be one of: %2"
 msgstr "%1 muss einer dieser Werte sein: %2"
 
-#: src/agent/tts-provider.ts:68 src/agent/tts-provider.ts:71
-#: src/agent/tts-provider.ts:153 src/agent/tts-provider.ts:190
+#: src/agent/tts-provider.ts:70 src/agent/tts-provider.ts:73
+#: src/agent/tts-provider.ts:155 src/agent/tts-provider.ts:192
 #: src/cli/fallback.ts:23 src/cli/provision.ts:10 src/cli/sip-contacts.ts:18
 #: src/cli/stt-try.ts:100 src/cli/tts-try.ts:88 src/cli/voice.ts:12
 #: src/mistral.ts:21
@@ -324,16 +324,16 @@ msgstr "%1 muss einer dieser Werte sein: %2"
 msgid "%s must be set"
 msgstr "%s muss gesetzt sein"
 
-#: src/agent/tts-provider.ts:74
+#: src/agent/tts-provider.ts:76
 #, javascript-format
 msgid "%s must be a numeric KugelAudio voice id"
 msgstr "%s muss eine numerische KugelAudio-Stimmen-ID sein"
 
-#: src/agent/tts-provider.ts:94
+#: src/agent/tts-provider.ts:96
 msgid "character \"%1\" needs a model for the %2 provider"
 msgstr "Charakter „%1“ braucht ein Modell für den Anbieter %2"
 
-#: src/agent/tts-provider.ts:98
+#: src/agent/tts-provider.ts:100
 #, javascript-format
 msgid "character \"%s\" needs a numeric KugelAudio voice id"
 msgstr "Charakter „%s“ braucht eine numerische KugelAudio-Stimmen-ID"
@@ -353,7 +353,7 @@ msgstr ""
 msgid "fallback announcement written to"
 msgstr "Ersatzansage geschrieben nach"
 
-#: src/cli/metrics.ts:29
+#: src/cli/metrics.ts:31
 msgid ""
 "usage: metrics [--since <ISO|date>] [--until <ISO|date>] [--day <YYYY-MM-"
 "DD>] [--calls] [--json]"
@@ -361,7 +361,7 @@ msgstr ""
 "Aufruf: metrics [--since <ISO|Datum>] [--until <ISO|Datum>] [--day <JJJJ-MM-"
 "TT>] [--calls] [--json]"
 
-#: src/cli/metrics.ts:30
+#: src/cli/metrics.ts:32
 msgid ""
 "Reads <SPRECHSTUNDE_METRICS_DIR or var/metrics>/<date>.jsonl and prints n, "
 "p50, p95 and max per metric."
@@ -369,7 +369,7 @@ msgstr ""
 "Liest <SPRECHSTUNDE_METRICS_DIR oder var/metrics>/<Datum>.jsonl und gibt n, "
 "p50, p95 und max je Metrik aus."
 
-#: src/cli/metrics.ts:31
+#: src/cli/metrics.ts:33
 msgid ""
 "  --since, --until  time window on the line timestamp; --until is exclusive; "
 "bare dates are UTC"
@@ -377,11 +377,11 @@ msgstr ""
 "  --since, --until  Zeitfenster auf dem Zeitstempel der Zeile; --until ist "
 "exklusiv; reine Daten gelten als UTC"
 
-#: src/cli/metrics.ts:32
+#: src/cli/metrics.ts:34
 msgid "  --day             one UTC day, same as --since D --until D+1"
 msgstr "  --day             ein UTC-Tag, wie --since D --until D+1"
 
-#: src/cli/metrics.ts:33
+#: src/cli/metrics.ts:35
 msgid ""
 "  --calls           one row per call: a gap above 60 s between lines starts "
 "a new call"
@@ -389,11 +389,11 @@ msgstr ""
 "  --calls           eine Zeile je Anruf: eine Pause über 60 s zwischen "
 "Zeilen beginnt einen neuen Anruf"
 
-#: src/cli/metrics.ts:34
+#: src/cli/metrics.ts:36
 msgid "  --json            machine-readable output"
 msgstr "  --json            maschinenlesbare Ausgabe"
 
-#: src/cli/metrics.ts:36
+#: src/cli/metrics.ts:38
 msgid ""
 "Percentiles are nearest-rank (always a measured value). A TTS chunk hedged "
 "by HedgedTTS can appear twice; lines are not de-duplicated."
@@ -402,33 +402,33 @@ msgstr ""
 "abgesichertes TTS-Stück kann doppelt vorkommen; Zeilen werden nicht "
 "dedupliziert."
 
-#: src/cli/metrics.ts:43 src/cli/metrics.ts:122
+#: src/cli/metrics.ts:45 src/cli/metrics.ts:124
 #, javascript-format
 msgid "invalid date: %s"
 msgstr "ungültiges Datum: %s"
 
-#: src/cli/metrics.ts:95
+#: src/cli/metrics.ts:97
 msgid "metric (ms)"
 msgstr "Metrik (ms)"
 
-#: src/cli/metrics.ts:132
+#: src/cli/metrics.ts:134
 #, javascript-format
 msgid "cannot read metrics from %s"
 msgstr "Metriken können nicht aus %s gelesen werden"
 
-#: src/cli/metrics.ts:153
+#: src/cli/metrics.ts:155
 msgid "call start (UTC)"
 msgstr "Anrufbeginn (UTC)"
 
-#: src/cli/metrics.ts:153
+#: src/cli/metrics.ts:155
 msgid "seconds"
 msgstr "Sekunden"
 
-#: src/cli/metrics.ts:153
+#: src/cli/metrics.ts:155
 msgid "lines"
 msgstr "Zeilen"
 
-#: src/cli/metrics.ts:165
+#: src/cli/metrics.ts:167
 #, javascript-format
 msgid "skipped malformed lines: %s"
 msgstr "übersprungene fehlerhafte Zeilen: %s"
@@ -1108,7 +1108,7 @@ msgid "Discard"
 msgstr "Verwerfen"
 
 #: web/src/pages/Knowledge.svelte:477 web/src/pages/Llm.svelte:73
-#: web/src/pages/characters/Wizard.svelte:454
+#: web/src/pages/characters/Wizard.svelte:457
 msgid "Save"
 msgstr "Speichern"
 
@@ -1446,7 +1446,7 @@ msgstr "Wähle eine oder zwei Stimmen."
 
 #: web/src/pages/characters/Wizard.svelte:348
 #: web/src/pages/characters/Wizard.svelte:370
-#: web/src/pages/characters/Wizard.svelte:453
+#: web/src/pages/characters/Wizard.svelte:456
 msgid "Back"
 msgstr "Zurück"
 
@@ -1511,19 +1511,19 @@ msgstr ""
 "Der Anbieter führt diese Stimmen für eine andere Sprache. Sie sprechen "
 "Deutsch womöglich mit Akzent."
 
-#: web/src/pages/characters/Wizard.svelte:436
+#: web/src/pages/characters/Wizard.svelte:438
 msgid "Use this voice"
 msgstr "Diese Stimme verwenden"
 
-#: web/src/pages/characters/Wizard.svelte:442
+#: web/src/pages/characters/Wizard.svelte:445
 msgid "Assign to a venue"
 msgstr "Einem Betrieb zuweisen"
 
-#: web/src/pages/characters/Wizard.svelte:442
+#: web/src/pages/characters/Wizard.svelte:445
 msgid "Optional. Until then the venue speaks as the default character."
 msgstr "Optional. Bis dahin spricht der Betrieb als Standardcharakter."
 
-#: web/src/pages/characters/Wizard.svelte:444
+#: web/src/pages/characters/Wizard.svelte:447
 msgid "Not now"
 msgstr "Jetzt nicht"
 

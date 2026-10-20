@@ -2,6 +2,7 @@ import { appendFileSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import type { metrics } from '@livekit/agents';
 import { _ } from '../i18n.js';
+import type { StreamStats } from './tts-meter.js';
 
 const DEFAULT_DIR = join('var', 'metrics');
 
@@ -40,6 +41,19 @@ export function metricsLine(m: metrics.AgentMetrics): Record<string, unknown> | 
     default:
       return null;
   }
+}
+
+/**
+ * Chunk timing of one streaming TTS request, for vendors whose stream reports nothing (Kugel).
+ * Numbers only. `tts_metrics` carries TTFB and duration for the summaries; this line adds what
+ * explains a choppy answer: the pauses between chunks.
+ */
+export function ttsStreamLine(stats: StreamStats, provider: string, now = Date.now()): Record<string, unknown> {
+  return { type: 'tts_stream', ts: now, provider, ...stats };
+}
+
+export function recordTtsStream(stats: StreamStats, provider: string): void {
+  write(ttsStreamLine(stats, provider));
 }
 
 export interface CallConfig {
