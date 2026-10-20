@@ -31,7 +31,16 @@ export function snapshotPath(profileFile: string, env: NodeJS.ProcessEnv = proce
 
 /** Fetched text is data: it must not be able to close the wrapper and speak as the prompt. */
 function defang(text: string): string {
-  return text.replace(/<\/?\s*reference-data[^>]*>/gi, '[tag removed]');
+  return text.replace(/<\/?\s*reference-data[^>]*>?/gi, '[tag removed]');
+}
+
+const MAX_LABEL_CHARS = 120;
+const MAX_URL_CHARS = 300;
+
+/** A title or address from a fetched page sits outside the fence, so it is flattened to one short, tag-free line. */
+function label(text: string, max: number): string {
+  const flat = defang(text).replace(/[<>]/g, '').replace(/\s+/g, ' ').trim();
+  return flat.length > max ? `${flat.slice(0, max - 1)}…` : flat;
 }
 
 const day = (iso: string | null): string => (iso ? iso.slice(0, 10) : 'unknown');
@@ -43,8 +52,8 @@ export function renderSnapshot(sections: SnapshotSection[]): string {
   let omitted = 0;
   for (const section of sections) {
     const header = [
-      `## ${section.title.replace(/\s+/g, ' ').trim()}`,
-      `Source: ${section.sourceTitle.replace(/\s+/g, ' ').trim()}${section.url ? ` — ${section.url}` : ''} — ${
+      `## ${label(section.title, MAX_LABEL_CHARS)}`,
+      `Source: ${label(section.sourceTitle, MAX_LABEL_CHARS)}${section.url ? ` — ${label(section.url, MAX_URL_CHARS)}` : ''} — ${
         section.edited ? 'edited' : 'fetched'
       } ${day(section.at)}`,
     ].join('\n');
