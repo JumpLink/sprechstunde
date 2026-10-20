@@ -43,6 +43,7 @@ src/mistral.ts
 src/sip/register.ts
 web/src/App.svelte
 web/src/lib/api.ts
+web/src/lib/casting.ts
 web/src/lib/format.ts
 web/src/lib/i18n.svelte.ts
 web/src/lib/models.svelte.ts
@@ -52,6 +53,7 @@ web/src/lib/store.svelte.ts
 web/src/lib/theme.svelte.ts
 web/src/lib/types.ts
 web/src/lib/ui/Audio.svelte
+web/src/lib/ui/Avatar.svelte
 web/src/lib/ui/Badge.svelte
 web/src/lib/ui/Button.svelte
 web/src/lib/ui/Card.svelte
@@ -67,12 +69,12 @@ web/src/lib/utils.ts
 web/src/lib/voices.ts
 web/src/main.ts
 web/src/pages/Calls.svelte
+web/src/pages/Characters.svelte
 web/src/pages/Knowledge.svelte
 web/src/pages/Llm.svelte
 web/src/pages/Models.svelte
 web/src/pages/Overview.svelte
-web/src/pages/Voices.svelte
-web/src/pages/voices/Catalog.svelte
-web/src/pages/voices/PresetForm.svelte
-web/src/pages/voices/Presets.svelte
-web/src/pages/voices/Preview.svelte
+web/src/pages/characters/CastCard.svelte
+web/src/pages/characters/Wizard.svelte
+web/src/pages/models/ModelList.svelte
+web/src/pages/models/VoiceCatalog.svelte

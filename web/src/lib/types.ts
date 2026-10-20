@@ -2,19 +2,48 @@
 
 export type Provider = 'mistral' | 'cartesia' | 'openrouter' | 'pocket' | 'kugel';
 
-export interface Preset {
-  id: string;
-  label: string;
+export type Gender = 'female' | 'male' | 'neutral';
+
+export interface VoiceSpec {
   provider: Provider;
   model?: string;
   voice?: string;
   refAudio?: string;
+}
+
+/** Mirrors `Character` in `src/core/settings.ts`. */
+export interface Character {
+  id: string;
+  tenantId: string;
+  name: string;
+  gender: Gender;
+  /** Set on a character migrated from a preset: nobody has said yet. */
+  genderUnknown?: boolean;
+  voice: VoiceSpec;
+  fallbackVoice?: VoiceSpec;
+  tone?: string;
+  color?: string;
+}
+
+export interface CharacterVenue {
+  file: string | null;
+  id: string;
   name?: string;
+  explicit: boolean;
+}
+
+export interface CharactersView {
+  tenantId: string;
+  revision: string;
+  default: string | null;
+  characters: Array<Character & { usedBy: CharacterVenue[] }>;
+  created?: { id: string };
 }
 
 export interface Settings {
-  presets: Preset[];
-  active: { primary?: string; fallback?: string };
+  schemaVersion: number;
+  characters: Character[];
+  defaultCharacter?: string;
   llm: { model?: string; fallbackModel?: string; attemptTimeoutS?: number };
   profile?: string;
 }
@@ -34,6 +63,8 @@ export interface AdminState {
   metricNames: string[];
   sampleText: string;
   keys: Record<string, boolean>;
+  /** Whether the configured KugelAudio key speaks from the EU endpoint. */
+  kugelEu: boolean;
 }
 
 export interface ProfileEntry {
@@ -41,6 +72,8 @@ export interface ProfileEntry {
   id: string;
   name?: string;
   locale?: string;
+  /** The character this venue picked; none means the default one. */
+  character?: string;
   error?: string;
 }
 
@@ -60,12 +93,12 @@ export interface Summary {
 
 export interface Latency {
   skipped: number;
-  presets: Array<{ preset?: string; calls: number; provider?: string; summary: Record<string, Summary> }>;
+  characters: Array<{ character?: string; calls: number; provider?: string; summary: Record<string, Summary> }>;
   calls: Array<{
     start: string;
     seconds: number;
     lines: number;
-    preset?: string;
+    character?: string;
     provider?: string;
     llmModel?: string;
     summary: Record<string, Summary>;
@@ -77,7 +110,7 @@ export interface CatalogVoice {
   name: string;
   model?: string;
   languages: string[];
-  gender?: string;
+  gender?: Gender;
   description?: string;
   sampleUrl?: string;
 }
@@ -125,6 +158,7 @@ export interface Draft {
   facts: Fact[];
   transfer: { announce: string; targetMasked: string } | null;
   fallback: string | null;
+  character: string | null;
 }
 
 export interface HistoryVersion {

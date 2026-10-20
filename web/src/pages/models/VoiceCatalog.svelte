@@ -7,7 +7,7 @@
   import { _, currentLanguage, fill } from '$lib/i18n.svelte';
   import { modelOption } from '$lib/models.svelte';
   import { app } from '$lib/store.svelte';
-  import type { Catalog, CatalogVoice, Preset, Provider } from '$lib/types';
+  import type { Catalog, CatalogVoice, Provider, VoiceSpec } from '$lib/types';
   import Audio from '$lib/ui/Audio.svelte';
   import Badge from '$lib/ui/Badge.svelte';
   import Button from '$lib/ui/Button.svelte';
@@ -17,7 +17,7 @@
   import { controlClass } from '$lib/utils';
 
   interface Props {
-    onsave: (preset: Preset) => void;
+    onsave: (voice: VoiceSpec) => void;
   }
 
   let { onsave }: Props = $props();
@@ -75,7 +75,7 @@
 
   const voices = $derived(catalog?.voices ?? []);
   const languages = $derived([...new Set(voices.flatMap((voice) => voice.languages))].sort());
-  const genders = $derived([...new Set(voices.map((voice) => voice.gender).filter((g): g is string => Boolean(g)))].sort());
+  const genders = $derived([...new Set(voices.map((voice) => voice.gender).filter((g) => g !== undefined))].sort());
   const filtered = $derived(
     voices.filter((voice) => {
       if (model && voice.model && voice.model !== model) return false;
@@ -105,14 +105,7 @@
   }
 
   function save(voice: CatalogVoice): void {
-    const id = `${provider}-${voice.id}`.replace(/[^A-Za-z0-9._-]+/g, '-').replace(/^[^A-Za-z0-9]+/, '');
-    onsave({
-      id,
-      label: `${voice.name} (${provider})`,
-      provider,
-      model: voice.model || model || undefined,
-      voice: voice.id,
-    });
+    onsave({ provider, model: voice.model || model || undefined, voice: voice.id });
   }
 </script>
 
@@ -207,7 +200,7 @@
             <Button variant="outline" size="sm" disabled={result?.busy} onclick={() => test(voice)}>
               <Play class="size-4" />{result?.busy ? _('Synthesizing…') : _('Test with my text')}
             </Button>
-            <Button size="sm" onclick={() => save(voice)}><Plus class="size-4" />{_('Save as preset')}</Button>
+            <Button size="sm" onclick={() => save(voice)}><Plus class="size-4" />{_('Cast as a character')}</Button>
           </div>
         </li>
       {/each}

@@ -20,7 +20,7 @@
     try {
       latency = await api<Latency>('GET', '/api/latency');
     } catch {
-      latency = { skipped: 0, presets: [], calls: [] };
+      latency = { skipped: 0, characters: [], calls: [] };
     }
   });
 
@@ -84,10 +84,10 @@
       <p class="mt-3 break-all text-xs text-muted-foreground">{_('Settings file')}: {snapshot.settingsPath}</p>
     </Card>
 
-    <Card title={_('Voice')} description={_('Primary voice and the one that takes over when it fails')}>
+    <Card title={_('Default character')} description={_('Its voice, and the one that takes over when it fails')}>
       <dl class="space-y-3 text-sm">
         <div>
-          <dt class="text-muted-foreground">{_('Primary')}</dt>
+          <dt class="text-muted-foreground">{_('Voice')}</dt>
           <dd class="font-medium">{primary.label}</dd>
           <dd class="text-muted-foreground">
             {#if primary.choice}<ChoiceLine {...primary.choice} />{/if}
@@ -101,8 +101,8 @@
           </dd>
         </div>
       </dl>
-      <a class="mt-3 inline-block text-sm text-primary underline-offset-4 hover:underline" href="/voices">
-        {_('Change voices')}
+      <a class="mt-3 inline-block text-sm text-primary underline-offset-4 hover:underline" href="/characters">
+        {_('Show characters')}
       </a>
     </Card>
 

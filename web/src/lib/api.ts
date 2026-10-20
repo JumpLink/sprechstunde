@@ -23,9 +23,9 @@ export interface PreviewResult {
   ttfaMs: number;
 }
 
-/** `choice` is a saved preset id (or empty for the environment voice) or a voice that is not saved. */
+/** `choice` is a saved character id (or empty for the environment voice) or a voice that is not saved. */
 export async function preview(
-  choice: { preset: string } | { voice: { provider: string; model?: string; voice?: string } },
+  choice: { character: string } | { voice: { provider: string; model?: string; voice?: string } },
   text: string,
   phone: boolean,
 ): Promise<PreviewResult> {

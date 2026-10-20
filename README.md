@@ -278,18 +278,23 @@ podman compose --profile agent up -d admin        # same thing in the container
 
 The page is a Svelte 5 app in `web/` (Vite, Tailwind CSS 4, bits-ui), a separate npm package with
 its own lockfile. `npm run build` compiles it to `dist/web/`, which the admin server serves; without
-that build the server answers 503. Pages: overview, voices (presets and the vendor catalog), LLM,
-models, knowledge and tools, calls. For development run `npm run web:install` once, then `npm run admin` and
+that build the server answers 503. Pages: overview, characters, LLM,
+models (with the vendor voice catalog), knowledge and tools, calls. For development run `npm run web:install` once, then `npm run admin` and
 `npm run web:dev` (Vite with hot reload, `/api` proxied to `127.0.0.1:8091`). `web/` is checked by
 `svelte-check` through `npm run typecheck`.
 
-It keeps a list of **presets** — a vendor plus its model, voice, reference clip and the name the
-assistant uses — and one active pair, a primary voice and an optional fallback. Previewing a preset
-synthesizes the profile's greeting through the very code a call uses (`buildBaseTts`), shows the
-time to the first audio sample, and plays several presets next to each other; "phone" resamples the
-sample to the 8 kHz a line carries, which is where a voice that sounded fine on speakers often does
-not. The same page sets the LLM, its fallback and the attempt timeout, and lists the measured
-latency of the recent calls, grouped by the preset they ran on.
+It keeps a gallery of **characters** — a name, a gender, a voice with a fallback voice, an optional
+manner of speaking and an initials avatar. A venue (profile) picks its character in the knowledge
+editor; without a pick it speaks as the default one. A casting wizard creates or edits a character:
+who (name, gender, manner), casting (German voices from every vendor, each reading the venue's real
+greeting with the new name and showing the time to first audio; the gender filter applies only to
+voices whose vendor reports a gender, the rest sit in a separate group), an A/B comparison of two
+favourites, and a fallback voice that is pre-selected (another vendor, local first). "Phone quality"
+resamples a sample to the 8 kHz a line carries. The manner reaches the system prompt as a short
+speaking-style section; the gender only changes how the German prompt names the assistant.
+`voice.json` is schema version 2; a file from before (presets) loads and is migrated, with the gender
+of each migrated character left open until somebody states it. The same area sets the LLM and lists
+the measured latency of recent calls, grouped by character. Design: `docs/adr/0001-multi-tenant-platform.md`.
 
 Models are shown by a readable name with the id beside it. The **Models** page lists what each
 vendor offers: Mistral's aliases (`mistral-small-latest`) sit under the model they currently resolve
@@ -332,6 +337,9 @@ interface. Write requests need a same-origin `Origin` header, so a plain `curl` 
 
 ## Not tested yet
 
+- The characters gallery and the casting wizard are covered by backend tests and a type check, not by
+  automated browser tests. Voices of every vendor but Mistral have not been previewed through the
+  wizard against the live APIs, and a gender that a vendor reports is taken as given.
 - The settings UI has only been exercised by its own tests with a fake vendor: routes, validation,
   the WAV it returns and the two guards. Previews against the real vendors, the latency view on
   grown metrics files and a call that picks up a voice changed mid-shift are unverified, as is the
