@@ -346,6 +346,7 @@ test('mistral: aliases are grouped under the canonical model, each id keeps its 
   assert.deepEqual(canonical!.aliases, ['demo-small-latest']);
   assert.equal(canonical!.description, 'Made up.');
   assert.equal(canonical!.contextLength, 1000);
+  assert.equal(canonical!.created, undefined);
   assert.equal(canonical!.capabilities?.tools, true);
   assert.equal(canonical!.latest, undefined);
   assert.equal(old!.deprecated, true);

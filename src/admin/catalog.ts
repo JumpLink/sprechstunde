@@ -94,7 +94,6 @@ interface MistralModelCard {
   aliases?: string[];
   deprecation?: Date | string | null;
   deprecationReplacementModel?: string | null;
-  created?: number;
   capabilities?: {
     completionChat?: boolean;
     functionCalling?: boolean;
@@ -327,8 +326,7 @@ function mistralModels(cards: MistralModelCard[]): CatalogModel[] {
     }
     if (card.deprecationReplacementModel) model.replacement = card.deprecationReplacementModel;
     if (card.maxContextLength) model.contextLength = card.maxContextLength;
-    const created = isoOf(card.created);
-    if (created) model.created = created;
+    // `created` is left out on purpose: Mistral answers the time of the request for every model.
     const caps = card.capabilities;
     if (caps) {
       model.capabilities = {

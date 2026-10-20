@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-20 07:24+0200\n"
+"POT-Creation-Date: 2026-10-20 07:27+0200\n"
 "PO-Revision-Date: 2026-10-19 23:10+0200\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -12,16 +12,16 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: src/admin/catalog.ts:191
+#: src/admin/catalog.ts:190
 msgid "no API key for this vendor in the environment"
 msgstr "kein API-Schlüssel für diesen Anbieter in der Umgebung"
 
-#: src/admin/catalog.ts:520
+#: src/admin/catalog.ts:518
 #, javascript-format
 msgid "the vendor answered with %s"
 msgstr "der Anbieter antwortete mit %s"
 
-#: src/admin/catalog.ts:525
+#: src/admin/catalog.ts:523
 #, javascript-format
 msgid "the request failed: %s"
 msgstr "die Anfrage ist fehlgeschlagen: %s"

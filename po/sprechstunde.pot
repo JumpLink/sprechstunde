@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-20 07:24+0200\n"
+"POT-Creation-Date: 2026-10-20 07:27+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,16 +17,16 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src/admin/catalog.ts:191
+#: src/admin/catalog.ts:190
 msgid "no API key for this vendor in the environment"
 msgstr ""
 
-#: src/admin/catalog.ts:520
+#: src/admin/catalog.ts:518
 #, javascript-format
 msgid "the vendor answered with %s"
 msgstr ""
 
-#: src/admin/catalog.ts:525
+#: src/admin/catalog.ts:523
 #, javascript-format
 msgid "the request failed: %s"
 msgstr ""
