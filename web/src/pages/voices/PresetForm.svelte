@@ -3,11 +3,13 @@
   import { api, message } from '$lib/api';
   import { optional } from '$lib/format';
   import { _ } from '$lib/i18n.svelte';
+  import { catalogOf, ensureCatalogs, modelOption } from '$lib/models.svelte';
   import { app, reload } from '$lib/store.svelte';
   import type { Preset, Provider, Settings } from '$lib/types';
   import Button from '$lib/ui/Button.svelte';
   import Card from '$lib/ui/Card.svelte';
   import Field from '$lib/ui/Field.svelte';
+  import ModelInfo from '$lib/ui/ModelInfo.svelte';
   import { controlClass } from '$lib/utils';
 
   interface Props {
@@ -37,6 +39,7 @@
   let busy = $state(false);
 
   const providers = $derived(app.state?.providers ?? []);
+  $effect(() => ensureCatalogs([provider]));
   const noKey = $derived(app.state?.keys[provider] === false);
 
   async function save(event: SubmitEvent): Promise<void> {
@@ -85,8 +88,12 @@
       </select>
     </Field>
     <Field label={_('Model')} for="preset-model">
-      <input id="preset-model" class={controlClass} bind:value={model} placeholder={_("The vendor's default")} />
+      <input id="preset-model" class={controlClass} list="preset-models" bind:value={model} placeholder={_("The vendor's default")} />
+      <datalist id="preset-models">
+        {#each catalogOf(provider)?.models ?? [] as option (option.id)}<option value={option.id}>{modelOption(option)}</option>{/each}
+      </datalist>
     </Field>
+    <div class="sm:col-span-2 empty:hidden"><ModelInfo target={provider} id={model.trim()} /></div>
     <Field label={_('Voice')} for="preset-voice">
       <input id="preset-voice" class={controlClass} bind:value={voice} />
     </Field>

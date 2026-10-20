@@ -19,9 +19,30 @@ import { mistralServer } from '../mistral.js';
 export const CATALOG_TARGETS = [...TTS_PROVIDERS, 'llm'] as const;
 export type CatalogTarget = (typeof CATALOG_TARGETS)[number];
 
+/** Every field but `id` and `label` is optional and only set when the vendor said it. */
 export interface CatalogModel {
   id: string;
   label: string;
+  description?: string;
+  /** The model this id follows or resolves to (set on every id of a group but the canonical one). */
+  aliasOf?: string;
+  /** The other ids that name the same model; set on the canonical entry. */
+  aliases?: string[];
+  /** A moving alias: it follows the newest version of a model. */
+  latest?: boolean;
+  deprecated?: boolean;
+  deprecatedAt?: string;
+  replacement?: string;
+  /** Tokens the model reads, as the vendor reports. */
+  contextLength?: number;
+  maxOutput?: number;
+  /** Characters of text per request (Kugel). */
+  maxInput?: number;
+  capabilities?: { tools?: boolean; vision?: boolean; reasoning?: boolean; audioIn?: boolean; audioOut?: boolean };
+  /** USD per token, as OpenRouter lists it. */
+  pricing?: { prompt?: number; completion?: number };
+  /** ISO timestamp. */
+  created?: string;
 }
 
 export interface CatalogVoice {
@@ -61,14 +82,26 @@ export interface KugelLike {
       total: number;
     }>;
   };
-  models: { list(): Promise<Array<{ id: string; name: string }>> };
+  models: { list(): Promise<Array<{ id: string; name: string; description?: string; maxInputLength?: number }>> };
 }
 
 interface MistralModelCard {
   id: string;
   name?: string | null;
   internal?: boolean;
-  capabilities?: { completionChat?: boolean; functionCalling?: boolean; audioSpeech?: boolean };
+  description?: string | null;
+  maxContextLength?: number;
+  aliases?: string[];
+  deprecation?: Date | string | null;
+  deprecationReplacementModel?: string | null;
+  capabilities?: {
+    completionChat?: boolean;
+    functionCalling?: boolean;
+    reasoning?: boolean;
+    vision?: boolean;
+    audio?: boolean;
+    audioSpeech?: boolean;
+  };
 }
 
 /** The part of the Mistral client a catalog uses. */
@@ -171,7 +204,12 @@ async function fetchKugel(context: Context): Promise<Fetched> {
   requireKey(context, 'KUGELAUDIO_API_KEY');
   // The same key and region rule a call uses.
   const client = context.kugel(kugelApiKey(context.env));
-  const models = (await client.models.list()).map((model) => ({ id: model.id, label: model.name || model.id }));
+  const models = (await client.models.list()).map((model): CatalogModel => {
+    const entry: CatalogModel = { id: model.id, label: model.name || model.id };
+    if (model.description) entry.description = model.description;
+    if (model.maxInputLength) entry.maxInput = model.maxInputLength;
+    return entry;
+  });
   const voices: CatalogVoice[] = [];
   for (let page = 0; page < MAX_PAGES; page++) {
     const result = await client.voices.list({
@@ -203,11 +241,109 @@ async function mistralCards(context: Context): Promise<{ client: MistralLike; ca
   return { client, cards };
 }
 
-const toModel = (card: MistralModelCard): CatalogModel => ({ id: card.id, label: card.name || card.id });
+/** Words whose plain capitalisation would be wrong. */
+const WORD_OVERRIDES: Record<string, string> = {
+  glm: 'GLM',
+  zai: 'Z.ai',
+  tts: 'TTS',
+  cli: 'CLI',
+  fim: 'FIM',
+  ocr: 'OCR',
+  vibe: 'Vibe',
+};
+
+/** `2603` → `2026-03`; undefined when the digits are no year-month. */
+function yearMonth(token: string): string | undefined {
+  const match = /^(2[3-9])(0[1-9]|1[0-2])$/.exec(token);
+  return match ? `20${match[1]}-${match[2]}` : undefined;
+}
+
+/**
+ * A readable name from a model id: `mistral-small-2603` → `Mistral Small (2026-03)`,
+ * `glm-5-2` → `GLM 5.2`, `ministral-14b-latest` → `Ministral 14B`. `-latest` is dropped; the
+ * moving alias is marked by `latest`, not by its name.
+ */
+export function labelFromId(id: string): string {
+  const tokens = id.split('-').filter((token) => token !== 'latest');
+  const words: string[] = [];
+  let release = '';
+  for (const token of tokens) {
+    const date = yearMonth(token);
+    if (date) release = ` (${date})`;
+    else if (/^\d+$/.test(token) && /^\d+(\.\d+)*$/.test(words.at(-1) ?? '')) words[words.length - 1] += `.${token}`;
+    else if (/^\d+b$/.test(token)) words.push(token.toUpperCase());
+    else words.push(WORD_OVERRIDES[token] ?? token.charAt(0).toUpperCase() + token.slice(1));
+  }
+  return (words.join(' ') || id) + release;
+}
+
+function isoOf(value: Date | string | number | null | undefined): string | undefined {
+  if (value === null || value === undefined) return undefined;
+  const date = typeof value === 'number' ? new Date(value * 1000) : new Date(value);
+  return Number.isNaN(date.getTime()) ? undefined : date.toISOString();
+}
+
+/**
+ * One entry per id, grouped by the aliases Mistral lists. A card's `name` is the model it resolves
+ * to, so an alias carries its target's name: the id, not the name, is what tells entries apart.
+ * The canonical id of a group is the one whose `name` is its own id, else the newest dated one.
+ */
+function mistralModels(cards: MistralModelCard[]): CatalogModel[] {
+  const byId = new Map(cards.map((card) => [card.id, card]));
+  const groupOf = new Map<string, Set<string>>();
+  for (const card of cards) {
+    const group = new Set([card.id, ...(card.aliases ?? []).filter((alias) => byId.has(alias))]);
+    for (const id of group) for (const other of groupOf.get(id) ?? []) group.add(other);
+    for (const id of group) groupOf.set(id, group);
+  }
+  const canonicalOf = new Map<Set<string>, string>();
+  for (const group of new Set(groupOf.values())) {
+    const ids = [...group];
+    canonicalOf.set(
+      group,
+      ids.find((id) => byId.get(id)?.name === id) ??
+        ids.find((id) => /-\d{4}$/.test(id)) ??
+        ids.find((id) => !id.endsWith('-latest')) ??
+        ids[0]!,
+    );
+  }
+  return cards.map((card) => {
+    const group = groupOf.get(card.id)!;
+    const canonical = canonicalOf.get(group)!;
+    const model: CatalogModel = { id: card.id, label: labelFromId(card.id) };
+    if (card.description) model.description = card.description;
+    if (card.id === canonical) {
+      const aliases = [...group].filter((id) => id !== card.id);
+      if (aliases.length > 0) model.aliases = aliases;
+    } else {
+      model.aliasOf = canonical;
+    }
+    if (card.id.endsWith('-latest')) model.latest = true;
+    const deprecatedAt = isoOf(card.deprecation);
+    if (deprecatedAt) {
+      model.deprecated = true;
+      model.deprecatedAt = deprecatedAt;
+    }
+    if (card.deprecationReplacementModel) model.replacement = card.deprecationReplacementModel;
+    if (card.maxContextLength) model.contextLength = card.maxContextLength;
+    // `created` is left out on purpose: Mistral answers the time of the request for every model.
+    const caps = card.capabilities;
+    if (caps) {
+      model.capabilities = {
+        tools: !!caps.functionCalling,
+        vision: !!caps.vision,
+        reasoning: !!caps.reasoning,
+        audioIn: !!caps.audio,
+        audioOut: !!caps.audioSpeech,
+      };
+    }
+    return model;
+  });
+}
 
 async function fetchMistral(context: Context): Promise<Fetched> {
   const { client, cards } = await mistralCards(context);
-  const models = cards.filter((card) => card.capabilities?.audioSpeech).map(toModel);
+  const models = mistralModels(cards.filter((card) => card.capabilities?.audioSpeech));
   const voices: CatalogVoice[] = [];
   // Presets and the account's own cloned voices, both addressed by id.
   for (let page = 0; page < MAX_PAGES; page++) {
@@ -232,7 +368,34 @@ async function fetchLlm(context: Context): Promise<Fetched> {
   const { cards } = await mistralCards(context);
   // The agent's one tool (the transfer) needs function calling.
   const models = cards.filter((card) => card.capabilities?.completionChat && card.capabilities.functionCalling);
-  return { models: models.map(toModel), voices: [] };
+  return { models: mistralModels(models), voices: [] };
+}
+
+function num(value: unknown): number | undefined {
+  const number = typeof value === 'string' ? Number(value) : value;
+  return typeof number === 'number' && Number.isFinite(number) ? number : undefined;
+}
+
+function openRouterModel(entry: Record<string, unknown>, id: string): CatalogModel {
+  const model: CatalogModel = { id, label: str(entry.name) ?? id };
+  const description = str(entry.description);
+  if (description) model.description = description;
+  // Speech models list 0 where a text model has a window.
+  const context = num(entry.context_length);
+  if (context) model.contextLength = context;
+  const top = isRecord(entry.top_provider) ? entry.top_provider : {};
+  const maxOutput = num(top.max_completion_tokens);
+  if (maxOutput) model.maxOutput = maxOutput;
+  if (isRecord(entry.pricing)) {
+    const prompt = num(entry.pricing.prompt);
+    const completion = num(entry.pricing.completion);
+    if (prompt !== undefined || completion !== undefined) {
+      model.pricing = { ...(prompt !== undefined && { prompt }), ...(completion !== undefined && { completion }) };
+    }
+  }
+  const created = isoOf(num(entry.created));
+  if (created) model.created = created;
+  return model;
 }
 
 async function fetchOpenRouter(context: Context): Promise<Fetched> {
@@ -244,12 +407,32 @@ async function fetchOpenRouter(context: Context): Promise<Fetched> {
     if (!isRecord(entry)) continue;
     const id = str(entry.id);
     if (!id) continue;
-    models.push({ id, label: str(entry.name) ?? id });
+    models.push(openRouterModel(entry, id));
     // Voices belong to a model here: the same name on two models is two entries.
     for (const name of strings(entry.supported_voices))
       voices.push(voice({ id: name, name, model: id, languages: [] }));
   }
   return { models, voices };
+}
+
+// Neither vendor lists its models over the API, so the one the provider defaults to is all that is
+// known; the name and sentence come from the vendors' own pages.
+const STATIC_MODELS: Record<string, Pick<CatalogModel, 'label' | 'description'>> = {
+  // https://docs.cartesia.ai/build-with-cartesia/tts-models/latest
+  'sonic-3.6': {
+    label: 'Sonic 3.6',
+    description: "Cartesia's fastest, most natural text-to-speech model, with native support for 44 languages.",
+  },
+  // https://github.com/kyutai-labs/pocket-tts
+  'pocket-tts': {
+    label: 'Kyutai Pocket TTS',
+    description: 'A lightweight text-to-speech model that runs efficiently on CPUs.',
+  },
+};
+
+function staticModels(provider: 'cartesia' | 'pocket'): CatalogModel[] {
+  const id = defaultTtsModel(provider);
+  return id ? [{ id, label: id, ...STATIC_MODELS[id] }] : [];
 }
 
 // What the vendor documents for GET /voices; cursor pagination.
@@ -288,9 +471,7 @@ async function fetchCartesia(context: Context): Promise<Fetched> {
     after = isRecord(body) && body.has_more === true ? str(body.next_page) : undefined;
     if (!after) break;
   }
-  // There is no model listing; the one the provider defaults to is all that is known.
-  const model = defaultTtsModel('cartesia');
-  return { models: model ? [{ id: model, label: model }] : [], voices };
+  return { models: staticModels('cartesia'), voices };
 }
 
 // What the image shipped with before `GET /voices` existed.
@@ -310,9 +491,8 @@ async function fetchPocket(context: Context): Promise<Fetched> {
     // A server from before the endpoint answers 404; anything else means it is not there.
     if (!(error instanceof HttpStatusError && error.status === 404)) throw error;
   }
-  const model = defaultTtsModel('pocket');
   return {
-    models: model ? [{ id: model, label: model }] : [],
+    models: staticModels('pocket'),
     voices: names.map((name) => voice({ id: name, name, languages: language ? [language] : [] })),
   };
 }

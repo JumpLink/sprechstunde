@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { type CatalogDeps, createCatalog, type KugelLike, type MistralLike } from './catalog.js';
+import { type CatalogDeps, createCatalog, type KugelLike, labelFromId, type MistralLike } from './catalog.js';
 
 // Made-up data only: no real voice ids, no real account content.
 const KEY = 'sk-test-must-never-be-in-a-reason';
@@ -121,13 +121,22 @@ test('kugel: the key reaches the client with the EU prefix a call uses', async (
 test('mistral: speech models and voices; llm: chat models that can call tools', async () => {
   const service = catalog({ mistral: () => fakeMistral() });
   const speech = await service.get('mistral');
-  assert.deepEqual(speech.models, [{ id: 'speech-a', label: 'speech-a' }]);
+  assert.deepEqual(speech.models, [
+    {
+      id: 'speech-a',
+      label: 'Speech A',
+      capabilities: { tools: false, vision: false, reasoning: false, audioIn: false, audioOut: true },
+    },
+  ]);
   assert.deepEqual(speech.voices, [
     { id: 'voice-uuid-1', name: 'Test Preset', languages: ['de'], description: 'made up' },
   ]);
 
   const llm = await service.get('llm');
-  assert.deepEqual(llm.models, [{ id: 'chat-a', label: 'Chat A' }]);
+  assert.deepEqual(
+    llm.models.map((model) => [model.id, model.label]),
+    [['chat-a', 'Chat A']],
+  );
   assert.deepEqual(llm.voices, []);
 });
 
@@ -136,8 +145,17 @@ test('openrouter: needs no key; voices belong to their model', async () => {
     'https://openrouter.ai/api/v1/models': () =>
       jsonResponse({
         data: [
-          { id: 'acme/speak-1', name: 'Acme: Speak', supported_voices: ['ann', 'bob'] },
-          { id: 'acme/speak-2', name: 'Acme: Speak 2' },
+          {
+            id: 'acme/speak-1',
+            name: 'Acme: Speak',
+            description: 'Made up.',
+            created: 1_700_000_000,
+            context_length: 0,
+            pricing: { prompt: '0.000015', completion: '0' },
+            top_provider: { max_completion_tokens: 0 },
+            supported_voices: ['ann', 'bob'],
+          },
+          { id: 'acme/speak-2', name: 'Acme: Speak 2', pricing: { prompt: 'free' } },
         ],
       }),
   });
@@ -147,6 +165,15 @@ test('openrouter: needs no key; voices belong to their model', async () => {
     result.models.map((model) => model.id),
     ['acme/speak-1', 'acme/speak-2'],
   );
+  // Zeros and unparsable prices are not facts.
+  assert.deepEqual(result.models[0], {
+    id: 'acme/speak-1',
+    label: 'Acme: Speak',
+    description: 'Made up.',
+    pricing: { prompt: 0.000015, completion: 0 },
+    created: '2023-11-14T22:13:20.000Z',
+  });
+  assert.deepEqual(result.models[1], { id: 'acme/speak-2', label: 'Acme: Speak 2' });
   assert.deepEqual(
     result.voices.map((entry) => [entry.id, entry.model]),
     [
@@ -268,4 +295,100 @@ test('cache: one hour, refresh bypasses it, failures are not cached', async () =
   assert.equal((await flaky.get('openrouter')).available, false);
   failing = false;
   assert.equal((await flaky.get('openrouter')).available, true);
+});
+
+test('labelFromId: versions, sizes, dates and brand words', () => {
+  assert.equal(labelFromId('mistral-small-2603'), 'Mistral Small (2026-03)');
+  assert.equal(labelFromId('mistral-small-latest'), 'Mistral Small');
+  assert.equal(labelFromId('glm-5-2'), 'GLM 5.2');
+  assert.equal(labelFromId('ministral-14b-latest'), 'Ministral 14B');
+  assert.equal(labelFromId('voxtral-mini-tts-2603'), 'Voxtral Mini TTS (2026-03)');
+  assert.equal(labelFromId('mistral-vibe-cli-fast'), 'Mistral Vibe CLI Fast');
+});
+
+test('mistral: aliases are grouped under the canonical model, each id keeps its own label', async () => {
+  const caps = { completionChat: true, functionCalling: true, vision: true };
+  const cards = [
+    // An alias carries its target's name, and the target lists the alias back.
+    {
+      id: 'demo-small-latest',
+      name: 'demo-small-2601',
+      aliases: ['demo-small-2601'],
+      maxContextLength: 1000,
+      capabilities: caps,
+    },
+    {
+      id: 'demo-small-2601',
+      name: 'demo-small-2601',
+      aliases: ['demo-small-latest'],
+      description: 'Made up.',
+      maxContextLength: 1000,
+      created: 1_700_000_000,
+      capabilities: caps,
+    },
+    {
+      id: 'demo-old-2501',
+      name: 'demo-old-2501',
+      deprecation: new Date('2026-12-01T00:00:00Z'),
+      deprecationReplacementModel: 'demo-small-2601',
+      capabilities: caps,
+    },
+  ];
+  const service = catalog({
+    mistral: () => ({ ...fakeMistral(), models: { list: async () => ({ data: cards }) } }),
+  });
+  const { models } = await service.get('llm');
+  const [alias, canonical, old] = models;
+  assert.deepEqual([alias!.label, canonical!.label], ['Demo Small', 'Demo Small (2026-01)']);
+  assert.equal(alias!.latest, true);
+  assert.equal(alias!.aliasOf, 'demo-small-2601');
+  assert.equal(canonical!.aliasOf, undefined);
+  assert.deepEqual(canonical!.aliases, ['demo-small-latest']);
+  assert.equal(canonical!.description, 'Made up.');
+  assert.equal(canonical!.contextLength, 1000);
+  assert.equal(canonical!.created, undefined);
+  assert.equal(canonical!.capabilities?.tools, true);
+  assert.equal(canonical!.latest, undefined);
+  assert.equal(old!.deprecated, true);
+  assert.equal(old!.deprecatedAt, '2026-12-01T00:00:00.000Z');
+  assert.equal(old!.replacement, 'demo-small-2601');
+  assert.equal(canonical!.deprecated, undefined);
+});
+
+test('mistral: two ids of one tts model get different labels', async () => {
+  const cards = [
+    { id: 'demo-tts-2603', name: 'Demo TTS', aliases: ['demo-tts-latest'], capabilities: { audioSpeech: true } },
+    { id: 'demo-tts-latest', name: 'Demo TTS', aliases: ['demo-tts-2603'], capabilities: { audioSpeech: true } },
+  ];
+  const service = catalog({ mistral: () => ({ ...fakeMistral(), models: { list: async () => ({ data: cards }) } }) });
+  const { models } = await service.get('mistral');
+  assert.deepEqual(
+    models.map((model) => model.label),
+    ['Demo TTS (2026-03)', 'Demo TTS'],
+  );
+  // A dated id is canonical when the vendor's name is not an id.
+  assert.equal(models[1]!.aliasOf, 'demo-tts-2603');
+});
+
+test('kugel: description and input limit from the vendor', async () => {
+  const result = await catalog({
+    kugel: () => ({
+      ...fakeKugel().client,
+      models: { list: async () => [{ id: 'k-1', name: 'K One', description: 'Made up.', maxInputLength: 500 }] },
+    }),
+  }).get('kugel');
+  assert.deepEqual(result.models, [{ id: 'k-1', label: 'K One', description: 'Made up.', maxInput: 500 }]);
+});
+
+test('cartesia and pocket: static entries with a readable name', async () => {
+  const cartesia = await catalog({
+    fetch: fakeFetch({ 'https://api.cartesia.ai/voices': () => jsonResponse({ data: [] }) }).fetch,
+  }).get('cartesia');
+  assert.equal(cartesia.models[0]!.label, 'Sonic 3.6');
+  assert.ok(cartesia.models[0]!.description);
+  const pocket = await createCatalog({
+    env: { POCKET_TTS_URL: 'http://pocket.invalid:1' },
+    fetch: fakeFetch({ 'http://pocket.invalid:1/voices': () => jsonResponse({}, 404) }).fetch,
+  }).get('pocket');
+  assert.equal(pocket.models[0]!.label, 'Kyutai Pocket TTS');
 });

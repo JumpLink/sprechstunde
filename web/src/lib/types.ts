@@ -82,11 +82,30 @@ export interface CatalogVoice {
   sampleUrl?: string;
 }
 
+/** Mirrors `CatalogModel` in `src/admin/catalog.ts`; every field but `id` and `label` is vendor-sourced. */
+export interface CatalogModel {
+  id: string;
+  label: string;
+  description?: string;
+  aliasOf?: string;
+  aliases?: string[];
+  latest?: boolean;
+  deprecated?: boolean;
+  deprecatedAt?: string;
+  replacement?: string;
+  contextLength?: number;
+  maxOutput?: number;
+  maxInput?: number;
+  capabilities?: { tools?: boolean; vision?: boolean; reasoning?: boolean; audioIn?: boolean; audioOut?: boolean };
+  pricing?: { prompt?: number; completion?: number };
+  created?: string;
+}
+
 export interface Catalog {
   provider: string;
   available: boolean;
   reason?: string;
-  models: Array<{ id: string; label: string }>;
+  models: CatalogModel[];
   voices: CatalogVoice[];
   fetchedAt: string;
 }

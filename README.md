@@ -279,7 +279,7 @@ podman compose --profile agent up -d admin        # same thing in the container
 The page is a Svelte 5 app in `web/` (Vite, Tailwind CSS 4, bits-ui), a separate npm package with
 its own lockfile. `npm run build` compiles it to `dist/web/`, which the admin server serves; without
 that build the server answers 503. Pages: overview, voices (presets and the vendor catalog), LLM,
-knowledge and tools, calls. For development run `npm run web:install` once, then `npm run admin` and
+models, knowledge and tools, calls. For development run `npm run web:install` once, then `npm run admin` and
 `npm run web:dev` (Vite with hot reload, `/api` proxied to `127.0.0.1:8091`). `web/` is checked by
 `svelte-check` through `npm run typecheck`.
 
@@ -290,6 +290,12 @@ time to the first audio sample, and plays several presets next to each other; "p
 sample to the 8 kHz a line carries, which is where a voice that sounded fine on speakers often does
 not. The same page sets the LLM, its fallback and the attempt timeout, and lists the measured
 latency of the recent calls, grouped by the preset they ran on.
+
+Models are shown by a readable name with the id beside it. The **Models** page lists what each
+vendor offers: Mistral's aliases (`mistral-small-latest`) sit under the model they currently resolve
+to, deprecated models are flagged but stay selectable, and the overview warns when one is in use.
+Descriptions, context size, tool support and prices appear only where the vendor's API states them;
+Cartesia and Pocket publish no model list, so they show their default model from the vendor's docs.
 
 A profile dropdown picks which venue profile (a `*.json` file in `SPRECHSTUNDE_PROFILES_DIR`) the
 next calls use; "start profile" means the one the agent was started with. The profile id lands in
