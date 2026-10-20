@@ -77,6 +77,9 @@ test('isPublicAddress: public addresses pass, private ranges do not', () => {
   }
   for (const bad of [
     '0.0.0.0',
+    '::ffff:0:1:2',
+    '2001:20::1',
+    '3fff::1',
     '10.1.2.3',
     '100.64.0.1',
     '100.100.100.200',
@@ -343,4 +346,22 @@ test('nodeTransport: connects to the checked address whatever the name says, and
   } finally {
     await new Promise((done) => server.close(done));
   }
+});
+
+test('fetch: every connection is given up - redirect hops, refusals and the final answer', async () => {
+  const closed: string[] = [];
+  const tracked = (name: string, response: TransportResponse): TransportResponse => ({
+    ...response,
+    close: () => closed.push(name),
+  });
+  const r = rig({
+    'https://venue.example/robots.txt': { status: 404, headers: {}, body: chunks('') },
+    'https://venue.example/a': tracked('hop', redirect('/b')),
+    'https://venue.example/b': tracked('last', page('<p>hi</p>')),
+    'https://venue.example/gone': tracked('refused', { status: 500, headers: {}, body: chunks('') }),
+  });
+  await r.fetcher.fetch('https://venue.example/a');
+  assert.deepEqual(closed, ['hop', 'last']);
+  await assert.rejects(r.fetcher.fetch('https://venue.example/gone'));
+  assert.deepEqual(closed, ['hop', 'last', 'refused']);
 });

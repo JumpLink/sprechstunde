@@ -29,9 +29,12 @@ const V6: Array<[string, number]> = [
   ['64:ff9b::', 96], // NAT64: reaches an IPv4 address through the gateway
   ['64:ff9b:1::', 48],
   ['100::', 64], // discard
+  ['::ffff:0:0:0', 96], // IPv4-translated (SIIT)
   ['2001::', 32], // Teredo
+  ['2001:20::', 28], // ORCHIDv2
   ['2001:db8::', 32], // documentation
   ['2002::', 16], // 6to4
+  ['3fff::', 20], // documentation
   ['fc00::', 7], // unique local
   ['fe80::', 10], // link-local
   ['fec0::', 10], // site-local, deprecated

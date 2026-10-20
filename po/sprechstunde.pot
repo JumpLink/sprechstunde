@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-20 14:31+0200\n"
+"POT-Creation-Date: 2026-10-20 14:34+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -31,63 +31,63 @@ msgstr ""
 msgid "the request failed: %s"
 msgstr ""
 
-#: src/admin/fetch-safe.ts:184 src/admin/knowledge-service.ts:119
+#: src/admin/fetch-safe.ts:196 src/admin/knowledge-service.ts:119
 msgid "only http and https addresses can be fetched"
 msgstr ""
 
-#: src/admin/fetch-safe.ts:187
+#: src/admin/fetch-safe.ts:199
 msgid "an address with a user name or password is not accepted"
 msgstr ""
 
-#: src/admin/fetch-safe.ts:191
+#: src/admin/fetch-safe.ts:203
 msgid "only the default web ports are accepted"
 msgstr ""
 
-#: src/admin/fetch-safe.ts:203 src/admin/fetch-safe.ts:206
+#: src/admin/fetch-safe.ts:215 src/admin/fetch-safe.ts:218
 msgid "the host name could not be resolved"
 msgstr ""
 
-#: src/admin/fetch-safe.ts:209
+#: src/admin/fetch-safe.ts:221
 msgid "this address leads to a private or internal network"
 msgstr ""
 
-#: src/admin/fetch-safe.ts:228 src/admin/fetch-safe.ts:234
+#: src/admin/fetch-safe.ts:241 src/admin/fetch-safe.ts:247
 msgid "the page is too large"
 msgstr ""
 
-#: src/admin/fetch-safe.ts:278 src/admin/fetch-safe.ts:304
+#: src/admin/fetch-safe.ts:301 src/admin/fetch-safe.ts:327
 msgid "the page took too long to answer"
 msgstr ""
 
-#: src/admin/fetch-safe.ts:279 src/admin/fetch-safe.ts:305
+#: src/admin/fetch-safe.ts:302 src/admin/fetch-safe.ts:328
 msgid "the page could not be fetched"
 msgstr ""
 
-#: src/admin/fetch-safe.ts:283
+#: src/admin/fetch-safe.ts:306
 msgid "the page answered with a redirect without a target"
 msgstr ""
 
-#: src/admin/fetch-safe.ts:284
+#: src/admin/fetch-safe.ts:307
 msgid "the page redirects too often"
 msgstr ""
 
-#: src/admin/fetch-safe.ts:288
+#: src/admin/fetch-safe.ts:311
 msgid "the page redirects to an invalid address"
 msgstr ""
 
-#: src/admin/fetch-safe.ts:293
+#: src/admin/fetch-safe.ts:316
 msgid "the page answered with an error"
 msgstr ""
 
-#: src/admin/fetch-safe.ts:297
+#: src/admin/fetch-safe.ts:320
 msgid "the page is not a kind of document that can be read"
 msgstr ""
 
-#: src/admin/fetch-safe.ts:350 src/admin/knowledge-service.ts:116
+#: src/admin/fetch-safe.ts:375 src/admin/knowledge-service.ts:116
 msgid "this is not a valid web address"
 msgstr ""
 
-#: src/admin/fetch-safe.ts:359
+#: src/admin/fetch-safe.ts:384
 msgid "the site asks robots not to fetch this page"
 msgstr ""
 

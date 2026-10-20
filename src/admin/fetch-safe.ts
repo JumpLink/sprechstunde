@@ -72,6 +72,8 @@ export interface TransportResponse {
   status: number;
   headers: Record<string, string>;
   body: AsyncIterable<Uint8Array>;
+  /** Gives the connection up without reading the rest of the body. */
+  close?: () => void;
 }
 
 export type Transport = (request: TransportRequest) => Promise<TransportResponse>;
@@ -122,6 +124,10 @@ const DECODERS = {
   br: createBrotliDecompress,
 } as const;
 
+// Own agents: the global one follows NODE_USE_ENV_PROXY, which would send the request through a proxy
+// and so around the address pinned below.
+const agents = { 'http:': new http.Agent(), 'https:': new https.Agent() };
+
 /** The real thing: node:http(s), connecting to the checked address while keeping name and TLS host. */
 export const nodeTransport: Transport = ({ url, address, headers, signal }) =>
   new Promise((resolve, reject) => {
@@ -137,6 +143,7 @@ export const nodeTransport: Transport = ({ url, address, headers, signal }) =>
         method: 'GET',
         headers,
         signal,
+        agent: agents[url.protocol === 'https:' ? 'https:' : 'http:'],
         ...(isIP(host) === 0 && { servername: host }),
         lookup: (_name, options, callback) => {
           if (options.all) callback(null, [{ address, family }]);
@@ -157,13 +164,14 @@ export const nodeTransport: Transport = ({ url, address, headers, signal }) =>
           response.pipe(decoder);
           body = decoder;
         }
-        resolve({ status: response.statusCode ?? 0, headers: out, body });
+        resolve({ status: response.statusCode ?? 0, headers: out, body, close: () => response.destroy() });
       },
     );
     request.on('error', reject);
     request.end();
   });
 
+const MAX_TRACKED_HOSTS = 500;
 const REDIRECTS = new Set([301, 302, 303, 307, 308]);
 
 export function createSafeFetcher(options: SafeFetchOptions = {}) {
@@ -176,6 +184,10 @@ export function createSafeFetcher(options: SafeFetchOptions = {}) {
   const timeoutMs = options.timeoutMs ?? TIMEOUT_MS;
   const interval = options.hostIntervalMs ?? HOST_INTERVAL_MS;
 
+  /** Oldest entries go first, so a stream of new hosts cannot grow the maps without end. */
+  const capped = (map: Map<string, unknown>): void => {
+    while (map.size > MAX_TRACKED_HOSTS) map.delete(map.keys().next().value!);
+  };
   const robotsCache = new Map<string, { rules: RobotsRules; until: number }>();
   const nextSlot = new Map<string, number>();
 
@@ -215,6 +227,7 @@ export function createSafeFetcher(options: SafeFetchOptions = {}) {
   const wait = async (host: string): Promise<void> => {
     const at = Math.max(now(), nextSlot.get(host) ?? 0);
     nextSlot.set(host, at + interval);
+    capped(nextSlot);
     const delay = at - now();
     if (delay > 0) await sleep(delay);
   };
@@ -255,54 +268,65 @@ export function createSafeFetcher(options: SafeFetchOptions = {}) {
     robots: (url: URL) => Promise<void>,
   ): Promise<FetchResult> => {
     let url = start;
-    for (let hop = 0; ; hop++) {
-      check(url);
-      const address = await addressOf(url);
-      await robots(url);
-      await wait(url.host);
-      let response: TransportResponse;
-      try {
-        response = await transport({
-          url,
-          address,
-          signal,
-          headers: {
-            'user-agent': userAgent,
-            accept: (request.types ?? PAGE_TYPES).join(', '),
-            'accept-encoding': 'gzip, deflate, br',
-            host: url.host,
-          },
-        });
-      } catch (error) {
-        if (error instanceof FetchRefused) throw error;
-        if (signal.aborted) throw new FetchRefused('timeout', _('the page took too long to answer'));
-        throw new FetchRefused('network', _('the page could not be fetched'));
-      }
-      if (REDIRECTS.has(response.status)) {
-        const location = response.headers.location;
-        if (!location) throw new FetchRefused('status', _('the page answered with a redirect without a target'));
-        if (hop >= MAX_REDIRECTS) throw new FetchRefused('redirects', _('the page redirects too often'));
+    let open: TransportResponse | undefined;
+    try {
+      return await hops();
+    } finally {
+      open?.close?.();
+    }
+
+    async function hops(): Promise<FetchResult> {
+      for (let hop = 0; ; hop++) {
+        open?.close?.();
+        check(url);
+        const address = await addressOf(url);
+        await robots(url);
+        await wait(url.host);
+        let response: TransportResponse;
         try {
-          url = new URL(location, url);
-        } catch {
-          throw new FetchRefused('url', _('the page redirects to an invalid address'));
+          response = await transport({
+            url,
+            address,
+            signal,
+            headers: {
+              'user-agent': userAgent,
+              accept: (request.types ?? PAGE_TYPES).join(', '),
+              'accept-encoding': 'gzip, deflate, br',
+              host: url.host,
+            },
+          });
+          open = response;
+        } catch (error) {
+          if (error instanceof FetchRefused) throw error;
+          if (signal.aborted) throw new FetchRefused('timeout', _('the page took too long to answer'));
+          throw new FetchRefused('network', _('the page could not be fetched'));
         }
-        continue;
-      }
-      if (response.status < 200 || response.status >= 300) {
-        throw new FetchRefused('status', _('the page answered with an error'), response.status);
-      }
-      const contentType = (response.headers['content-type'] ?? '').split(';')[0]!.trim().toLowerCase();
-      if (!(request.types ?? PAGE_TYPES).includes(contentType)) {
-        throw new FetchRefused('type', _('the page is not a kind of document that can be read'));
-      }
-      try {
-        const bytes = await read(response.body, response.headers['content-length'], limit);
-        return { url: url.href, contentType, text: decode(bytes, response.headers['content-type'] ?? '') };
-      } catch (error) {
-        if (error instanceof FetchRefused) throw error;
-        if (signal.aborted) throw new FetchRefused('timeout', _('the page took too long to answer'));
-        throw new FetchRefused('network', _('the page could not be fetched'));
+        if (REDIRECTS.has(response.status)) {
+          const location = response.headers.location;
+          if (!location) throw new FetchRefused('status', _('the page answered with a redirect without a target'));
+          if (hop >= MAX_REDIRECTS) throw new FetchRefused('redirects', _('the page redirects too often'));
+          try {
+            url = new URL(location, url);
+          } catch {
+            throw new FetchRefused('url', _('the page redirects to an invalid address'));
+          }
+          continue;
+        }
+        if (response.status < 200 || response.status >= 300) {
+          throw new FetchRefused('status', _('the page answered with an error'), response.status);
+        }
+        const contentType = (response.headers['content-type'] ?? '').split(';')[0]!.trim().toLowerCase();
+        if (!(request.types ?? PAGE_TYPES).includes(contentType)) {
+          throw new FetchRefused('type', _('the page is not a kind of document that can be read'));
+        }
+        try {
+          const bytes = await read(response.body, response.headers['content-length'], limit);
+          return { url: url.href, contentType, text: decode(bytes, response.headers['content-type'] ?? '') };
+        } catch (error) {
+          if (error instanceof FetchRefused) throw error;
+          if (signal.aborted) throw new FetchRefused('timeout', _('the page took too long to answer'));
+          throw new FetchRefused('network', _('the page could not be fetched'));
+        }
       }
     }
   };
@@ -337,6 +361,7 @@ export function createSafeFetcher(options: SafeFetchOptions = {}) {
       }
     }
     robotsCache.set(key, { rules, until: now() + ttl });
+    capped(robotsCache);
     return rules;
   };
 
@@ -361,6 +386,7 @@ export function createSafeFetcher(options: SafeFetchOptions = {}) {
         });
       } finally {
         clearTimeout(timer);
+        controller.abort();
       }
     },
   };
