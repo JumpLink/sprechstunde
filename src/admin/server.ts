@@ -44,6 +44,8 @@ import { CATALOG_TARGETS, type CatalogService, type CatalogTarget, createCatalog
 import { byCharacter, callsFrom, METRIC_NAMES, readMetrics, summarizeCall } from './latency.js';
 import { HttpError } from './http-error.js';
 import { applyDraft, createProfileStore, draftView, parseDraft, revisionOf } from './profile-store.js';
+import { type KnowledgeApi } from './knowledge-api.js';
+import { KnowledgeError } from './knowledge-service.js';
 import { findWebDir, serveStatic } from './static.js';
 import { previewWav, type Synthesizer } from './preview.js';
 
@@ -85,6 +87,8 @@ export interface AdminOptions {
   fetch?: typeof fetch;
   /** The built settings app; found next to this build when absent, `null` for none (tests). */
   webDir?: string | null;
+  /** The knowledge sources API; its routes answer 404 when absent. */
+  knowledge?: KnowledgeApi;
 }
 
 function loopbackHost(header: string | undefined): boolean {
@@ -843,6 +847,21 @@ export function createAdminServer(options: AdminOptions): Server {
       });
       response.end(wav);
       return;
+    }
+
+    if (options.knowledge && path.startsWith('/api/knowledge/')) {
+      try {
+        const result = await options.knowledge({
+          method,
+          path,
+          query: url.searchParams,
+          body: async () => body(await readBody(request)),
+        });
+        if (result) return json(response, result.status, result.payload);
+      } catch (error) {
+        if (error instanceof KnowledgeError) throw new HttpError(error.status, error.message);
+        throw error;
+      }
     }
 
     // Anything else that is not the API is the settings app: its files, or index.html for a page path.

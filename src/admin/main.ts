@@ -8,10 +8,11 @@
 import { join } from 'node:path';
 import { initializeLogger } from '@livekit/agents';
 import { loadProfile } from '../core/profile.js';
-import { settingsFile } from '../core/settings.js';
+import { DEFAULT_TENANT, settingsFile } from '../core/settings.js';
 import { _ } from '../i18n.js';
 import { mistralClient } from '../mistral.js';
 import { ttsSynthesizer } from './preview.js';
+import { createKnowledgeRuntime, runDue, SCHEDULE_INTERVAL_MS } from './knowledge-runtime.js';
 import { createAdminServer, DEFAULT_PORT, HOST } from './server.js';
 
 function port(env: NodeJS.ProcessEnv): number {
@@ -32,7 +33,9 @@ function main(): void {
   const profile = loadProfile(process.env.SPRECHSTUNDE_PROFILE);
   // The greeting is the one sentence every caller hears, so it is the honest sample to compare
   // voices on.
+  const knowledge = createKnowledgeRuntime(process.env);
   const server = createAdminServer({
+    knowledge: knowledge.api,
     settingsPath: settingsFile(),
     metricsDir: process.env.SPRECHSTUNDE_METRICS_DIR || join('var', 'metrics'),
     sampleText: profile.greeting,
@@ -42,6 +45,16 @@ function main(): void {
     // the UI must still start and show everything else.
     synthesize: ttsSynthesizer(() => mistralClient(), profile),
   });
+
+  // The admin is the only writer of the knowledge database, so it also keeps the sources fresh.
+  let running = false;
+  const tick = (): void => {
+    if (running) return;
+    running = true;
+    void runDue(knowledge.service, DEFAULT_TENANT).finally(() => (running = false));
+  };
+  setInterval(tick, SCHEDULE_INTERVAL_MS).unref();
+  setTimeout(tick, 30_000).unref();
 
   const listenOn = port(process.env);
   server.listen(listenOn, HOST, () => {

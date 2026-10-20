@@ -5,7 +5,8 @@ import { DatabaseSync } from 'node:sqlite';
 export const DEFAULT_DB_PATH = 'var/db/sprechstunde.sqlite';
 
 export function dbPath(env: NodeJS.ProcessEnv = process.env): string {
-  return resolve(env.SPRECHSTUNDE_DB || DEFAULT_DB_PATH);
+  const wanted = env.SPRECHSTUNDE_DB || DEFAULT_DB_PATH;
+  return wanted === ':memory:' ? wanted : resolve(wanted);
 }
 
 /**

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-20 14:09+0200\n"
+"POT-Creation-Date: 2026-10-20 14:11+0200\n"
 "PO-Revision-Date: 2026-10-19 23:10+0200\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -99,6 +99,26 @@ msgstr "ein Selektor ist zu lang"
 msgid "\"%s\" is not a valid CSS selector"
 msgstr "„%s“ ist kein gültiger CSS-Selektor"
 
+#: src/admin/knowledge-api.ts:42
+msgid "\"venue\" must be the name of a .json file in the profiles directory"
+msgstr "„venue“ muss der Name einer .json-Datei im Profilverzeichnis sein"
+
+#: src/admin/knowledge-api.ts:44
+msgid "no such venue"
+msgstr "dieses Lokal gibt es nicht"
+
+#: src/admin/knowledge-api.ts:48 src/admin/knowledge-api.ts:53
+msgid "invalid id"
+msgstr "ungültige ID"
+
+#: src/admin/knowledge-api.ts:107
+msgid "this source is being fetched right now"
+msgstr "diese Quelle wird gerade abgerufen"
+
+#: src/admin/knowledge-api.ts:124
+msgid "\"baseRevisionId\" must be the revision the page loaded, or null"
+msgstr "„baseRevisionId“ muss die Revision sein, die die Seite geladen hat, oder null"
+
 #: src/admin/knowledge-service.ts:85
 msgid "\"url\" must be a web address"
 msgstr "„url“ muss eine Webadresse sein"
@@ -147,17 +167,17 @@ msgstr ""
 "der Abschnitt hat sich geändert, seit du ihn geladen hast: neu laden und die "
 "Änderung noch einmal machen"
 
-#: src/admin/main.ts:22
+#: src/admin/main.ts:23
 #, javascript-format
 msgid "%s must be a port number"
 msgstr "%s muss eine Portnummer sein"
 
-#: src/admin/main.ts:50
+#: src/admin/main.ts:63
 #, javascript-format
 msgid "settings UI on %s"
 msgstr "Einstellungsoberfläche auf %s"
 
-#: src/admin/main.ts:51
+#: src/admin/main.ts:64
 #, javascript-format
 msgid "settings file: %s"
 msgstr "Einstellungsdatei: %s"
@@ -205,12 +225,12 @@ msgid "no profile %s"
 msgstr "kein Profil %s"
 
 #: src/admin/profile-store.ts:165 src/admin/profile-store.ts:346
-#: src/admin/server.ts:259
+#: src/admin/server.ts:263
 #, javascript-format
 msgid "%s is not valid JSON"
 msgstr "%s ist kein gültiges JSON"
 
-#: src/admin/profile-store.ts:166 src/admin/server.ts:260
+#: src/admin/profile-store.ts:166 src/admin/server.ts:264
 msgid "top level must be an object"
 msgstr "die oberste Ebene muss ein Objekt sein"
 
@@ -218,8 +238,8 @@ msgstr "die oberste Ebene muss ein Objekt sein"
 msgid "a transfer needs a target: enter a phone number"
 msgstr "eine Weiterleitung braucht ein Ziel: Telefonnummer eingeben"
 
-#: src/admin/profile-store.ts:236 src/admin/server.ts:609
-#: src/admin/server.ts:662 src/admin/server.ts:690
+#: src/admin/profile-store.ts:236 src/admin/server.ts:613
+#: src/admin/server.ts:666 src/admin/server.ts:694
 msgid "\"file\" must be the name of a .json file in the profiles directory"
 msgstr "\"file\" muss der Name einer .json-Datei im Profilverzeichnis sein"
 
@@ -228,7 +248,7 @@ msgstr "\"file\" muss der Name einer .json-Datei im Profilverzeichnis sein"
 msgid "invalid version"
 msgstr "ungültige Version"
 
-#: src/admin/profile-store.ts:312 src/admin/server.ts:472
+#: src/admin/profile-store.ts:312 src/admin/server.ts:476
 msgid "\"revision\" must be the revision the page loaded"
 msgstr "„revision“ muss die Revision sein, die die Seite geladen hat"
 
@@ -247,39 +267,39 @@ msgstr "diese Version gibt es nicht"
 msgid "a profile with this name already exists"
 msgstr "ein Profil mit diesem Namen gibt es schon"
 
-#: src/admin/server.ts:112
+#: src/admin/server.ts:116
 msgid "the request body is too large"
 msgstr "der Anfragekörper ist zu groß"
 
-#: src/admin/server.ts:128
+#: src/admin/server.ts:132
 msgid "the request body must be a JSON object"
 msgstr "der Anfragekörper muss ein JSON-Objekt sein"
 
-#: src/admin/server.ts:158 src/admin/server.ts:163
+#: src/admin/server.ts:162 src/admin/server.ts:167
 #, javascript-format
 msgid "\"%s\" must be a short plain string"
 msgstr "„%s“ muss ein kurzer Text ohne Steuerzeichen sein"
 
-#: src/admin/server.ts:194 src/admin/server.ts:574
+#: src/admin/server.ts:198 src/admin/server.ts:578
 msgid "the vendor sample could not be fetched"
 msgstr "die Hörprobe des Anbieters konnte nicht geladen werden"
 
-#: src/admin/server.ts:340
+#: src/admin/server.ts:344
 #, javascript-format
 msgid "\"provider\" must be one of: %s"
 msgstr "„provider“ muss einer dieser Werte sein: %s"
 
-#: src/admin/server.ts:368
+#: src/admin/server.ts:372
 msgid "no voice is configured"
 msgstr "es ist keine Stimme konfiguriert"
 
-#: src/admin/server.ts:372 src/admin/server.ts:669 src/admin/server.ts:754
-#: src/admin/server.ts:764 src/admin/server.ts:788
+#: src/admin/server.ts:376 src/admin/server.ts:673 src/admin/server.ts:758
+#: src/admin/server.ts:768 src/admin/server.ts:792
 #, javascript-format
 msgid "no character with id %s"
 msgstr "kein Charakter mit der Id %s"
 
-#: src/admin/server.ts:475
+#: src/admin/server.ts:479
 msgid ""
 "the characters changed since you loaded them: reload and make the change "
 "again"
@@ -287,84 +307,84 @@ msgstr ""
 "die Charaktere haben sich geändert, seit du sie geladen hast: neu laden und "
 "die Änderung noch einmal machen"
 
-#: src/admin/server.ts:481
+#: src/admin/server.ts:485
 msgid "this server answers on 127.0.0.1 only"
 msgstr "dieser Server antwortet nur auf 127.0.0.1"
 
-#: src/admin/server.ts:483
+#: src/admin/server.ts:487
 msgid "a change must come from the page this server serves"
 msgstr "eine Änderung muss von der Seite kommen, die dieser Server ausliefert"
 
-#: src/admin/server.ts:499 src/admin/server.ts:718
+#: src/admin/server.ts:503 src/admin/server.ts:722
 msgid "invalid character id"
 msgstr "ungültige Charakter-ID"
 
-#: src/admin/server.ts:528
+#: src/admin/server.ts:532
 msgid "unknown catalog"
 msgstr "unbekannter Katalog"
 
-#: src/admin/server.ts:532
+#: src/admin/server.ts:536
 msgid "\"language\" must be a BCP-47 tag"
 msgstr "„language“ muss ein BCP-47-Tag sein"
 
-#: src/admin/server.ts:547 src/admin/server.ts:561
+#: src/admin/server.ts:551 src/admin/server.ts:565
 msgid "unknown provider"
 msgstr "unbekannter Anbieter"
 
-#: src/admin/server.ts:554
+#: src/admin/server.ts:558
 msgid "no sample for this voice"
 msgstr "keine Hörprobe für diese Stimme"
 
-#: src/admin/server.ts:568
+#: src/admin/server.ts:572
 msgid "no picture for this voice"
 msgstr "kein Bild für diese Stimme"
 
-#: src/admin/server.ts:636 src/admin/server.ts:648
+#: src/admin/server.ts:640 src/admin/server.ts:652
 msgid "\"file\" must be a file name"
 msgstr "„file“ muss ein Dateiname sein"
 
-#: src/admin/server.ts:650
+#: src/admin/server.ts:654
 msgid "\"from\" must be a file name or null"
 msgstr "„from“ muss ein Dateiname oder null sein"
 
-#: src/admin/server.ts:686
+#: src/admin/server.ts:690
 msgid "\"file\" must be a file name or null"
 msgstr "\"file\" muss ein Dateiname oder null sein"
 
-#: src/admin/server.ts:713
+#: src/admin/server.ts:717
 msgid "there are too many characters"
 msgstr "es gibt zu viele Charaktere"
 
-#: src/admin/server.ts:720
+#: src/admin/server.ts:724
 msgid "a character with this id already exists"
 msgstr "einen Charakter mit dieser Id gibt es schon"
 
-#: src/admin/server.ts:766
+#: src/admin/server.ts:770
 msgid "a character keeps its id"
 msgstr "ein Charakter behält seine Id"
 
-#: src/admin/server.ts:791
+#: src/admin/server.ts:795
 msgid ""
 "the default character cannot be deleted: make another one the default first"
 msgstr ""
 "kein Bild für diese Stimmeder Standardcharakter lässt sich nicht löschen: "
 "mach zuerst einen anderen zum Standard"
 
-#: src/admin/server.ts:794
+#: src/admin/server.ts:798
 msgid "a venue still uses this character: pick another one for it first"
 msgstr ""
 "ein Betrieb nutzt diesen Charakter noch: wähle zuerst einen anderen für ihn"
 
-#: src/admin/server.ts:829
+#: src/admin/server.ts:833
 #, javascript-format
 msgid "the text may have at most %s characters"
 msgstr "der Text darf höchstens %s Zeichen haben"
 
-#: src/admin/server.ts:856
+#: src/admin/server.ts:875
 msgid "the settings app is not built: run `npm run web:build`"
 msgstr "Die Einstellungs-App ist nicht gebaut: `npm run web:build` ausführen"
 
-#: src/admin/server.ts:864
+#: src/admin/server.ts:883
 msgid "unknown route"
 msgstr "unbekannte Route"
 
