@@ -32,3 +32,26 @@ test('env.example names every variable the compose files read for the provider l
     assert.match(read('compose.yaml'), new RegExp(name));
   }
 });
+
+test('server compose: agent and admin leave keep-id, which an unprivileged LXC cannot map', () => {
+  const base = read('compose.yaml');
+  const overlay = read('compose.server.yaml');
+  assert.match(base, /userns_mode: keep-id/);
+  for (const service of ['agent', 'admin']) {
+    assert.match(overlay, new RegExp(`^  ${service}:\\n    userns_mode: host$`, 'm'));
+  }
+  assert.doesNotMatch(overlay, /userns_mode: keep-id/);
+});
+
+test('server compose: the boot unit needs the Podman socket its compose provider uses', () => {
+  const unit = read('deploy/systemd/sprechstunde.service');
+  assert.match(unit, /^Requires=podman\.socket$/m);
+  assert.match(unit, /^After=.*podman\.socket/m);
+});
+
+test('livekit: no ICE/TCP listener, so nothing but loopback and the UDP range', () => {
+  const config = read('deploy/livekit.yaml');
+  assert.match(config, /^  tcp_port: 0$/m);
+  assert.match(config, /^bind_addresses:\n  - 127\.0\.0\.1$/m);
+  assert.doesNotMatch(read('compose.yaml'), /7881/);
+});

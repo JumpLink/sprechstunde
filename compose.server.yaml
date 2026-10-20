@@ -5,7 +5,11 @@
 # admin (8091) and the agent's health endpoint (8081) listen on loopback. This file pins what a
 # server must not leave to chance.
 services:
+  # Rootful Podman in an unprivileged LXC cannot build the ID-mapped layer `keep-id` asks for
+  # ("insufficient UIDs"). Host mode runs as the image's `node` user (uid 1000), so the host's
+  # var/ must belong to uid/gid 1000: `chown -R 1000:1000 var`.
   agent:
+    userns_mode: host
     environment:
       # Transcripts hold what callers say. Never on a server.
       SPRECHSTUNDE_TRANSCRIPT_DIR: ""
@@ -13,6 +17,7 @@ services:
     restart: unless-stopped
 
   admin:
+    userns_mode: host
     environment:
       # No sign-in yet (ADR step 3): reachable through an SSH tunnel to loopback only.
       SPRECHSTUNDE_ADMIN_PORT: "${SPRECHSTUNDE_ADMIN_PORT:-8091}"
