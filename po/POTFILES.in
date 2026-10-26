@@ -28,6 +28,7 @@ src/agent/llm.ts
 src/agent/main.ts
 src/agent/metrics.ts
 src/agent/pocket-tts.ts
+src/agent/redact-logs.ts
 src/agent/settings.ts
 src/agent/speech-close.ts
 src/agent/stt-guard.ts

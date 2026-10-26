@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-20 17:09+0200\n"
+"POT-Creation-Date: 2026-10-26 13:24+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -483,7 +483,7 @@ msgstr ""
 msgid "echo mode: forwarding stopped"
 msgstr ""
 
-#: src/agent/main.ts:20
+#: src/agent/main.ts:24
 msgid "starting assistant with profile"
 msgstr ""
 

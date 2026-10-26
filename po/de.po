@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-20 15:08+0200\n"
+"POT-Creation-Date: 2026-10-26 13:24+0100\n"
 "PO-Revision-Date: 2026-10-19 23:10+0200\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -494,7 +494,7 @@ msgstr "Echo-Modus: warte auf Audio vom Anrufer"
 msgid "echo mode: forwarding stopped"
 msgstr "Echo-Modus: Weiterleitung abgebrochen"
 
-#: src/agent/main.ts:20
+#: src/agent/main.ts:24
 msgid "starting assistant with profile"
 msgstr "Assistent startet mit Profil"
 
