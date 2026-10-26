@@ -73,3 +73,17 @@ test('livekit: no ICE/TCP listener, so nothing but loopback and the UDP range', 
   assert.match(config, /^bind_addresses:\n  - 127\.0\.0\.1$/m);
   assert.doesNotMatch(read('compose.yaml'), /7881/);
 });
+
+test('valkey: AOF on, no RDB, data in a mounted dir that the uid owning var/ can write', () => {
+  const base = read('compose.yaml');
+  const redis = base.slice(base.indexOf('\n  redis:'), base.indexOf('\n  livekit:'));
+  assert.match(redis, /"--appendonly", "yes"/);
+  assert.match(redis, /"--save", ""/);
+  assert.match(redis, /"--dir", "\/data"/);
+  assert.match(redis, /- \.\/var\/valkey:\/data:z/);
+  assert.match(redis, /user: "1000:1000"/);
+  assert.match(read('compose.server.yaml'), /^  redis:\n    userns_mode: host$/m);
+  assert.match(read('.werkstatt-state.json'), /"path": "var\/valkey",\s+"class": "derived"/);
+  assert.match(read('package.json'), /mkdir -p [^&]*var\/valkey/);
+  assert.match(read('deploy/systemd/sprechstunde.service'), /mkdir -p [^\n]*var\/valkey/);
+});

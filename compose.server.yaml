@@ -8,6 +8,9 @@ services:
   # Rootful Podman in an unprivileged LXC cannot build the ID-mapped layer `keep-id` asks for
   # ("insufficient UIDs"). Host mode runs as the image's `node` user (uid 1000), so the host's
   # var/ must belong to uid/gid 1000: `chown -R 1000:1000 var`.
+  redis:
+    userns_mode: host
+
   agent:
     userns_mode: host
     environment:

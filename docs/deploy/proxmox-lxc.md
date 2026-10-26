@@ -69,11 +69,18 @@ so `var/` must belong to uid/gid 1000.
 
 ```sh
 cd /opt/sprechstunde
-mkdir -p var/settings var/metrics var/transcripts var/voices var/profiles var/db
+mkdir -p var/settings var/metrics var/transcripts var/voices var/profiles var/db var/valkey
 chown -R 1000:1000 var
 podman compose -f compose.yaml -f compose.server.yaml --profile agent --profile pocket build
 install -m 644 deploy/systemd/sprechstunde.service /etc/systemd/system/
 systemctl daemon-reload && systemctl enable --now sprechstunde
+```
+
+Provision LiveKit once the stack is up: it creates the SIP inbound trunk and the dispatch rule, which
+Valkey keeps in `var/valkey` across restarts (AOF), so this is an install step, not a boot step:
+
+```sh
+podman exec sprechstunde-agent-1 node dist/cli/provision.js
 ```
 
 Until `.env` holds the trunk values the `asterisk` container exits with "SIP_PROVIDER_HOST must be
@@ -136,6 +143,11 @@ Back: stop `asterisk` on the server first, confirm the registration is gone, the
 workstation. A killed container leaves its contact behind for about two hours.
 
 ## Updating and rolling back
+
+Upgrading from a release before Valkey persisted its state: `mkdir -p var/valkey && chown 1000:1000
+var/valkey` (the unit's `mkdir` creates it as root otherwise), restart, then run the provision
+command above once. The trunk and rule did not survive earlier restarts, so there is nothing to carry
+over.
 
 ```sh
 cd /opt/sprechstunde

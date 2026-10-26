@@ -6,7 +6,15 @@ services:
   redis:
     image: docker.io/valkey/valkey:8.1.10-trixie
     network_mode: host
-    command: ["valkey-server", "--bind", "127.0.0.1", "--port", "6379", "--save", "", "--appendonly", "no"]
+    # LiveKit keeps the SIP trunk and dispatch rule here: without persistence every restart drops
+    # them and calls are rejected until `npm run provision` runs again. AOF only, no RDB snapshots.
+    command: ["valkey-server", "--bind", "127.0.0.1", "--port", "6379", "--dir", "/data", "--save", "", "--appendonly", "yes"]
+    # Same uid as the agent and the owner of var/, so the bind mount stays writable (the image's own
+    # `valkey` user is 999).
+    user: "1000:1000"
+    userns_mode: keep-id
+    volumes:
+      - ./var/valkey:/data:z
     restart: unless-stopped
 
   livekit:

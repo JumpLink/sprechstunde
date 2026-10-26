@@ -36,7 +36,7 @@
     "i18n:extract": "bash dev/i18n.sh extract",
     "i18n:compile": "bash dev/i18n.sh compile",
     "i18n:check": "bash dev/i18n.sh check",
-    "stack:up": "mkdir -p var/settings var/metrics var/transcripts var/voices var/profiles && podman compose up -d",
+    "stack:up": "mkdir -p var/settings var/metrics var/transcripts var/voices var/profiles var/valkey && podman compose up -d",
     "stack:down": "podman compose down",
     "stack:logs": "podman compose logs -f"
   },
