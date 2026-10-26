@@ -46,6 +46,7 @@ export interface Settings {
   defaultCharacter?: string;
   llm: { model?: string; fallbackModel?: string; attemptTimeoutS?: number };
   profile?: string;
+  lines?: Record<string, string>;
 }
 
 export interface Choice {
@@ -266,4 +267,17 @@ export interface RefreshSummary {
   gone: number;
   failed: number;
   error: string | null;
+}
+
+/** A provider line (`SIP_LINES`) and the profile its calls get; the number only masked. */
+export interface Line {
+  id: string;
+  numberMasked: string | null;
+  profile: string | null;
+}
+
+export interface Lines {
+  lines: Line[];
+  /** The profile every line without its own uses. */
+  fallback: string | null;
 }

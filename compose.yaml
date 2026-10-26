@@ -46,6 +46,11 @@ services:
       dockerfile: Containerfile
     image: localhost/sprechstunde-asterisk:22.10.1
     network_mode: host
+    # SIP_LINE_<ID>_* names depend on SIP_LINES, so compose cannot list them below: the whole
+    # file is read (Asterisk holds every credential anyway). `environment` still wins per name.
+    env_file:
+      - path: .env
+        required: false
     # Not `:?` — that would block `up redis livekit` without telephony credentials.
     # entrypoint.sh refuses to start when one is missing.
     environment:
@@ -62,6 +67,7 @@ services:
       SIP_RTP_START: "${SIP_RTP_START:-12000}"
       SIP_RTP_END: "${SIP_RTP_END:-12100}"
       SIP_PROVIDER_IPV6: "${SIP_PROVIDER_IPV6:-no}"
+      SIP_LINES: "${SIP_LINES:-}"
       SPRECHSTUNDE_ANSWER_TIMEOUT: "${SPRECHSTUNDE_ANSWER_TIMEOUT:-}"
     volumes:
       - ./deploy/asterisk/sounds:/opt/sprechstunde/sounds:ro,z  # `npm run fallback` records into it
@@ -156,6 +162,9 @@ services:
     environment:
       SPRECHSTUNDE_ADMIN_PORT: "${SPRECHSTUNDE_ADMIN_PORT:-8091}"
       SPRECHSTUNDE_PROFILE: "${SPRECHSTUNDE_PROFILE:-}"
+      # Which lines the page lists. Only the number of a line, never a password, is read here.
+      SIP_LINES: "${SIP_LINES:-}"
+      SIP_PROVIDER_NUMBER: "${SIP_PROVIDER_NUMBER:-}"
       # Previews go to the same vendors a call would, so the UI needs their keys too.
       MISTRAL_API_KEY: "${MISTRAL_API_KEY:-}"
       SPRECHSTUNDE_MISTRAL_SERVER: "${SPRECHSTUNDE_MISTRAL_SERVER:-}"

@@ -1,11 +1,12 @@
 import { api, message } from './api';
-import type { AdminState, CharactersView, Profiles, VoiceSpec } from './types';
+import type { AdminState, CharactersView, Lines, Profiles, VoiceSpec } from './types';
 
 /** What every page shows part of: the settings, the environment's voice, the profile list. */
 export const app = $state<{
   state?: AdminState;
   profiles?: Profiles;
   characters?: CharactersView;
+  lines?: Lines;
   casting?: VoiceSpec;
   error?: string;
   loading: boolean;
@@ -15,14 +16,16 @@ export const app = $state<{
 
 export async function reload(): Promise<void> {
   try {
-    const [state, profiles, characters] = await Promise.all([
+    const [state, profiles, characters, lines] = await Promise.all([
       api<AdminState>('GET', '/api/state'),
       api<Profiles>('GET', '/api/profiles'),
       api<CharactersView>('GET', '/api/characters'),
+      api<Lines>('GET', '/api/lines'),
     ]);
     app.state = state;
     app.profiles = profiles;
     app.characters = characters;
+    app.lines = lines;
     app.error = undefined;
   } catch (error) {
     app.error = message(error);

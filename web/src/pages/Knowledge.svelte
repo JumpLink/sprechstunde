@@ -91,6 +91,16 @@
     }
   }
 
+  async function assignLine(line: string, file: string): Promise<void> {
+    try {
+      await api('PUT', '/api/lines', { line, file: file || null });
+      await reload();
+      toast.success(_('Line saved'));
+    } catch (error) {
+      toast.error(message(error));
+    }
+  }
+
   async function copy(): Promise<void> {
     if (!knowledge) return;
     try {
@@ -229,6 +239,33 @@
       </div>
     {/if}
   </Card>
+
+  {#if app.lines && profiles && (app.lines.lines.length > 1 || app.lines.lines.some((line) => line.profile))}
+    <Card title={_('Lines')} description={_('Which profile answers each phone line')}>
+      <div class="space-y-3">
+        {#each app.lines.lines as line (line.id)}
+          <div class="flex flex-wrap items-center gap-3">
+            <label class="w-48 shrink-0 text-sm font-medium" for="line-{line.id}">
+              {line.id}{#if line.numberMasked}<span class="ml-2 font-normal text-muted-foreground">{line.numberMasked}</span>{/if}
+            </label>
+            <select
+              id="line-{line.id}"
+              class="{controlClass} min-w-0 flex-1"
+              value={line.profile ?? ''}
+              onchange={(e) => assignLine(line.id, e.currentTarget.value)}
+            >
+              <option value="">{_('Same as above')}</option>
+              {#each profiles.profiles as entry (entry.file)}
+                <option value={entry.file} disabled={!!entry.error}>
+                  {entry.error ? fill(_('%s (broken)'), entry.file) : `${entry.name ?? entry.id} · ${entry.file}`}
+                </option>
+              {/each}
+            </select>
+          </div>
+        {/each}
+      </div>
+    </Card>
+  {/if}
 
   {#if !knowledge}
     <Skeleton class="h-48" />

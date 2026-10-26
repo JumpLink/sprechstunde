@@ -795,6 +795,49 @@ test('PUT /api/profile picks a file and null goes back to the default', async ()
   assert.equal(readSettings(harness.settingsPath)?.profile, undefined);
 });
 
+test('PUT /api/lines assigns a profile to a configured line; numbers only come masked', async () => {
+  const harness = await start({
+    profiles: { 'b.json': venue('beta'), 'bad.json': '{}' },
+    settings: stored([CHARACTER]),
+    env: { ...ENV, SIP_LINES: 'main,test', SIP_LINE_TEST_NUMBER: '+4900000042', SIP_PROVIDER_NUMBER: '+4900000001' },
+  });
+  const read = async () => (await (await fetch(`${harness.url}/api/lines`)).json()) as { lines: unknown[] };
+  assert.deepEqual((await read()).lines, [
+    { id: 'main', numberMasked: 'tel:+••••••••01', profile: null },
+    { id: 'test', numberMasked: 'tel:+••••••••42', profile: null },
+  ]);
+  assert.doesNotMatch(JSON.stringify(await read()), /4900000/);
+
+  const set = await call(harness, 'PUT', '/api/lines', { line: 'test', file: 'b.json' });
+  assert.equal(set.status, 200);
+  assert.deepEqual(readSettings(harness.settingsPath)?.lines, { test: 'b.json' });
+  assert.equal(readSettings(harness.settingsPath)?.characters.length, 1);
+
+  for (const wanted of [
+    { line: 'other', file: 'b.json' },
+    { line: 'test', file: 'bad.json' },
+    { line: 'test', file: '../b.json' },
+    { line: 'test' },
+    { file: 'b.json' },
+  ]) {
+    assert.equal((await call(harness, 'PUT', '/api/lines', wanted)).status, 400, JSON.stringify(wanted));
+  }
+  assert.deepEqual(readSettings(harness.settingsPath)?.lines, { test: 'b.json' });
+
+  const cleared = await call(harness, 'PUT', '/api/lines', { line: 'test', file: null });
+  assert.equal(cleared.status, 200);
+  assert.equal(readSettings(harness.settingsPath)?.lines, undefined);
+});
+
+test('GET /api/lines without SIP_LINES lists the one line "main"', async () => {
+  const harness = await start({ env: { ...ENV } });
+  const data = (await (await fetch(`${harness.url}/api/lines`)).json()) as { lines: Array<{ id: string }> };
+  assert.deepEqual(
+    data.lines.map((line) => line.id),
+    ['main'],
+  );
+});
+
 test('PUT /api/profile refuses paths, missing and broken files', async () => {
   const harness = await start({ profiles: { 'bad.json': '{}' } });
   for (const file of ['../etc.json', 'sub/x.json', 'bad.json', 'missing.json', 'x.txt', 5, undefined]) {
