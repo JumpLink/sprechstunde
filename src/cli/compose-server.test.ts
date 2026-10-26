@@ -45,6 +45,7 @@ test('env.example names every variable the compose files read for the provider l
     'SIP_LOCAL_NET',
     'SIP_RTP_START',
     'SIP_RTP_END',
+    'SIP_LINES',
   ]) {
     assert.match(example, new RegExp(`^${name}=`, 'm'));
     assert.match(read('compose.yaml'), new RegExp(name));
