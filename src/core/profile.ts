@@ -42,6 +42,8 @@ export interface Profile {
    * file (absolute after `loadProfile`). At most one of them.
    */
   voice?: { ttsVoice?: string; refAudio?: string };
+  /** How the assistant names what it is ("If you say what you are, say …"); replaces the built-in German wording. */
+  selfDescription?: string;
   /** Id of the character (who speaks) this venue uses; the default character when absent. */
   character?: string;
 }
@@ -110,6 +112,12 @@ export function parseProfile(raw: unknown, path = '<profile>'): Profile {
   }
 
   if (raw.fallback !== undefined) profile.fallback = str(raw, 'fallback', path);
+
+  if (raw.selfDescription !== undefined) {
+    if (typeof raw.selfDescription !== 'string') fail(path, '"selfDescription" must be a string');
+    const selfDescription = raw.selfDescription.trim();
+    if (selfDescription !== '') profile.selfDescription = selfDescription;
+  }
 
   if (raw.character !== undefined) {
     const character = str(raw, 'character', path);
