@@ -67,11 +67,15 @@ read the files without them, build included. The first build takes about 5 minut
 `compose.server.yaml` runs `agent` and `admin` with `userns_mode: host` (`keep-id` fails in the LXC),
 so `var/` must belong to uid/gid 1000.
 
+Build `agent` only: `admin` runs the same image. Building it under both names ran two `vite build`s in
+parallel, which with the running stack exhausted the LXC's 6 GiB limit and made it thrash. The
+`asterisk` and `pocket-tts` images build on the first `up` when missing; build them one at a time too.
+
 ```sh
 cd /opt/sprechstunde
 mkdir -p var/settings var/metrics var/transcripts var/voices var/profiles var/db var/valkey
 chown -R 1000:1000 var
-podman compose -f compose.yaml -f compose.server.yaml --profile agent --profile pocket build
+podman compose -f compose.yaml -f compose.server.yaml --profile agent build agent
 install -m 644 deploy/systemd/sprechstunde.service /etc/systemd/system/
 systemctl daemon-reload && systemctl enable --now sprechstunde
 ```
@@ -154,7 +158,7 @@ cd /opt/sprechstunde
 git fetch && git log --oneline HEAD..origin/main     # what is coming
 git rev-parse HEAD > ~/sprechstunde.previous         # the way back
 git pull --ff-only
-podman compose -f compose.yaml -f compose.server.yaml --profile agent --profile pocket build
+podman compose -f compose.yaml -f compose.server.yaml --profile agent build agent
 systemctl restart sprechstunde
 ```
 
