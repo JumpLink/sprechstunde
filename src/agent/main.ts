@@ -4,7 +4,11 @@ import { loadProfile } from '../core/profile.js';
 import { _ } from '../i18n.js';
 import { prewarm, runAssistant } from './assistant.js';
 import { runEcho } from './echo.js';
+import { redactPiiLogs } from './redact-logs.js';
 import { exitUnhealthy, httpProbe, startWatchdog } from './watchdog.js';
+
+// Every process that runs the worker imports this module, the forked job processes included.
+redactPiiLogs();
 
 export default defineAgent({
   prewarm: async (proc: JobProcess) => {

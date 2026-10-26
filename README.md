@@ -254,6 +254,8 @@ LiveKit names the room and the caller after the last four digits and identifies 
 hash of the number: a pseudonym, not anonymity. The `livekit/sip` container still logs the full
 number; `npm run provision` replaces a rule created before this setting.
 
+The worker drops every `lk.pii.*` field @livekit/agents puts in its own log lines (caller and assistant text, at every level) before it reaches stdout, in each process, with no switch; `dev`'s pretty output is not covered.
+
 ### Latency percentiles
 
 `npm run metrics` reads `var/metrics/*.jsonl` (`SPRECHSTUNDE_METRICS_DIR`) and prints n, p50, p95
