@@ -3,7 +3,7 @@ FROM docker.io/library/debian:forky-20261005-slim
 RUN apt-get update \
  && apt-get install -y --no-install-recommends asterisk asterisk-core-sounds-en gettext-base ca-certificates \
  && rm -rf /var/lib/apt/lists/*
-COPY pjsip.conf.template /etc/asterisk/pjsip.conf.template
+COPY pjsip.conf.template pjsip-line.conf.template /etc/asterisk/
 COPY extensions.conf modules.conf rtp.conf /etc/asterisk/
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
