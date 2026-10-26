@@ -32,7 +32,7 @@ Needs Node ≥ 22, Podman with `podman compose`, and gettext for the catalogues.
 npm ci
 cp .env.example .env          # fill in the LiveKit secret first; the rest can wait
 npm run stack:up              # valkey, livekit-server, livekit/sip, asterisk (creates the var/ bind-mount dirs first: podman fails on missing ones)
-npm run provision             # inbound trunk + dispatch rule, idempotent
+npm run provision             # inbound trunk + dispatch rule, idempotent; Valkey keeps them in var/valkey across restarts
 SPRECHSTUNDE_MODE=echo npm run agent:dev
 ```
 

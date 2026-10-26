@@ -15,7 +15,7 @@ Type=oneshot
 RemainAfterExit=yes
 WorkingDirectory=/opt/sprechstunde
 # Podman fails on missing bind-mount directories.
-ExecStartPre=/usr/bin/mkdir -p var/settings var/metrics var/transcripts var/voices var/profiles var/db
+ExecStartPre=/usr/bin/mkdir -p var/settings var/metrics var/transcripts var/voices var/profiles var/db var/valkey
 ExecStart=/usr/bin/podman compose -f compose.yaml -f compose.server.yaml --profile agent --profile pocket up -d
 ExecStop=/usr/bin/podman compose -f compose.yaml -f compose.server.yaml --profile agent --profile pocket down
 TimeoutStartSec=300

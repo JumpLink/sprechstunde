@@ -43,6 +43,11 @@
       "recreate": "Only from the venue's own copy of each profile JSON; copy profiles/example/profile.de.json as a template."
     },
     {
+      "path": "var/valkey",
+      "class": "derived",
+      "recreate": "`npm run provision` (or `node dist/cli/provision.js` in the agent container) recreates the SIP inbound trunk and dispatch rule LiveKit keeps here; nothing else lives in it."
+    },
+    {
       "path": "var/db",
       "class": "state",
       "why": "The knowledge database (sources, sections, revisions with their approval history and hand edits) written by the settings UI. It holds the only copy of text a venue edited by hand and of the review history; a fetched page can be fetched again, an edit cannot. `var/db/files/<tenant>/<sha256>` holds the ORIGINAL uploaded PDFs and pictures of document sources (content-addressed): an upload exists nowhere else, so losing it leaves the extracted text but not the document it came from or the means to read it again; an upload may be a venue's own document, so keep it out of the repo and out of unencrypted copies.",
