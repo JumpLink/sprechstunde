@@ -331,3 +331,14 @@ test('profileFilePath: stays inside the profiles directory', () => {
   assert.equal(profileFilePath('../venue.json', env), null);
   assert.equal(profileFilePath('a/venue.json', env), null);
 });
+
+test('parseSettings: lines map line ids to profile files, validated like the profile', () => {
+  assert.deepEqual(parseSettings({ lines: { main: 'a.json', 'test-2': 'b.json' } }).lines, {
+    main: 'a.json',
+    'test-2': 'b.json',
+  });
+  assert.equal(parseSettings({ lines: {} }).lines, undefined);
+  for (const lines of [{ Main: 'a.json' }, { main: '../a.json' }, { main: 'a' }, { main: 1 }, []]) {
+    assert.throws(() => parseSettings({ lines }), /lines/);
+  }
+});

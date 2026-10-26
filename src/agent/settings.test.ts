@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { test } from 'node:test';
 import { parseProfile } from '../core/profile.js';
 import { emptySettings, parseSettings } from '../core/settings.js';
-import { characterForCall, currentSettings, profileForCall } from './settings.js';
+import { characterForCall, currentSettings, profileFileForCall, profileForCall } from './settings.js';
 
 function fileWith(content: string): string {
   const file = join(mkdtempSync(join(tmpdir(), 'sprechstunde-agent-settings-')), 'voice.json');
@@ -92,7 +92,19 @@ test('profileForCall: no choice means the start profile', () => {
 test('profileForCall: loads the chosen file from the profiles directory', () => {
   const dir = profilesWith({ 'other.json': profileJson('other') });
   const env = { SPRECHSTUNDE_PROFILES_DIR: dir };
-  assert.equal(profileForCall(START, { ...emptySettings(), profile: 'other.json' }, env).id, 'other');
+  assert.equal(profileForCall(START, { ...emptySettings(), profile: 'other.json' }, undefined, env).id, 'other');
+});
+
+test('profileForCall: a line assignment beats the picked profile, which beats the start profile', () => {
+  const dir = profilesWith({ 'other.json': profileJson('other'), 'lined.json': profileJson('lined') });
+  const env = { SPRECHSTUNDE_PROFILES_DIR: dir };
+  const settings = { ...emptySettings(), profile: 'other.json', lines: { test: 'lined.json' } };
+  assert.equal(profileForCall(START, settings, 'test', env).id, 'lined');
+  assert.equal(profileForCall(START, settings, 'main', env).id, 'other');
+  assert.equal(profileForCall(START, settings, undefined, env).id, 'other');
+  assert.equal(profileForCall(START, { ...emptySettings(), lines: { test: 'lined.json' } }, 'main', env), START);
+  assert.equal(profileFileForCall(settings, 'test'), 'lined.json');
+  assert.equal(profileFileForCall(settings, 'main'), 'other.json');
 });
 
 test('profileForCall: a file that does not load warns and keeps the start profile', () => {
@@ -103,7 +115,7 @@ test('profileForCall: a file that does not load warns and keeps the start profil
   console.warn = (...args: unknown[]) => warnings.push(args);
   try {
     for (const profile of ['broken.json', 'missing.json']) {
-      assert.equal(profileForCall(START, { ...emptySettings(), profile }, env), START);
+      assert.equal(profileForCall(START, { ...emptySettings(), profile }, undefined, env), START);
     }
   } finally {
     console.warn = warn;

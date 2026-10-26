@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-26 13:24+0100\n"
+"POT-Creation-Date: 2026-10-26 22:30+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -459,19 +459,27 @@ msgstr ""
 msgid "unknown route"
 msgstr ""
 
-#: src/agent/assistant.ts:76
+#: src/agent/assistant.ts:77
 msgid "CPU profile written to"
 msgstr ""
 
-#: src/agent/assistant.ts:151
+#: src/agent/assistant.ts:152
 msgid "Pocket TTS has no free session, this call uses the fallback voice"
 msgstr ""
 
-#: src/agent/assistant.ts:198
+#: src/agent/assistant.ts:183
+msgid "starting assistant with profile"
+msgstr ""
+
+#: src/agent/assistant.ts:183
+msgid "on line"
+msgstr ""
+
+#: src/agent/assistant.ts:208
 msgid "transfer failed"
 msgstr ""
 
-#: src/agent/assistant.ts:251
+#: src/agent/assistant.ts:261
 msgid "CPU profile failed"
 msgstr ""
 
@@ -483,10 +491,6 @@ msgstr ""
 msgid "echo mode: forwarding stopped"
 msgstr ""
 
-#: src/agent/main.ts:24
-msgid "starting assistant with profile"
-msgstr ""
-
 #: src/agent/metrics.ts:112
 #, javascript-format
 msgid "cannot write metrics to %s"
@@ -496,11 +500,11 @@ msgstr ""
 msgid "ignoring the settings file, using the environment instead:"
 msgstr ""
 
-#: src/agent/settings.ts:46
+#: src/agent/settings.ts:55
 msgid "ignoring the selected profile, using the start profile instead:"
 msgstr ""
 
-#: src/agent/settings.ts:58
+#: src/agent/settings.ts:67
 msgid "ignoring an unknown character, using the default one instead:"
 msgstr ""
 
@@ -526,7 +530,7 @@ msgstr ""
 
 #: src/agent/tts-provider.ts:70 src/agent/tts-provider.ts:73
 #: src/agent/tts-provider.ts:155 src/agent/tts-provider.ts:192
-#: src/cli/fallback.ts:23 src/cli/provision.ts:10 src/cli/sip-contacts.ts:18
+#: src/cli/fallback.ts:23 src/cli/provision.ts:12 src/cli/sip-contacts.ts:18
 #: src/cli/stt-try.ts:100 src/cli/tts-try.ts:88 src/cli/voice.ts:12
 #: src/mistral.ts:21
 #, javascript-format
@@ -628,23 +632,27 @@ msgstr ""
 msgid "skipped malformed lines: %s"
 msgstr ""
 
-#: src/cli/provision.ts:29
+#: src/cli/provision.ts:36
 msgid "Inbound trunk exists:"
 msgstr ""
 
-#: src/cli/provision.ts:34
-msgid "Inbound trunk created:"
-msgstr ""
-
 #: src/cli/provision.ts:40
-msgid "Dispatch rule exists:"
+msgid "Inbound trunk updated:"
 msgstr ""
 
 #: src/cli/provision.ts:47
+msgid "Inbound trunk created:"
+msgstr ""
+
+#: src/cli/provision.ts:53
+msgid "Dispatch rule exists:"
+msgstr ""
+
+#: src/cli/provision.ts:60
 msgid "Dispatch rule replaced:"
 msgstr ""
 
-#: src/cli/provision.ts:59
+#: src/cli/provision.ts:72
 msgid "Dispatch rule created:"
 msgstr ""
 

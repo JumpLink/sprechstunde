@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-26 13:24+0100\n"
+"POT-Creation-Date: 2026-10-26 22:29+0100\n"
 "PO-Revision-Date: 2026-10-19 23:10+0200\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -469,20 +469,28 @@ msgstr "Die Einstellungs-App ist nicht gebaut: `npm run web:build` ausführen"
 msgid "unknown route"
 msgstr "unbekannte Route"
 
-#: src/agent/assistant.ts:76
+#: src/agent/assistant.ts:77
 msgid "CPU profile written to"
 msgstr "CPU-Profil geschrieben nach"
 
-#: src/agent/assistant.ts:151
+#: src/agent/assistant.ts:152
 msgid "Pocket TTS has no free session, this call uses the fallback voice"
 msgstr ""
 "Pocket TTS hat keine freie Sitzung, dieser Anruf nutzt die Ersatzstimme"
 
-#: src/agent/assistant.ts:198
+#: src/agent/assistant.ts:183
+msgid "starting assistant with profile"
+msgstr "Assistent startet mit Profil"
+
+#: src/agent/assistant.ts:183
+msgid "on line"
+msgstr "auf Leitung"
+
+#: src/agent/assistant.ts:208
 msgid "transfer failed"
 msgstr "Weiterleitung fehlgeschlagen"
 
-#: src/agent/assistant.ts:251
+#: src/agent/assistant.ts:261
 msgid "CPU profile failed"
 msgstr "CPU-Profil fehlgeschlagen"
 
@@ -494,10 +502,6 @@ msgstr "Echo-Modus: warte auf Audio vom Anrufer"
 msgid "echo mode: forwarding stopped"
 msgstr "Echo-Modus: Weiterleitung abgebrochen"
 
-#: src/agent/main.ts:24
-msgid "starting assistant with profile"
-msgstr "Assistent startet mit Profil"
-
 #: src/agent/metrics.ts:112
 #, javascript-format
 msgid "cannot write metrics to %s"
@@ -507,11 +511,11 @@ msgstr "Metriken können nicht nach %s geschrieben werden"
 msgid "ignoring the settings file, using the environment instead:"
 msgstr "Einstellungsdatei wird ignoriert, stattdessen gilt die Umgebung:"
 
-#: src/agent/settings.ts:46
+#: src/agent/settings.ts:55
 msgid "ignoring the selected profile, using the start profile instead:"
 msgstr "gewähltes Profil wird ignoriert, stattdessen gilt das Startprofil:"
 
-#: src/agent/settings.ts:58
+#: src/agent/settings.ts:67
 msgid "ignoring an unknown character, using the default one instead:"
 msgstr ""
 "unbekannter Charakter wird ignoriert, stattdessen gilt der Standardcharakter:"
@@ -539,7 +543,7 @@ msgstr "%1 muss einer dieser Werte sein: %2"
 
 #: src/agent/tts-provider.ts:70 src/agent/tts-provider.ts:73
 #: src/agent/tts-provider.ts:155 src/agent/tts-provider.ts:192
-#: src/cli/fallback.ts:23 src/cli/provision.ts:10 src/cli/sip-contacts.ts:18
+#: src/cli/fallback.ts:23 src/cli/provision.ts:12 src/cli/sip-contacts.ts:18
 #: src/cli/stt-try.ts:100 src/cli/tts-try.ts:88 src/cli/voice.ts:12
 #: src/mistral.ts:21
 #, javascript-format
@@ -655,23 +659,27 @@ msgstr "Zeilen"
 msgid "skipped malformed lines: %s"
 msgstr "übersprungene fehlerhafte Zeilen: %s"
 
-#: src/cli/provision.ts:29
+#: src/cli/provision.ts:36
 msgid "Inbound trunk exists:"
 msgstr "Eingehender Trunk vorhanden:"
 
-#: src/cli/provision.ts:34
+#: src/cli/provision.ts:40
+msgid "Inbound trunk updated:"
+msgstr "Eingehender Trunk aktualisiert:"
+
+#: src/cli/provision.ts:47
 msgid "Inbound trunk created:"
 msgstr "Eingehender Trunk angelegt:"
 
-#: src/cli/provision.ts:40
+#: src/cli/provision.ts:53
 msgid "Dispatch rule exists:"
 msgstr "Dispatch-Regel vorhanden:"
 
-#: src/cli/provision.ts:47
+#: src/cli/provision.ts:60
 msgid "Dispatch rule replaced:"
 msgstr "Dispatch-Regel ersetzt:"
 
-#: src/cli/provision.ts:59
+#: src/cli/provision.ts:72
 msgid "Dispatch rule created:"
 msgstr "Dispatch-Regel angelegt:"
 

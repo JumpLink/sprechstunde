@@ -21,7 +21,6 @@ export default defineAgent({
       return;
     }
     const profile = loadProfile();
-    console.log(_('starting assistant with profile'), profile.id);
     await runAssistant(ctx, profile);
   },
 });

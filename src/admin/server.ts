@@ -632,7 +632,7 @@ export function createAdminServer(options: AdminOptions): Server {
           source = 'selected';
         } else {
           // The profile the next call gets, falling back exactly as the agent does.
-          profile = profileForCall(start(), settings, env);
+          profile = profileForCall(start(), settings, undefined, env);
           source = settings.profile ? 'active' : 'start';
         }
       } catch (error) {

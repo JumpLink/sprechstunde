@@ -4,6 +4,8 @@ import { _ } from '../i18n.js';
 
 const TRUNK_NAME = 'sprechstunde-inbound';
 const RULE_NAME = 'sprechstunde-dispatch';
+/** The header Asterisk adds per line (extensions.conf) and the participant attribute the agent reads. */
+export const LINE_HEADERS = { 'X-Sprechstunde-Line': 'sprechstunde.line' };
 
 function required(name: string): string {
   const value = process.env[name];
@@ -26,10 +28,21 @@ async function main(): Promise<void> {
   const trunks = await client.listSipInboundTrunk();
   let trunk = trunks.find((candidate) => candidate.name === TRUNK_NAME);
   if (trunk) {
-    console.log(_('Inbound trunk exists:'), trunk.sipTrunkId);
+    // A trunk from before lines lacks the header mapping; replace it in place (the fields update
+    // cannot set it), keeping its id so the dispatch rule stays attached.
+    const current = trunk.headersToAttributes ?? {};
+    const mapped = Object.entries(LINE_HEADERS).every(([header, attribute]) => current[header] === attribute);
+    if (mapped) {
+      console.log(_('Inbound trunk exists:'), trunk.sipTrunkId);
+    } else {
+      trunk.headersToAttributes = { ...current, ...LINE_HEADERS };
+      trunk = await client.updateSipInboundTrunk(trunk.sipTrunkId, trunk);
+      console.log(_('Inbound trunk updated:'), trunk.sipTrunkId);
+    }
   } else {
     trunk = await client.createSipInboundTrunk(TRUNK_NAME, numbers, {
       allowedAddresses: ['127.0.0.1'],
+      headersToAttributes: LINE_HEADERS,
     });
     console.log(_('Inbound trunk created:'), trunk.sipTrunkId);
   }

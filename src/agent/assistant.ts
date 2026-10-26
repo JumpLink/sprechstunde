@@ -8,6 +8,7 @@ import * as silero from '@livekit/agents-plugin-silero';
 import { ParticipantKind } from '@livekit/rtc-node';
 import { buildInstructions, personaOf } from '../core/prompt.js';
 import { type Profile, withAssistantName } from '../core/profile.js';
+import { LINE_ATTRIBUTE, LINE_ID } from '../core/lines.js';
 import { readSnapshot, snapshotPath } from '../core/knowledge-snapshot.js';
 import type { Character } from '../core/settings.js';
 import { TRANSFER_TOOL, transferOverride, transferRequest } from '../core/tools.js';
@@ -15,7 +16,7 @@ import { _ } from '../i18n.js';
 import { mistralClient } from '../mistral.js';
 import { buildLlm, llmFallbackModel, llmModel } from './llm.js';
 import { recordCallConfig, recordMetrics } from './metrics.js';
-import { characterForCall, currentSettings, profileForCall } from './settings.js';
+import { characterForCall, currentSettings, profileFileForCall, profileForCall } from './settings.js';
 import { attachTranscript, transcriptDir } from './transcript.js';
 import { transferSipParticipant } from './transfer.js';
 import { StallGuardSTT } from './stt-guard.js';
@@ -162,6 +163,12 @@ async function voiceForCall(
   };
 }
 
+/** The line the call came in on, from the attribute the inbound trunk sets; never a phone number. */
+function lineOf(participant: { attributes: Record<string, string> } | undefined): string | undefined {
+  const id = participant?.attributes[LINE_ATTRIBUTE];
+  return id && LINE_ID.test(id) ? id : undefined;
+}
+
 export async function runAssistant(ctx: JobContext, startProfile: Profile): Promise<void> {
   const stopCpuProfile = startCpuProfile(ctx.job?.id || 'job');
 
@@ -171,13 +178,16 @@ export async function runAssistant(ctx: JobContext, startProfile: Profile): Prom
   const client = mistralClient();
   // Read once per call: the voice must not change halfway through because the UI was used.
   const settings = currentSettings();
-  const venue = profileForCall(startProfile, settings);
+  const lineId = lineOf(participant);
+  const venue = profileForCall(startProfile, settings, lineId);
+  console.log(_('starting assistant with profile'), venue.id, _('on line'), lineId ?? '-');
   const character = characterForCall(settings, venue);
   const speech = await voiceForCall(client, venue, character);
   // Each character carries its own name; greeting, prompt and announcements follow it.
   const profile = withAssistantName(venue, speech.choice.name);
   // The live text of the venue's knowledge sources, published by the admin next to the profile.
-  const published = settings?.profile ? snapshotPath(settings.profile) : null;
+  const chosen = venue === startProfile ? undefined : profileFileForCall(settings, lineId);
+  const published = chosen ? snapshotPath(chosen) : null;
   const reference = published ? readSnapshot(published) : undefined;
 
   // No fact lookup tool: the facts are in the instructions, and a tool call costs a second LLM

@@ -13,6 +13,7 @@
 
 import { mkdirSync, readFileSync, renameSync, unlinkSync, writeFileSync } from 'node:fs';
 import { dirname, isAbsolute, join, resolve, sep } from 'node:path';
+import { LINE_ID } from './lines.js';
 
 export const TTS_PROVIDERS = ['mistral', 'cartesia', 'openrouter', 'pocket', 'kugel'] as const;
 export type TtsProvider = (typeof TTS_PROVIDERS)[number];
@@ -71,6 +72,8 @@ export interface Settings {
   llm: LlmSettings;
   /** File name inside the profiles directory the next calls use; the start profile when unset. */
   profile?: string;
+  /** Profile file per line id (`SIP_LINES`); a line without an entry uses `profile`. */
+  lines?: Record<string, string>;
 }
 
 export const DEFAULT_SETTINGS_FILE = join('var', 'settings', 'voice.json');
@@ -310,6 +313,7 @@ function migrateV1(raw: Record<string, unknown>, path: string): Record<string, u
     ...(primary && { defaultCharacter: idOf(primary) }),
     llm: raw.llm,
     profile: raw.profile,
+    lines: raw.lines,
   };
 }
 
@@ -348,6 +352,19 @@ export function parseSettings(raw: unknown, path = '<settings>'): Settings {
       fail(path, `"profile" must be the name of a .json file in the profiles directory (SPRECHSTUNDE_PROFILES_DIR)`);
     }
     settings.profile = profile;
+  }
+  const rawLines = current.lines;
+  if (rawLines !== undefined && rawLines !== null) {
+    if (!isRecord(rawLines)) fail(path, '"lines" must be an object');
+    const lines: Record<string, string> = {};
+    for (const [lineId, file] of Object.entries(rawLines)) {
+      if (!LINE_ID.test(lineId)) fail(path, `"lines" key is not a line id: ${lineId}`);
+      if (typeof file !== 'string' || profileFilePath(file) === null) {
+        fail(path, `"lines" ${lineId} must be the name of a .json file in the profiles directory`);
+      }
+      lines[lineId] = file;
+    }
+    if (Object.keys(lines).length > 0) settings.lines = lines;
   }
   return settings;
 }
