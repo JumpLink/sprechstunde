@@ -282,3 +282,16 @@ test('selfDescription: replaces the built-in wording, with or without a gender, 
   assert.ok(buildInstructions(base, NOW, { gender: 'male' }).includes('"ein KI-Assistent"'));
   assert.ok(!buildInstructions(base, NOW).includes('If you say what you are'));
 });
+
+test('prompt: nothing about the venue is stated unless the facts say it, with and without transfer', () => {
+  const withTransfer = buildInstructions(example, NOW);
+  const without = buildInstructions({ ...example, transfer: undefined }, NOW);
+  for (const text of [withTransfer, without]) {
+    assert.match(text, /State nothing about the venue that the facts or reference data do not say/);
+    for (const word of ['pets', 'payment', 'parking', 'accessibility']) assert.ok(text.includes(word), word);
+    assert.match(text, /Never answer yes or no to such a question by guessing/);
+    assert.match(text, /as described in the last rule/);
+  }
+  assert.match(withTransfer, /offer to transfer the call/);
+  assert.match(without, /No transfer to a person is possible/);
+});
