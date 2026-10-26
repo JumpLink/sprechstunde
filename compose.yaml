@@ -147,10 +147,10 @@ services:
   # call in progress. It writes var/settings/voice.json, which the agent reads per call.
   admin:
     profiles: ["agent"]
-    build:
-      context: .
-      dockerfile: Containerfile
+    # No `build:` here: the image comes from the agent service. Two identical build blocks make
+    # `compose build` build it twice in parallel.
     image: localhost/sprechstunde-agent:0.1.0
+    pull_policy: never
     command: ["node", "dist/admin/main.js"]
     network_mode: host
     environment:

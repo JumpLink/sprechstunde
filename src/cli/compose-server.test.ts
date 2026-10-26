@@ -87,3 +87,16 @@ test('valkey: AOF on, no RDB, data in a mounted dir that the uid owning var/ can
   assert.match(read('package.json'), /mkdir -p [^&]*var\/valkey/);
   assert.match(read('deploy/systemd/sprechstunde.service'), /mkdir -p [^\n]*var\/valkey/);
 });
+
+test('compose: the agent image is built by one service, admin only reuses it', () => {
+  const base = read('compose.yaml');
+  const agent = base.slice(base.indexOf('\n  agent:'), base.indexOf('\n  admin:'));
+  const admin = base.slice(base.indexOf('\n  admin:'));
+  const tag = 'image: localhost/sprechstunde-agent:0.1.0';
+  assert.match(agent, /\n    build:/);
+  assert.ok(agent.includes(tag));
+  assert.doesNotMatch(admin, /\n    build:/);
+  assert.ok(admin.includes(tag));
+  assert.match(admin, /pull_policy: never/);
+  assert.equal(base.split(tag).length - 1, 2);
+});
