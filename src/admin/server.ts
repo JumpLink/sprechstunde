@@ -38,6 +38,7 @@ import {
 import { buildInstructions, type Persona, personaOf } from '../core/prompt.js';
 import { transferOverride } from '../core/tools.js';
 import { profileForCall } from '../agent/settings.js';
+import { lineIds, maskedLineNumber } from '../core/lines.js';
 import { choiceFromVoice, kugelApiKey, type TtsChoice, ttsChoice, ttsFallbackChoice } from '../agent/tts-provider.js';
 import { _ } from '../i18n.js';
 import { CATALOG_TARGETS, type CatalogService, type CatalogTarget, createCatalog } from './catalog.js';
@@ -398,6 +399,19 @@ export function createAdminServer(options: AdminOptions): Server {
     }
   };
 
+  /** The lines (`SIP_LINES`) with the profile each one answers with; numbers only masked. */
+  const linesView = () => {
+    const settings = current();
+    return {
+      lines: lineIds(env).map((id) => ({
+        id,
+        numberMasked: maskedLineNumber(id, env) ?? null,
+        profile: settings.lines?.[id] ?? null,
+      })),
+      fallback: settings.profile ?? null,
+    };
+  };
+
   const revisionOfCharacters = (settings: Settings): string =>
     revisionOf(JSON.stringify([settings.characters, settings.defaultCharacter ?? null]));
 
@@ -632,7 +646,7 @@ export function createAdminServer(options: AdminOptions): Server {
           source = 'selected';
         } else {
           // The profile the next call gets, falling back exactly as the agent does.
-          profile = profileForCall(start(), settings, env);
+          profile = profileForCall(start(), settings, undefined, env);
           source = settings.profile ? 'active' : 'start';
         }
       } catch (error) {
@@ -723,6 +737,34 @@ export function createAdminServer(options: AdminOptions): Server {
           return file === null ? rest : { ...rest, profile: file };
         }),
       );
+    }
+
+    if (method === 'GET' && path === '/api/lines') return json(response, 200, linesView());
+
+    if (method === 'PUT' && path === '/api/lines') {
+      const wanted = body(await readBody(request));
+      const line = wanted.line;
+      const file = wanted.file;
+      if (typeof line !== 'string' || !lineIds(env).includes(line)) {
+        throw new HttpError(400, _('"line" must be one of the configured lines'));
+      }
+      if (file !== null && typeof file !== 'string') {
+        throw new HttpError(400, _('"file" must be a file name or null'));
+      }
+      if (file !== null) {
+        const target = profileFilePath(file, env);
+        if (!target) throw new HttpError(400, _('"file" must be the name of a .json file in the profiles directory'));
+        try {
+          loadProfile(target);
+        } catch (error) {
+          throw new HttpError(400, (error as Error).message);
+        }
+      }
+      update((settings) => {
+        const { [line]: _previous, ...others } = settings.lines ?? {};
+        return { ...settings, lines: file === null ? others : { ...others, [line]: file } };
+      });
+      return json(response, 200, linesView());
     }
 
     if (method === 'GET' && path === '/api/characters') return json(response, 200, charactersView());

@@ -1,4 +1,5 @@
-; Rendered by entrypoint.sh. Provider values are examples for a TLS trunk (1&1 style) and unverified.
+; Rendered by entrypoint.sh, which appends one block per provider line (pjsip-line.conf.template).
+; Provider values are examples for a TLS trunk (1&1 style) and unverified.
 
 [transport-udp-local]
 type=transport
@@ -12,59 +13,6 @@ bind=0.0.0.0:0
 method=tlsv1_2
 verify_server=yes
 ca_list_file=/etc/ssl/certs/ca-certificates.crt
-
-; --- provider (outbound registration, TLS client) ---
-[provider-auth]
-type=auth
-auth_type=userpass
-username=${SIP_PROVIDER_USER}
-password=${SIP_PROVIDER_PASSWORD}
-realm=${SIP_PROVIDER_DOMAIN}
-
-[provider-reg]
-type=registration
-transport=transport-tls-provider
-outbound_auth=provider-auth
-server_uri=sip:${SIP_PROVIDER_HOST}
-client_uri=sip:${SIP_PROVIDER_USER}@${SIP_PROVIDER_DOMAIN}
-; 1&1 answers 403 "Contact User und Anrufernummer verschieden" when the Contact user is the
-; default "s"; it has to be the registered number.
-contact_user=${SIP_PROVIDER_USER}
-; Tag the Contact with a line id so inbound INVITEs map to the endpoint even when they come
-; from another provider host than the one we registered with.
-line=yes
-endpoint=provider
-retry_interval=60
-; Without this a 403 (e.g. a password 1&1 has not activated yet) stops registering for good.
-fatal_retry_interval=300
-expiration=600
-
-[provider-aor]
-type=aor
-contact=sip:${SIP_PROVIDER_HOST};transport=tls
-
-[provider]
-type=endpoint
-transport=transport-tls-provider
-context=from-provider
-disallow=all
-allow=alaw,ulaw,g722
-outbound_auth=provider-auth
-aors=provider-aor
-from_domain=${SIP_PROVIDER_DOMAIN}
-from_user=${SIP_PROVIDER_USER}
-; sdes = SRTP with keys in SDP; no = plain RTP. Unverified for 1&1.
-media_encryption=${SIP_PROVIDER_MEDIA_ENCRYPTION}
-direct_media=no
-rtp_symmetric=yes
-force_rport=yes
-rewrite_contact=yes
-dtmf_mode=rfc4733
-
-[provider-identify]
-type=identify
-endpoint=provider
-match=${SIP_PROVIDER_HOST}
 
 ; --- LiveKit SIP (local, plain UDP) ---
 [livekit-aor]

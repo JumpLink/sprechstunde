@@ -87,8 +87,26 @@ Valkey keeps in `var/valkey` across restarts (AOF), so this is an install step, 
 podman exec sprechstunde-agent-1 node dist/cli/provision.js
 ```
 
-Until `.env` holds the trunk values the `asterisk` container exits with "SIP_PROVIDER_HOST must be
-set": expected, the rest of the stack runs.
+Until `.env` holds the trunk values the `asterisk` container exits with "SIP_LINE_MAIN_USER (or
+SIP_PROVIDER_USER) must be set": expected, the rest of the stack runs.
+
+### Add a line (a second number)
+
+Each line is one more provider registration; the calls of a line can get their own profile.
+
+1. In `.env` set `SIP_LINES=main,test` (keep `main` first when the installation already runs: it is
+   the line unmatched INVITEs fall to) and add `SIP_LINE_TEST_USER`, `_PASSWORD`, `_NUMBER`
+   (`_HOST`, `_DOMAIN` and `_MEDIA_ENCRYPTION` only when they differ from `SIP_PROVIDER_*`).
+2. Restart Asterisk so it registers: `podman compose -f compose.yaml -f compose.server.yaml up -d
+   --force-recreate asterisk` (the admin needs `up -d admin` as well to list the lines).
+3. Run provision again: it adds the `X-Sprechstunde-Line` header mapping to the existing trunk.
+4. Check each registration: `podman exec sprechstunde-asterisk-1 asterisk -rx "pjsip show
+   registrations"` lists `provider-main` and `provider-test` as `Registered`.
+5. Assign the profile in the admin (Knowledge → Lines), then call each number.
+
+Asterisk matches an INVITE to a line by the `line` parameter of the registered Contact. A provider
+that does not echo it falls back to the host match, which belongs to the first line: all calls would
+then count as that line. Placing a test call per number is the check.
 
 The unit needs `podman.socket` (it `Requires=` it) and runs `up -d` at boot and `down` at shutdown; the compose files carry
 `restart: unless-stopped`. Check:

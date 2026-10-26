@@ -1,10 +1,6 @@
 #!/bin/sh
 # Render pjsip.conf from the environment so no credentials live in files.
 set -eu
-for v in SIP_PROVIDER_HOST SIP_PROVIDER_DOMAIN SIP_PROVIDER_USER SIP_PROVIDER_PASSWORD SIP_PROVIDER_NUMBER; do
-  eval "[ -n \"\${$v:-}\" ]" || { echo "$v must be set" >&2; exit 1; }
-done
-export SIP_PROVIDER_MEDIA_ENCRYPTION="${SIP_PROVIDER_MEDIA_ENCRYPTION:-sdes}"
 export TRANSFER_TARGET_NUMBER="${TRANSFER_TARGET_NUMBER:-}"
 # How long LiveKit may ring before the fallback plays. livekit/sip rings until an agent subscribes
 # to the call's audio, about 2 s when one is running; with none it would ring on and on.
@@ -12,8 +8,54 @@ export SPRECHSTUNDE_ANSWER_TIMEOUT="${SPRECHSTUNDE_ANSWER_TIMEOUT:-10}"
 case "$SPRECHSTUNDE_ANSWER_TIMEOUT" in
   ''|*[!0-9]*) echo "SPRECHSTUNDE_ANSWER_TIMEOUT must be whole seconds" >&2; exit 1 ;;
 esac
-envsubst '${SIP_PROVIDER_HOST} ${SIP_PROVIDER_DOMAIN} ${SIP_PROVIDER_USER} ${SIP_PROVIDER_PASSWORD} ${SIP_PROVIDER_NUMBER} ${SIP_PROVIDER_MEDIA_ENCRYPTION}' \
-  < /etc/asterisk/pjsip.conf.template > /etc/asterisk/pjsip.conf
+
+# Lines: one provider registration each. Without SIP_LINES there is one, "main", from SIP_PROVIDER_*
+# (the shape from before lines existed); with it, SIP_LINE_<ID>_<FIELD> overrides SIP_PROVIDER_<FIELD>
+# per line (ID = the line id uppercased, "-" as "_"). Credentials stay in the environment.
+SIP_LINES="${SIP_LINES:-main}"
+export LINE_RTP_IPV6=""
+[ "${SIP_PROVIDER_IPV6:-no}" != "yes" ] || LINE_RTP_IPV6="rtp_ipv6=yes"
+# Sets $value to SIP_LINE_<ID>_<field>, else to $SIP_PROVIDER_<field>.
+line_var() {
+  key="SIP_LINE_$(echo "$1" | tr 'a-z-' 'A-Z_')_$2"
+  eval "value=\"\${$key:-}\""
+  if [ -z "$value" ]; then eval "value=\"\${SIP_PROVIDER_$2:-}\""; fi
+}
+cp /etc/asterisk/pjsip.conf.template /etc/asterisk/pjsip.conf
+FIRST_LINE=""
+FIRST_HOST=""
+seen=" "
+for LINE in $(echo "$SIP_LINES" | tr ',' ' '); do
+  case "$LINE" in
+    ''|*[!a-z0-9-]*) echo "SIP_LINES: \"$LINE\" is not a line id (a-z, 0-9 and - only)" >&2; exit 1 ;;
+  esac
+  [ "${#LINE}" -le 20 ] || { echo "SIP_LINES: \"$LINE\" is longer than 20 characters" >&2; exit 1; }
+  case "$seen" in *" $LINE "*) echo "SIP_LINES: \"$LINE\" is listed twice" >&2; exit 1 ;; esac
+  seen="$seen$LINE "
+  for field in USER PASSWORD NUMBER HOST DOMAIN; do
+    line_var "$LINE" "$field"
+    [ -n "$value" ] || { echo "$key (or SIP_PROVIDER_$field) must be set" >&2; exit 1; }
+    export "LINE_$field=$value"
+  done
+  line_var "$LINE" MEDIA_ENCRYPTION
+  export LINE_MEDIA_ENCRYPTION="${value:-sdes}"
+  export LINE_ID="$LINE"
+  if [ -z "$FIRST_LINE" ]; then FIRST_LINE="$LINE"; FIRST_HOST="$LINE_HOST"; fi
+  envsubst '${LINE_ID} ${LINE_USER} ${LINE_PASSWORD} ${LINE_DOMAIN} ${LINE_HOST} ${LINE_NUMBER} ${LINE_MEDIA_ENCRYPTION} ${LINE_RTP_IPV6}' \
+    < /etc/asterisk/pjsip-line.conf.template >> /etc/asterisk/pjsip.conf
+  echo >> /etc/asterisk/pjsip.conf
+done
+export SPRECHSTUNDE_FIRST_LINE="$FIRST_LINE"
+# Several lines register at the same provider host, so a match on the host cannot tell them apart.
+# An INVITE with the line parameter of one registration's Contact (`line=yes`) reaches that line's
+# endpoint; one without it falls to this identify and is taken for the first line, which is also
+# what a single-line installation always did.
+cat >> /etc/asterisk/pjsip.conf <<EOF
+[provider-$FIRST_LINE]
+type=identify
+endpoint=provider-$FIRST_LINE
+match=$FIRST_HOST
+EOF
 # RTP range: one variable pair, also what the NAT forward on the router must cover.
 RTP_START="${SIP_RTP_START:-12000}"
 RTP_END="${SIP_RTP_END:-12100}"
@@ -26,7 +68,6 @@ sed -i "s/^rtpstart=.*/rtpstart=${RTP_START}/;s/^rtpend=.*/rtpend=${RTP_END}/" /
 # and 1&1's media relay then neither accepts our audio nor sends its own.
 if [ "${SIP_PROVIDER_IPV6:-no}" = "yes" ]; then
   sed -i '/^\[transport-tls-provider\]/,/^$/s/^bind=0\.0\.0\.0:0$/bind=[::]:0/' /etc/asterisk/pjsip.conf
-  sed -i '/^\[provider\]$/a rtp_ipv6=yes' /etc/asterisk/pjsip.conf
 # Behind NAT (e.g. a home router) the SDP must carry the public address: the provider sends its
 # audio there and drops ours when it comes from an address the SDP did not announce.
 elif [ -n "${SIP_PUBLIC_ADDRESS:-}" ]; then
@@ -52,7 +93,13 @@ stop() {
   asterisk -rx "core stop now" >/dev/null 2>&1 || kill "$pid" 2>/dev/null || true
 }
 trap stop TERM INT
-"$@" &
+# compose hands this container the whole .env (env_file), API keys included. Asterisk gets only
+# what extensions.conf reads via ${ENV(...)}; the SIP credentials already sit in pjsip.conf.
+env -i PATH="$PATH" HOME="${HOME:-/root}" ${TZ:+TZ="$TZ"} \
+  TRANSFER_TARGET_NUMBER="$TRANSFER_TARGET_NUMBER" \
+  SPRECHSTUNDE_ANSWER_TIMEOUT="$SPRECHSTUNDE_ANSWER_TIMEOUT" \
+  SPRECHSTUNDE_FIRST_LINE="$SPRECHSTUNDE_FIRST_LINE" \
+  "$@" &
 pid=$!
 # The first wait returns when the trap fires; the second waits for Asterisk to exit.
 wait "$pid" || true

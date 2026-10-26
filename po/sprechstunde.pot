@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-26 13:24+0100\n"
+"POT-Creation-Date: 2026-10-26 22:32+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -150,7 +150,7 @@ msgstr ""
 msgid "not found"
 msgstr ""
 
-#: src/admin/knowledge-service.ts:321 src/admin/server.ts:927
+#: src/admin/knowledge-service.ts:321 src/admin/server.ts:969
 msgid "internal error"
 msgstr ""
 
@@ -303,12 +303,12 @@ msgid "no profile %s"
 msgstr ""
 
 #: src/admin/profile-store.ts:165 src/admin/profile-store.ts:346
-#: src/admin/server.ts:280
+#: src/admin/server.ts:281
 #, javascript-format
 msgid "%s is not valid JSON"
 msgstr ""
 
-#: src/admin/profile-store.ts:166 src/admin/server.ts:281
+#: src/admin/profile-store.ts:166 src/admin/server.ts:282
 msgid "top level must be an object"
 msgstr ""
 
@@ -316,8 +316,8 @@ msgstr ""
 msgid "a transfer needs a target: enter a phone number"
 msgstr ""
 
-#: src/admin/profile-store.ts:236 src/admin/server.ts:630
-#: src/admin/server.ts:683 src/admin/server.ts:711
+#: src/admin/profile-store.ts:236 src/admin/server.ts:644
+#: src/admin/server.ts:697 src/admin/server.ts:725 src/admin/server.ts:756
 msgid "\"file\" must be the name of a .json file in the profiles directory"
 msgstr ""
 
@@ -326,7 +326,7 @@ msgstr ""
 msgid "invalid version"
 msgstr ""
 
-#: src/admin/profile-store.ts:312 src/admin/server.ts:493
+#: src/admin/profile-store.ts:312 src/admin/server.ts:507
 msgid "\"revision\" must be the revision the page loaded"
 msgstr ""
 
@@ -343,135 +343,147 @@ msgstr ""
 msgid "a profile with this name already exists"
 msgstr ""
 
-#: src/admin/server.ts:116 src/admin/server.ts:132
+#: src/admin/server.ts:117 src/admin/server.ts:133
 msgid "the request body is too large"
 msgstr ""
 
-#: src/admin/server.ts:149
+#: src/admin/server.ts:150
 msgid "the request body must be a JSON object"
 msgstr ""
 
-#: src/admin/server.ts:179 src/admin/server.ts:184
+#: src/admin/server.ts:180 src/admin/server.ts:185
 #, javascript-format
 msgid "\"%s\" must be a short plain string"
 msgstr ""
 
-#: src/admin/server.ts:215 src/admin/server.ts:595
+#: src/admin/server.ts:216 src/admin/server.ts:609
 msgid "the vendor sample could not be fetched"
 msgstr ""
 
-#: src/admin/server.ts:361
+#: src/admin/server.ts:362
 #, javascript-format
 msgid "\"provider\" must be one of: %s"
 msgstr ""
 
-#: src/admin/server.ts:389
+#: src/admin/server.ts:390
 msgid "no voice is configured"
 msgstr ""
 
-#: src/admin/server.ts:393 src/admin/server.ts:690 src/admin/server.ts:775
-#: src/admin/server.ts:785 src/admin/server.ts:809
+#: src/admin/server.ts:394 src/admin/server.ts:704 src/admin/server.ts:817
+#: src/admin/server.ts:827 src/admin/server.ts:851
 #, javascript-format
 msgid "no character with id %s"
 msgstr ""
 
-#: src/admin/server.ts:496
+#: src/admin/server.ts:510
 msgid ""
 "the characters changed since you loaded them: reload and make the change "
 "again"
 msgstr ""
 
-#: src/admin/server.ts:502
+#: src/admin/server.ts:516
 msgid "this server answers on 127.0.0.1 only"
 msgstr ""
 
-#: src/admin/server.ts:504
+#: src/admin/server.ts:518
 msgid "a change must come from the page this server serves"
 msgstr ""
 
-#: src/admin/server.ts:520 src/admin/server.ts:739
+#: src/admin/server.ts:534 src/admin/server.ts:781
 msgid "invalid character id"
 msgstr ""
 
-#: src/admin/server.ts:549
+#: src/admin/server.ts:563
 msgid "unknown catalog"
 msgstr ""
 
-#: src/admin/server.ts:553
+#: src/admin/server.ts:567
 msgid "\"language\" must be a BCP-47 tag"
 msgstr ""
 
-#: src/admin/server.ts:568 src/admin/server.ts:582
+#: src/admin/server.ts:582 src/admin/server.ts:596
 msgid "unknown provider"
 msgstr ""
 
-#: src/admin/server.ts:575
+#: src/admin/server.ts:589
 msgid "no sample for this voice"
 msgstr ""
 
-#: src/admin/server.ts:589
+#: src/admin/server.ts:603
 msgid "no picture for this voice"
 msgstr ""
 
-#: src/admin/server.ts:657 src/admin/server.ts:669
+#: src/admin/server.ts:671 src/admin/server.ts:683
 msgid "\"file\" must be a file name"
 msgstr ""
 
-#: src/admin/server.ts:671
+#: src/admin/server.ts:685
 msgid "\"from\" must be a file name or null"
 msgstr ""
 
-#: src/admin/server.ts:707
+#: src/admin/server.ts:721 src/admin/server.ts:752
 msgid "\"file\" must be a file name or null"
 msgstr ""
 
-#: src/admin/server.ts:734
+#: src/admin/server.ts:749
+msgid "\"line\" must be one of the configured lines"
+msgstr ""
+
+#: src/admin/server.ts:776
 msgid "there are too many characters"
 msgstr ""
 
-#: src/admin/server.ts:741
+#: src/admin/server.ts:783
 msgid "a character with this id already exists"
 msgstr ""
 
-#: src/admin/server.ts:787
+#: src/admin/server.ts:829
 msgid "a character keeps its id"
 msgstr ""
 
-#: src/admin/server.ts:812
+#: src/admin/server.ts:854
 msgid ""
 "the default character cannot be deleted: make another one the default first"
 msgstr ""
 
-#: src/admin/server.ts:815
+#: src/admin/server.ts:857
 msgid "a venue still uses this character: pick another one for it first"
 msgstr ""
 
-#: src/admin/server.ts:850
+#: src/admin/server.ts:892
 #, javascript-format
 msgid "the text may have at most %s characters"
 msgstr ""
 
-#: src/admin/server.ts:910
+#: src/admin/server.ts:952
 msgid "the settings app is not built: run `npm run web:build`"
 msgstr ""
 
-#: src/admin/server.ts:918
+#: src/admin/server.ts:960
 msgid "unknown route"
 msgstr ""
 
-#: src/agent/assistant.ts:76
+#: src/agent/assistant.ts:77
 msgid "CPU profile written to"
 msgstr ""
 
-#: src/agent/assistant.ts:151
+#: src/agent/assistant.ts:152
 msgid "Pocket TTS has no free session, this call uses the fallback voice"
 msgstr ""
 
-#: src/agent/assistant.ts:198
+#: src/agent/assistant.ts:183
+msgid "starting assistant with profile"
+msgstr ""
+
+#: src/agent/assistant.ts:183
+msgid "on line"
+msgstr ""
+
+#: src/agent/assistant.ts:208
 msgid "transfer failed"
 msgstr ""
 
-#: src/agent/assistant.ts:251
+#: src/agent/assistant.ts:261
 msgid "CPU profile failed"
 msgstr ""
 
@@ -483,10 +495,6 @@ msgstr ""
 msgid "echo mode: forwarding stopped"
 msgstr ""
 
-#: src/agent/main.ts:24
-msgid "starting assistant with profile"
-msgstr ""
-
 #: src/agent/metrics.ts:112
 #, javascript-format
 msgid "cannot write metrics to %s"
@@ -496,11 +504,11 @@ msgstr ""
 msgid "ignoring the settings file, using the environment instead:"
 msgstr ""
 
-#: src/agent/settings.ts:46
+#: src/agent/settings.ts:55
 msgid "ignoring the selected profile, using the start profile instead:"
 msgstr ""
 
-#: src/agent/settings.ts:58
+#: src/agent/settings.ts:67
 msgid "ignoring an unknown character, using the default one instead:"
 msgstr ""
 
@@ -526,7 +534,7 @@ msgstr ""
 
 #: src/agent/tts-provider.ts:70 src/agent/tts-provider.ts:73
 #: src/agent/tts-provider.ts:155 src/agent/tts-provider.ts:192
-#: src/cli/fallback.ts:23 src/cli/provision.ts:10 src/cli/sip-contacts.ts:18
+#: src/cli/fallback.ts:23 src/cli/provision.ts:12 src/cli/sip-contacts.ts:18
 #: src/cli/stt-try.ts:100 src/cli/tts-try.ts:88 src/cli/voice.ts:12
 #: src/mistral.ts:21
 #, javascript-format
@@ -628,23 +636,27 @@ msgstr ""
 msgid "skipped malformed lines: %s"
 msgstr ""
 
-#: src/cli/provision.ts:29
+#: src/cli/provision.ts:36
 msgid "Inbound trunk exists:"
 msgstr ""
 
-#: src/cli/provision.ts:34
-msgid "Inbound trunk created:"
-msgstr ""
-
 #: src/cli/provision.ts:40
-msgid "Dispatch rule exists:"
+msgid "Inbound trunk updated:"
 msgstr ""
 
 #: src/cli/provision.ts:47
+msgid "Inbound trunk created:"
+msgstr ""
+
+#: src/cli/provision.ts:53
+msgid "Dispatch rule exists:"
+msgstr ""
+
+#: src/cli/provision.ts:60
 msgid "Dispatch rule replaced:"
 msgstr ""
 
-#: src/cli/provision.ts:59
+#: src/cli/provision.ts:72
 msgid "Dispatch rule created:"
 msgstr ""
 
@@ -821,7 +833,7 @@ msgstr ""
 msgid "Cancel"
 msgstr ""
 
-#: web/src/lib/ui/ModelFacts.svelte:14 web/src/pages/Knowledge.svelte:376
+#: web/src/lib/ui/ModelFacts.svelte:14 web/src/pages/Knowledge.svelte:413
 msgid "Tools"
 msgstr ""
 
@@ -948,7 +960,7 @@ msgid "Median per metric in milliseconds"
 msgstr ""
 
 #: web/src/pages/Calls.svelte:44 web/src/pages/Calls.svelte:69
-#: web/src/pages/Knowledge.svelte:263
+#: web/src/pages/Knowledge.svelte:300
 msgid "Character"
 msgstr ""
 
@@ -1065,270 +1077,286 @@ msgid "none"
 msgstr ""
 
 #: web/src/pages/Knowledge.svelte:46 web/src/pages/Knowledge.svelte:76
-#: web/src/pages/Knowledge.svelte:174
+#: web/src/pages/Knowledge.svelte:184
 msgid "You have unsaved changes. Leave and discard them?"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:88 web/src/pages/Knowledge.svelte:115
+#: web/src/pages/Knowledge.svelte:88 web/src/pages/Knowledge.svelte:125
 msgid "Profile saved"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:101
+#: web/src/pages/Knowledge.svelte:98
+msgid "Line saved"
+msgstr ""
+
+#: web/src/pages/Knowledge.svelte:111
 msgid "Copying is not possible here"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:151
+#: web/src/pages/Knowledge.svelte:161
 msgid "Profile created"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:181
+#: web/src/pages/Knowledge.svelte:191
 msgid "Version restored"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:206 web/src/pages/Knowledge.svelte:213
-#: web/src/pages/Knowledge.svelte:257
+#: web/src/pages/Knowledge.svelte:216 web/src/pages/Knowledge.svelte:223
+#: web/src/pages/Knowledge.svelte:294
 msgid "Profile"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:206
+#: web/src/pages/Knowledge.svelte:216
 msgid "Which venue profile the next call uses. The agent reads it per call."
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:216 web/src/pages/Overview.svelte:78
+#: web/src/pages/Knowledge.svelte:226 web/src/pages/Overview.svelte:78
 msgid "Start profile"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:220
+#: web/src/pages/Knowledge.svelte:230 web/src/pages/Knowledge.svelte:260
 #, javascript-format
 msgid "%s (broken)"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:225
+#: web/src/pages/Knowledge.svelte:235
 msgid "Active"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:225
+#: web/src/pages/Knowledge.svelte:235
 msgid "Use this profile"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:227 web/src/pages/Knowledge.svelte:495
+#: web/src/pages/Knowledge.svelte:237 web/src/pages/Knowledge.svelte:532
 #: web/src/pages/Sources.svelte:396 web/src/pages/Sources.svelte:583
 msgid "History"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:238
+#: web/src/pages/Knowledge.svelte:244
+msgid "Lines"
+msgstr ""
+
+#: web/src/pages/Knowledge.svelte:244
+msgid "Which profile answers each phone line"
+msgstr ""
+
+#: web/src/pages/Knowledge.svelte:257
+msgid "Same as above"
+msgstr ""
+
+#: web/src/pages/Knowledge.svelte:275
 msgid "Read-only"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:238
+#: web/src/pages/Knowledge.svelte:275
 msgid ""
 "This profile is not in the profiles directory, so it cannot be changed here. "
 "Make an editable copy to work on it."
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:247
+#: web/src/pages/Knowledge.svelte:284
 msgid "Name of the copy"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:247
+#: web/src/pages/Knowledge.svelte:284
 msgid "A file name such as my-venue.json"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:251
+#: web/src/pages/Knowledge.svelte:288
 msgid "Duplicate into profiles directory"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:257 web/src/pages/Knowledge.svelte:296
+#: web/src/pages/Knowledge.svelte:294 web/src/pages/Knowledge.svelte:333
 #, javascript-format
 msgid "Language %s, time zone %s"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:259
+#: web/src/pages/Knowledge.svelte:296
 msgid "Name of the assistant"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:265
+#: web/src/pages/Knowledge.svelte:302
 msgid "Its voice, name and manner replace the name above on calls."
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:273
+#: web/src/pages/Knowledge.svelte:310
 #, javascript-format
 msgid "Default character (%s)"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:279 web/src/pages/Knowledge.svelte:299
+#: web/src/pages/Knowledge.svelte:316 web/src/pages/Knowledge.svelte:336
 msgid "Greeting"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:279
+#: web/src/pages/Knowledge.svelte:316
 msgid ""
 "Must say that the caller talks to an AI (EU AI Act, Art. 50). It cannot be "
 "empty."
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:282 web/src/pages/Knowledge.svelte:304
+#: web/src/pages/Knowledge.svelte:319 web/src/pages/Knowledge.svelte:341
 msgid "Instructions"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:285 web/src/pages/Knowledge.svelte:310
+#: web/src/pages/Knowledge.svelte:322 web/src/pages/Knowledge.svelte:347
 msgid "Fallback text"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:285
+#: web/src/pages/Knowledge.svelte:322
 msgid "Spoken when the assistant cannot answer. Leave empty for none."
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:318
+#: web/src/pages/Knowledge.svelte:355
 msgid "Facts"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:318
+#: web/src/pages/Knowledge.svelte:355
 #, javascript-format
 msgid "%s facts the assistant can answer from"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:322
+#: web/src/pages/Knowledge.svelte:359
 msgid "Add fact"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:326
+#: web/src/pages/Knowledge.svelte:363
 msgid "Search facts"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:328
+#: web/src/pages/Knowledge.svelte:365
 msgid "No facts found"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:335
+#: web/src/pages/Knowledge.svelte:372
 msgid "Topic"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:339 web/src/pages/Knowledge.svelte:340
+#: web/src/pages/Knowledge.svelte:376 web/src/pages/Knowledge.svelte:377
 msgid "Answer"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:344
+#: web/src/pages/Knowledge.svelte:381
 msgid "Move up"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:350
+#: web/src/pages/Knowledge.svelte:387
 msgid "Move down"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:356
+#: web/src/pages/Knowledge.svelte:393
 msgid "Delete fact"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:376
+#: web/src/pages/Knowledge.svelte:413
 msgid "What the assistant can do besides talking"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:378
+#: web/src/pages/Knowledge.svelte:415
 msgid "No tools for this profile"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:393
+#: web/src/pages/Knowledge.svelte:430
 msgid "required"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:414
+#: web/src/pages/Knowledge.svelte:451
 msgid "Transfer calls to a person"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:417 web/src/pages/Knowledge.svelte:434
+#: web/src/pages/Knowledge.svelte:454 web/src/pages/Knowledge.svelte:471
 msgid "Announcement before transferring"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:421 web/src/pages/Knowledge.svelte:438
+#: web/src/pages/Knowledge.svelte:458 web/src/pages/Knowledge.svelte:475
 msgid "Transfer target"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:424
+#: web/src/pages/Knowledge.svelte:461
 #, javascript-format
 msgid ""
 "Now: %s. The number is never shown in full. Enter a new one to replace it, "
 "or leave empty to keep it."
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:425
+#: web/src/pages/Knowledge.svelte:462
 msgid "A phone number, tel:+… or sip:user@host"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:446
+#: web/src/pages/Knowledge.svelte:483
 msgid "System prompt"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:447
+#: web/src/pages/Knowledge.svelte:484
 msgid "What the model would receive with your unsaved changes"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:447
+#: web/src/pages/Knowledge.svelte:484
 msgid "Exactly what the model receives"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:455
+#: web/src/pages/Knowledge.svelte:492
 msgid "Hide"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:455
+#: web/src/pages/Knowledge.svelte:492
 msgid "Show"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:460
+#: web/src/pages/Knowledge.svelte:497
 msgid "Copied"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:460
+#: web/src/pages/Knowledge.svelte:497
 msgid "Copy"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:472 web/src/pages/Knowledge.svelte:474
+#: web/src/pages/Knowledge.svelte:509 web/src/pages/Knowledge.svelte:511
 msgid "Unsaved changes"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:476 web/src/pages/Sources.svelte:416
+#: web/src/pages/Knowledge.svelte:513 web/src/pages/Sources.svelte:416
 msgid "Discard"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:477 web/src/pages/Llm.svelte:73
+#: web/src/pages/Knowledge.svelte:514 web/src/pages/Llm.svelte:73
 #: web/src/pages/Sources.svelte:437 web/src/pages/characters/Wizard.svelte:457
 msgid "Save"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:485
+#: web/src/pages/Knowledge.svelte:522
 msgid "The profile changed"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:486
+#: web/src/pages/Knowledge.svelte:523
 msgid ""
 "Someone changed this profile after you opened it. Reload to see the current "
 "version; your edits here are lost."
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:487
+#: web/src/pages/Knowledge.svelte:524
 msgid "Reload"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:496
+#: web/src/pages/Knowledge.svelte:533
 msgid ""
 "The last 20 versions of this profile. Restoring keeps the current one in the "
 "history."
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:501
+#: web/src/pages/Knowledge.svelte:538
 msgid "No earlier versions yet"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:506
+#: web/src/pages/Knowledge.svelte:543
 #, javascript-format
 msgid "%s bytes"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:507
+#: web/src/pages/Knowledge.svelte:544
 msgid "Restore"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:515 web/src/pages/Sources.svelte:599
+#: web/src/pages/Knowledge.svelte:552 web/src/pages/Sources.svelte:599
 #: web/src/pages/voices/VoiceBrowser.svelte:331
 msgid "Close"
 msgstr ""

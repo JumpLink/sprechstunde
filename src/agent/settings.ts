@@ -27,16 +27,25 @@ export function currentSettings(env: NodeJS.ProcessEnv = process.env): Settings 
 }
 
 /**
- * The profile for this call: the one the admin UI picked, or the one the worker started with.
- * A picked file that cannot be loaded must not cost the call either, so it is reported (the file
- * name only, never its content) and the start profile answers.
+ * The profile file this call uses: the one its line is assigned, else the one picked for all calls;
+ * none means the start profile.
+ */
+export function profileFileForCall(settings: Settings | undefined, lineId?: string): string | undefined {
+  return (lineId ? settings?.lines?.[lineId] : undefined) ?? settings?.profile;
+}
+
+/**
+ * The profile for this call: the line's, else the one the admin UI picked, else the one the worker
+ * started with. A picked file that cannot be loaded must not cost the call either, so it is
+ * reported (the file name only, never its content) and the start profile answers.
  */
 export function profileForCall(
   start: Profile,
   settings: Settings | undefined,
+  lineId?: string,
   env: NodeJS.ProcessEnv = process.env,
 ): Profile {
-  const file = settings?.profile;
+  const file = profileFileForCall(settings, lineId);
   if (!file) return start;
   try {
     const path = profileFilePath(file, env);
