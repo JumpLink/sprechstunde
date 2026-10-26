@@ -115,6 +115,10 @@ belongs outside this repository. The greeting must tell the caller they are talk
 
 The example's transfer target `tel:+4900000000` is invalid on purpose.
 
+`selfDescription` (optional) is what the assistant says when asked what it is, verbatim and for any
+locale, e.g. `"ein KI-gestützter digitaler Helfer"`; without it a German persona with a stated gender
+uses the built-in "KI-Assistent(in)" wording.
+
 `timeZone` (IANA, e.g. `Europe/Berlin`) is required: the prompt states the venue's local date and
 weekday, otherwise "are you open tonight?" is answered from a guessed date.
 

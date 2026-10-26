@@ -260,3 +260,25 @@ test('prompt: the allergen rule is always there, with and without reference data
   assert.ok(text.indexOf('allergens') < text.indexOf('Facts:'));
   assert.ok(text.indexOf('allergens') < text.indexOf('<reference-data>'));
 });
+
+test('selfDescription: trimmed, empty means absent, only a string is accepted', () => {
+  assert.equal(
+    parseProfile(variant((r) => (r.selfDescription = '  ein digitaler Helfer '))).selfDescription,
+    'ein digitaler Helfer',
+  );
+  assert.equal(parseProfile(variant((r) => (r.selfDescription = '  '))).selfDescription, undefined);
+  assert.equal(parseProfile(variant((r) => delete r.selfDescription)).selfDescription, undefined);
+  assert.throws(() => parseProfile(variant((r) => (r.selfDescription = 5))), /selfDescription/);
+});
+
+test('selfDescription: replaces the built-in wording, with or without a gender, in any locale', () => {
+  const base = parseProfile(variant(() => {}));
+  const own = { ...base, selfDescription: 'ein digitaler Helfer' };
+  const line = 'If you say what you are, say "ein digitaler Helfer".';
+  assert.ok(buildInstructions(own, NOW, { gender: 'male' }).includes(line));
+  assert.ok(!buildInstructions(own, NOW, { gender: 'male' }).includes('KI-Assistent'));
+  assert.ok(buildInstructions(own, NOW).includes(line));
+  assert.ok(buildInstructions({ ...own, locale: 'en-GB' }, NOW, { gender: 'female' }).includes(line));
+  assert.ok(buildInstructions(base, NOW, { gender: 'male' }).includes('"ein KI-Assistent"'));
+  assert.ok(!buildInstructions(base, NOW).includes('If you say what you are'));
+});

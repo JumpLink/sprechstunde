@@ -34,14 +34,14 @@ export function personaOf(
 }
 
 /** The speaking-style lines; none for a persona without tone and without a stated gender. */
-function styleLines(persona: Persona | undefined, locale: string): string[] {
+function styleLines(persona: Persona | undefined, locale: string, selfDescription?: string): string[] {
   const lines: string[] = [];
   if (persona?.tone) lines.push(`Speaking style: ${persona.tone}`);
-  if (persona?.gender) {
-    lines.push(GENDER_LINE[persona.gender]);
-    if (locale.toLowerCase().startsWith('de')) {
-      lines.push(`If you say what you are, say "${GERMAN_SELF[persona.gender]}".`);
-    }
+  if (persona?.gender) lines.push(GENDER_LINE[persona.gender]);
+  if (selfDescription) {
+    lines.push(`If you say what you are, say "${selfDescription}".`);
+  } else if (persona?.gender && locale.toLowerCase().startsWith('de')) {
+    lines.push(`If you say what you are, say "${GERMAN_SELF[persona.gender]}".`);
   }
   return lines;
 }
@@ -64,7 +64,7 @@ export function buildInstructions(profile: Profile, now: Date, persona?: Persona
     `Speak the language of locale ${profile.locale}.`,
     `The call starts at ${localNow} (venue time, ${profile.timeZone}).`,
     profile.instructions,
-    ...styleLines(persona, profile.locale),
+    ...styleLines(persona, profile.locale, profile.selfDescription),
     '',
     'Rules:',
     '- Answer directly from the facts below, without calling a tool. Only if no listed fact fits, say you do not know.',
