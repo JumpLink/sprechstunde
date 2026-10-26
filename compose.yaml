@@ -47,7 +47,8 @@ services:
     image: localhost/sprechstunde-asterisk:22.10.1
     network_mode: host
     # SIP_LINE_<ID>_* names depend on SIP_LINES, so compose cannot list them below: the whole
-    # file is read (Asterisk holds every credential anyway). `environment` still wins per name.
+    # file is read; entrypoint.sh starts Asterisk with only the variables its dialplan needs.
+    # `environment` still wins per name.
     env_file:
       - path: .env
         required: false

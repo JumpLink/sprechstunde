@@ -93,7 +93,13 @@ stop() {
   asterisk -rx "core stop now" >/dev/null 2>&1 || kill "$pid" 2>/dev/null || true
 }
 trap stop TERM INT
-"$@" &
+# compose hands this container the whole .env (env_file), API keys included. Asterisk gets only
+# what extensions.conf reads via ${ENV(...)}; the SIP credentials already sit in pjsip.conf.
+env -i PATH="$PATH" HOME="${HOME:-/root}" ${TZ:+TZ="$TZ"} \
+  TRANSFER_TARGET_NUMBER="$TRANSFER_TARGET_NUMBER" \
+  SPRECHSTUNDE_ANSWER_TIMEOUT="$SPRECHSTUNDE_ANSWER_TIMEOUT" \
+  SPRECHSTUNDE_FIRST_LINE="$SPRECHSTUNDE_FIRST_LINE" \
+  "$@" &
 pid=$!
 # The first wait returns when the trap fires; the second waits for Asterisk to exit.
 wait "$pid" || true
