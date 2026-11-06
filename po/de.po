@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-26 22:31+0100\n"
+"POT-Creation-Date: 2026-11-06 22:21+0100\n"
 "PO-Revision-Date: 2026-10-19 23:10+0200\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -16,12 +16,12 @@ msgstr ""
 msgid "no API key for this vendor in the environment"
 msgstr "kein API-Schlüssel für diesen Anbieter in der Umgebung"
 
-#: src/admin/catalog.ts:620
+#: src/admin/catalog.ts:673
 #, javascript-format
 msgid "the vendor answered with %s"
 msgstr "der Anbieter antwortete mit %s"
 
-#: src/admin/catalog.ts:625
+#: src/admin/catalog.ts:678
 #, javascript-format
 msgid "the request failed: %s"
 msgstr "die Anfrage ist fehlgeschlagen: %s"
@@ -147,7 +147,7 @@ msgstr "„url“ muss eine Webadresse sein"
 msgid "not found"
 msgstr "nicht gefunden"
 
-#: src/admin/knowledge-service.ts:321 src/admin/server.ts:969
+#: src/admin/knowledge-service.ts:321 src/admin/server.ts:970
 msgid "internal error"
 msgstr "interner Fehler"
 
@@ -319,8 +319,8 @@ msgstr "die oberste Ebene muss ein Objekt sein"
 msgid "a transfer needs a target: enter a phone number"
 msgstr "eine Weiterleitung braucht ein Ziel: Telefonnummer eingeben"
 
-#: src/admin/profile-store.ts:236 src/admin/server.ts:644
-#: src/admin/server.ts:697 src/admin/server.ts:725 src/admin/server.ts:756
+#: src/admin/profile-store.ts:236 src/admin/server.ts:645
+#: src/admin/server.ts:698 src/admin/server.ts:726 src/admin/server.ts:757
 msgid "\"file\" must be the name of a .json file in the profiles directory"
 msgstr "\"file\" muss der Name einer .json-Datei im Profilverzeichnis sein"
 
@@ -329,7 +329,7 @@ msgstr "\"file\" muss der Name einer .json-Datei im Profilverzeichnis sein"
 msgid "invalid version"
 msgstr "ungültige Version"
 
-#: src/admin/profile-store.ts:312 src/admin/server.ts:507
+#: src/admin/profile-store.ts:312 src/admin/server.ts:508
 msgid "\"revision\" must be the revision the page loaded"
 msgstr "„revision“ muss die Revision sein, die die Seite geladen hat"
 
@@ -361,26 +361,26 @@ msgstr "der Anfragekörper muss ein JSON-Objekt sein"
 msgid "\"%s\" must be a short plain string"
 msgstr "„%s“ muss ein kurzer Text ohne Steuerzeichen sein"
 
-#: src/admin/server.ts:216 src/admin/server.ts:609
+#: src/admin/server.ts:216 src/admin/server.ts:610
 msgid "the vendor sample could not be fetched"
 msgstr "die Hörprobe des Anbieters konnte nicht geladen werden"
 
-#: src/admin/server.ts:362
+#: src/admin/server.ts:363
 #, javascript-format
 msgid "\"provider\" must be one of: %s"
 msgstr "„provider“ muss einer dieser Werte sein: %s"
 
-#: src/admin/server.ts:390
+#: src/admin/server.ts:391
 msgid "no voice is configured"
 msgstr "es ist keine Stimme konfiguriert"
 
-#: src/admin/server.ts:394 src/admin/server.ts:704 src/admin/server.ts:817
-#: src/admin/server.ts:827 src/admin/server.ts:851
+#: src/admin/server.ts:395 src/admin/server.ts:705 src/admin/server.ts:818
+#: src/admin/server.ts:828 src/admin/server.ts:852
 #, javascript-format
 msgid "no character with id %s"
 msgstr "kein Charakter mit der Id %s"
 
-#: src/admin/server.ts:510
+#: src/admin/server.ts:511
 msgid ""
 "the characters changed since you loaded them: reload and make the change "
 "again"
@@ -388,113 +388,113 @@ msgstr ""
 "die Charaktere haben sich geändert, seit du sie geladen hast: neu laden und "
 "die Änderung noch einmal machen"
 
-#: src/admin/server.ts:516
+#: src/admin/server.ts:517
 msgid "this server answers on 127.0.0.1 only"
 msgstr "dieser Server antwortet nur auf 127.0.0.1"
 
-#: src/admin/server.ts:518
+#: src/admin/server.ts:519
 msgid "a change must come from the page this server serves"
 msgstr "eine Änderung muss von der Seite kommen, die dieser Server ausliefert"
 
-#: src/admin/server.ts:534 src/admin/server.ts:781
+#: src/admin/server.ts:535 src/admin/server.ts:782
 msgid "invalid character id"
 msgstr "ungültige Charakter-ID"
 
-#: src/admin/server.ts:563
+#: src/admin/server.ts:564
 msgid "unknown catalog"
 msgstr "unbekannter Katalog"
 
-#: src/admin/server.ts:567
+#: src/admin/server.ts:568
 msgid "\"language\" must be a BCP-47 tag"
 msgstr "„language“ muss ein BCP-47-Tag sein"
 
-#: src/admin/server.ts:582 src/admin/server.ts:596
+#: src/admin/server.ts:583 src/admin/server.ts:597
 msgid "unknown provider"
 msgstr "unbekannter Anbieter"
 
-#: src/admin/server.ts:589
+#: src/admin/server.ts:590
 msgid "no sample for this voice"
 msgstr "keine Hörprobe für diese Stimme"
 
-#: src/admin/server.ts:603
+#: src/admin/server.ts:604
 msgid "no picture for this voice"
 msgstr "kein Bild für diese Stimme"
 
-#: src/admin/server.ts:671 src/admin/server.ts:683
+#: src/admin/server.ts:672 src/admin/server.ts:684
 msgid "\"file\" must be a file name"
 msgstr "„file“ muss ein Dateiname sein"
 
-#: src/admin/server.ts:685
+#: src/admin/server.ts:686
 msgid "\"from\" must be a file name or null"
 msgstr "„from“ muss ein Dateiname oder null sein"
 
-#: src/admin/server.ts:721 src/admin/server.ts:752
+#: src/admin/server.ts:722 src/admin/server.ts:753
 msgid "\"file\" must be a file name or null"
 msgstr "\"file\" muss ein Dateiname oder null sein"
 
-#: src/admin/server.ts:749
+#: src/admin/server.ts:750
 msgid "\"line\" must be one of the configured lines"
 msgstr "\"line\" muss eine der konfigurierten Leitungen sein"
 
-#: src/admin/server.ts:776
+#: src/admin/server.ts:777
 msgid "there are too many characters"
 msgstr "es gibt zu viele Charaktere"
 
-#: src/admin/server.ts:783
+#: src/admin/server.ts:784
 msgid "a character with this id already exists"
 msgstr "einen Charakter mit dieser Id gibt es schon"
 
-#: src/admin/server.ts:829
+#: src/admin/server.ts:830
 msgid "a character keeps its id"
 msgstr "ein Charakter behält seine Id"
 
-#: src/admin/server.ts:854
+#: src/admin/server.ts:855
 msgid ""
 "the default character cannot be deleted: make another one the default first"
 msgstr ""
 "kein Bild für diese Stimmeder Standardcharakter lässt sich nicht löschen: "
 "mach zuerst einen anderen zum Standard"
 
-#: src/admin/server.ts:857
+#: src/admin/server.ts:858
 msgid "a venue still uses this character: pick another one for it first"
 msgstr ""
 "ein Betrieb nutzt diesen Charakter noch: wähle zuerst einen anderen für ihn"
 
-#: src/admin/server.ts:892
+#: src/admin/server.ts:893
 #, javascript-format
 msgid "the text may have at most %s characters"
 msgstr "der Text darf höchstens %s Zeichen haben"
 
-#: src/admin/server.ts:952
+#: src/admin/server.ts:953
 msgid "the settings app is not built: run `npm run web:build`"
 msgstr "Die Einstellungs-App ist nicht gebaut: `npm run web:build` ausführen"
 
-#: src/admin/server.ts:960
+#: src/admin/server.ts:961
 msgid "unknown route"
 msgstr "unbekannte Route"
 
-#: src/agent/assistant.ts:77
+#: src/agent/assistant.ts:79
 msgid "CPU profile written to"
 msgstr "CPU-Profil geschrieben nach"
 
-#: src/agent/assistant.ts:152
+#: src/agent/assistant.ts:154
 msgid "Pocket TTS has no free session, this call uses the fallback voice"
 msgstr ""
 "Pocket TTS hat keine freie Sitzung, dieser Anruf nutzt die Ersatzstimme"
 
-#: src/agent/assistant.ts:183
+#: src/agent/assistant.ts:195
 msgid "starting assistant with profile"
 msgstr "Assistent startet mit Profil"
 
-#: src/agent/assistant.ts:183
+#: src/agent/assistant.ts:195
 msgid "on line"
 msgstr "auf Leitung"
 
-#: src/agent/assistant.ts:208
+#: src/agent/assistant.ts:220
 msgid "transfer failed"
 msgstr "Weiterleitung fehlgeschlagen"
 
-#: src/agent/assistant.ts:261
+#: src/agent/assistant.ts:273
 msgid "CPU profile failed"
 msgstr "CPU-Profil fehlgeschlagen"
 
@@ -541,29 +541,29 @@ msgid "LIVEKIT_URL, LIVEKIT_API_KEY and LIVEKIT_API_SECRET must be set"
 msgstr ""
 "LIVEKIT_URL, LIVEKIT_API_KEY und LIVEKIT_API_SECRET müssen gesetzt sein"
 
-#: src/agent/tts-provider.ts:67 src/agent/tts-provider.ts:159
+#: src/agent/tts-provider.ts:70 src/agent/tts-provider.ts:162
 msgid "%1 must be one of: %2"
 msgstr "%1 muss einer dieser Werte sein: %2"
 
-#: src/agent/tts-provider.ts:70 src/agent/tts-provider.ts:73
-#: src/agent/tts-provider.ts:155 src/agent/tts-provider.ts:192
-#: src/cli/fallback.ts:23 src/cli/provision.ts:12 src/cli/sip-contacts.ts:18
-#: src/cli/stt-try.ts:100 src/cli/tts-try.ts:88 src/cli/voice.ts:12
-#: src/mistral.ts:21
+#: src/agent/tts-provider.ts:73 src/agent/tts-provider.ts:76
+#: src/agent/tts-provider.ts:158 src/agent/tts-provider.ts:195
+#: src/agent/tts-provider.ts:228 src/cli/fallback.ts:23 src/cli/provision.ts:12
+#: src/cli/sip-contacts.ts:18 src/cli/stt-try.ts:100 src/cli/tts-try.ts:88
+#: src/cli/voice.ts:12 src/mistral.ts:21
 #, javascript-format
 msgid "%s must be set"
 msgstr "%s muss gesetzt sein"
 
-#: src/agent/tts-provider.ts:76
+#: src/agent/tts-provider.ts:79
 #, javascript-format
 msgid "%s must be a numeric KugelAudio voice id"
 msgstr "%s muss eine numerische KugelAudio-Stimmen-ID sein"
 
-#: src/agent/tts-provider.ts:96
+#: src/agent/tts-provider.ts:99
 msgid "character \"%1\" needs a model for the %2 provider"
 msgstr "Charakter „%1“ braucht ein Modell für den Anbieter %2"
 
-#: src/agent/tts-provider.ts:100
+#: src/agent/tts-provider.ts:103
 #, javascript-format
 msgid "character \"%s\" needs a numeric KugelAudio voice id"
 msgstr "Charakter „%s“ braucht eine numerische KugelAudio-Stimmen-ID"
@@ -955,7 +955,7 @@ msgstr "Lokal"
 msgid "EU endpoint"
 msgstr "EU-Endpunkt"
 
-#: web/src/lib/vendor.ts:38
+#: web/src/lib/vendor.ts:39
 msgid "Pocket TTS (local)"
 msgstr "Pocket TTS (lokal)"
 

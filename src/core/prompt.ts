@@ -1,3 +1,4 @@
+import { type AudioTag, audioTagLines } from './audio-tags.js';
 import type { Profile } from './profile.js';
 import type { Gender } from './settings.js';
 import { referenceBlock } from './knowledge-snapshot.js';
@@ -7,6 +8,8 @@ import { TRANSFER_TOOL } from './tools.js';
 export interface Persona {
   tone?: string;
   gender?: Gender;
+  /** The cues the call's voice reads instead of speaking; none for a voice that would read them out. */
+  audioTags?: readonly AudioTag[];
 }
 
 const GENDER_LINE: Record<Gender, string> = {
@@ -33,7 +36,7 @@ export function personaOf(
   };
 }
 
-/** The speaking-style lines; none for a persona without tone and without a stated gender. */
+/** The speaking-style lines; none for a persona without tone, stated gender or audio tags. */
 function styleLines(persona: Persona | undefined, locale: string, selfDescription?: string): string[] {
   const lines: string[] = [];
   if (persona?.tone) lines.push(`Speaking style: ${persona.tone}`);
@@ -43,6 +46,7 @@ function styleLines(persona: Persona | undefined, locale: string, selfDescriptio
   } else if (persona?.gender && locale.toLowerCase().startsWith('de')) {
     lines.push(`If you say what you are, say "${GERMAN_SELF[persona.gender]}".`);
   }
+  lines.push(...audioTagLines(persona?.audioTags ?? []));
   return lines;
 }
 

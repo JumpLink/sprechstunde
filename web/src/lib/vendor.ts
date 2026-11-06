@@ -15,6 +15,7 @@ const MONOGRAMS: Record<string, string> = {
   mistral: 'Mi',
   openrouter: 'OR',
   pocket: 'Po',
+  elevenlabs: 'El',
 };
 
 /** OpenRouter relays other vendors' models (`openai/gpt-…`); the upstream is what tells its voices apart. */
@@ -36,7 +37,9 @@ export function vendorOf(provider: string, model?: string): Vendor {
             ? ['OpenRouter', upstream(model)].filter(Boolean).join(' · ')
             : provider === 'pocket'
               ? _('Pocket TTS (local)')
-              : provider;
+              : provider === 'elevenlabs'
+                ? 'ElevenLabs'
+                : provider;
   return {
     name,
     mono: MONOGRAMS[provider] ?? provider.slice(0, 2),

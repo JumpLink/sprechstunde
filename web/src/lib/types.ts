@@ -1,6 +1,6 @@
 /** The shapes of what the admin server answers. Kept by hand next to `src/admin/server.ts`. */
 
-export type Provider = 'mistral' | 'cartesia' | 'openrouter' | 'pocket' | 'kugel';
+export type Provider = 'mistral' | 'cartesia' | 'openrouter' | 'pocket' | 'kugel' | 'elevenlabs';
 
 export type Gender = 'female' | 'male' | 'neutral';
 

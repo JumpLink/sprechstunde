@@ -6,7 +6,8 @@ import * as mistral from '@livekit/agents-plugin-mistralai';
 import type { Mistral } from '@mistralai/mistralai';
 import * as silero from '@livekit/agents-plugin-silero';
 import { ParticipantKind } from '@livekit/rtc-node';
-import { buildInstructions, personaOf } from '../core/prompt.js';
+import { AUDIO_TAGS } from '../core/audio-tags.js';
+import { buildInstructions, type Persona, personaOf } from '../core/prompt.js';
 import { type Profile, withAssistantName } from '../core/profile.js';
 import { LINE_ATTRIBUTE, LINE_ID } from '../core/lines.js';
 import { readSnapshot, snapshotPath } from '../core/knowledge-snapshot.js';
@@ -24,7 +25,8 @@ import { ContiguousSTT } from './stt-merge.js';
 import { openPocketSession } from './pocket-tts.js';
 import { closeSpeech } from './speech-close.js';
 import { HedgedTTS } from './tts-hedge.js';
-import { buildBaseTts, pocketUrl, type TtsChoice, ttsChoices } from './tts-provider.js';
+import { buildBaseTts, pocketUrl, speaksAudioTags, type TtsChoice, ttsChoices } from './tts-provider.js';
+import { TagFreeTTS } from './tts-tag-filter.js';
 
 const DEFAULT_STT_MODEL = 'voxtral-mini-transcribe-realtime-2602';
 const FALLBACK_STT_MODEL = 'voxtral-mini-latest';
@@ -153,14 +155,24 @@ async function voiceForCall(
       return { tts: buildTts(client, profile, fallback), choice: fallback };
     }
   }
+  // The model writes audio tags for a primary voice that reads them; a fallback that does not would
+  // speak them out.
+  const second = buildTts(client, profile, fallback);
+  const fallbackTts = speaksAudioTags(primary) && !speaksAudioTags(fallback) ? new TagFreeTTS(second) : second;
   return {
     tts: new tts.FallbackAdapter({
-      ttsInstances: [buildTts(client, profile, primary), buildTts(client, profile, fallback)],
+      ttsInstances: [buildTts(client, profile, primary), fallbackTts],
       maxRetryPerTTS: 0,
     }),
     choice: primary,
     release,
   };
+}
+
+/** The character's persona, with the audio tags the call's voice reads when it reads any. */
+function personaForCall(character: Character | undefined, choice: TtsChoice): Persona | undefined {
+  const persona = personaOf(character);
+  return speaksAudioTags(choice) ? { ...persona, audioTags: AUDIO_TAGS } : persona;
 }
 
 /** The line the call came in on, from the attribute the inbound trunk sets; never a phone number. */
@@ -265,7 +277,7 @@ export async function runAssistant(ctx: JobContext, startProfile: Profile): Prom
 
   await session.start({
     agent: new voice.Agent({
-      instructions: buildInstructions(profile, new Date(), personaOf(character), reference),
+      instructions: buildInstructions(profile, new Date(), personaForCall(character, speech.choice), reference),
       tools,
     }),
     room: ctx.room,

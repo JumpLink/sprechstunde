@@ -350,6 +350,7 @@ export function createAdminServer(options: AdminOptions): Server {
         cartesia: Boolean(env.CARTESIA_API_KEY),
         openrouter: Boolean(env.OPENROUTER_API_KEY),
         kugel: Boolean(env.KUGELAUDIO_API_KEY),
+        elevenlabs: Boolean(env.ELEVENLABS_API_KEY),
       },
       // Known facts for the casting badges: where KugelAudio speaks from, with the key as configured.
       kugelEu: kugelInEu(env),

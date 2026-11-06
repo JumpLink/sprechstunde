@@ -1,5 +1,6 @@
 import { type tts } from '@livekit/agents';
 import * as cartesia from '@livekit/agents-plugin-cartesia';
+import * as elevenlabs from '@livekit/agents-plugin-elevenlabs';
 import * as mistral from '@livekit/agents-plugin-mistralai';
 import * as openai from '@livekit/agents-plugin-openai';
 import type { Mistral } from '@mistralai/mistralai';
@@ -13,7 +14,7 @@ import { DEFAULT_POCKET_URL, PocketTTS } from './pocket-tts.js';
 import { MeasuredTTS } from './tts-meter.js';
 import { resolveTtsVoice } from './tts-voice.js';
 
-const PROVIDERS = ['mistral', 'cartesia', 'openrouter', 'pocket', 'kugel'] as const;
+const PROVIDERS = ['mistral', 'cartesia', 'openrouter', 'pocket', 'kugel', 'elevenlabs'] as const;
 export type TtsProvider = (typeof PROVIDERS)[number];
 
 const DEFAULT_MODEL: Record<TtsProvider, string | undefined> = {
@@ -25,6 +26,8 @@ const DEFAULT_MODEL: Record<TtsProvider, string | undefined> = {
   pocket: 'pocket-tts',
   // Not in the SDK's `TTSModels` type, but the API accepted it in a real call on 2026-10-19.
   kugel: 'kugel-3.5',
+  // The fastest model that reads audio tags; v3 reads them too but is slower to first audio.
+  elevenlabs: 'eleven_v4_turbo',
 };
 
 /** The model a vendor's provider uses when none is named; none for OpenRouter. */
@@ -33,7 +36,7 @@ export function defaultTtsModel(provider: TtsProvider): string | undefined {
 }
 
 /** Vendors whose voice ids are their own, so the profile's voice means nothing to them. */
-const NEEDS_OWN_VOICE: readonly TtsProvider[] = ['cartesia', 'openrouter', 'kugel'];
+const NEEDS_OWN_VOICE: readonly TtsProvider[] = ['cartesia', 'openrouter', 'kugel', 'elevenlabs'];
 
 const PRIMARY = 'SPRECHSTUNDE_TTS_';
 const FALLBACK = 'SPRECHSTUNDE_TTS_FALLBACK_';
@@ -56,9 +59,9 @@ export type TtsChoice = {
 
 /**
  * `SPRECHSTUNDE_TTS_PROVIDER` picks the vendor (default `mistral`). A voice id belongs to one
- * vendor, so for Cartesia, OpenRouter and Kugel `SPRECHSTUNDE_TTS_VOICE` is required and the
- * profile's voice is ignored; Pocket falls back to its server's default voice. `prefix` reads the
- * same keys for the fallback voice (`SPRECHSTUNDE_TTS_FALLBACK_…`).
+ * vendor, so for Cartesia, OpenRouter, Kugel and ElevenLabs `SPRECHSTUNDE_TTS_VOICE` is required
+ * and the profile's voice is ignored; Pocket falls back to its server's default voice. `prefix`
+ * reads the same keys for the fallback voice (`SPRECHSTUNDE_TTS_FALLBACK_…`).
  */
 export function ttsChoice(env: NodeJS.ProcessEnv = process.env, prefix = PRIMARY): TtsChoice {
   const key = (name: string) => `${prefix}${name}`;
@@ -220,5 +223,27 @@ export function buildBaseTts(
       // Its stream never says when text went out, so the SDK emits no `tts_metrics` for it.
       return new MeasuredTTS(kugel, (stats) => recordTtsStream(stats, 'kugel'));
     }
+    case 'elevenlabs': {
+      const apiKey = env.ELEVENLABS_API_KEY;
+      if (!apiKey) throw new Error(_('%s must be set').replace('%s', 'ELEVENLABS_API_KEY'));
+      return new elevenlabs.TTS({
+        apiKey,
+        voiceId: voice!,
+        model,
+        language: profile.locale.split('-')[0]!,
+        // The plugin's default lets the vendor keep the text and audio of every call. Zero retention
+        // is documented for enterprise plans only, so whether a smaller plan honours this is
+        // unverified; asking costs nothing.
+        enableLogging: false,
+      });
+    }
   }
+}
+
+/**
+ * Whether a voice reads audio tags (`[chuckles]`) as cues instead of speaking them: ElevenLabs'
+ * v3 and v4 models do, the older ones and every other vendor read the brackets out.
+ */
+export function speaksAudioTags(choice: Pick<TtsChoice, 'provider' | 'model'>): boolean {
+  return choice.provider === 'elevenlabs' && /^eleven_v[34]/.test(choice.model);
 }

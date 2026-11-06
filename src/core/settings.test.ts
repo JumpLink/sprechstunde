@@ -86,7 +86,7 @@ test('parseSettings: rejects a bad character', () => {
   assert.throws(() => parseSettings(doc([character({ tone: 'x'.repeat(301) })])), /"tone"/);
   assert.throws(() => parseSettings(doc([character({ color: 'red' })])), /"color"/);
   assert.throws(() => parseSettings(doc([character({ tenantId: 'no way' })])), /tenant/);
-  assert.throws(() => parseSettings(doc([character({ voice: { provider: 'elevenlabs' } })])), /"provider"/);
+  assert.throws(() => parseSettings(doc([character({ voice: { provider: 'acme' } })])), /"provider"/);
   assert.throws(
     () =>
       parseSettings(
@@ -117,6 +117,17 @@ test('parseSettings: a kugel voice is a numeric vendor id', () => {
   assert.equal(parseSettings(kugel('7')).characters[0]!.voice.voice, '7');
   // Beyond nine digits the id could stop being a safe integer once it goes through Number().
   assert.throws(() => parseSettings(kugel('1234567890')), /numeric voice id/);
+});
+
+test('parseSettings: an elevenlabs voice needs its voice id', () => {
+  assert.throws(
+    () => parseSettings(doc([character({ voice: { provider: 'elevenlabs' } })])),
+    /"voice" is required for provider elevenlabs/,
+  );
+  const parsed = parseSettings(
+    doc([character({ voice: { provider: 'elevenlabs', model: 'eleven_v4_turbo', voice: 'made-up-id' } })]),
+  );
+  assert.equal(parsed.characters[0]!.voice.voice, 'made-up-id');
 });
 
 test('parseSettings: only Mistral clones a reference clip', () => {
@@ -197,7 +208,7 @@ test('migration: no active pair means no default character; a preset called "def
 });
 
 test('migration: the old validation still applies', () => {
-  assert.throws(() => parseSettings({ presets: [preset({ provider: 'elevenlabs' })] }), /"provider"/);
+  assert.throws(() => parseSettings({ presets: [preset({ provider: 'acme' })] }), /"provider"/);
   assert.throws(() => parseSettings({ presets: [preset(), preset({ label: 'Second' })] }), /duplicate preset id/);
   assert.throws(() => parseSettings({ presets: [preset()], active: 1 }), /"active"/);
   assert.throws(() => parseSettings({ presets: [preset()], active: { primary: 'gone' } }), /names no preset/);

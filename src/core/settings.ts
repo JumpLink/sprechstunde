@@ -15,7 +15,7 @@ import { mkdirSync, readFileSync, renameSync, unlinkSync, writeFileSync } from '
 import { dirname, isAbsolute, join, resolve, sep } from 'node:path';
 import { LINE_ID } from './lines.js';
 
-export const TTS_PROVIDERS = ['mistral', 'cartesia', 'openrouter', 'pocket', 'kugel'] as const;
+export const TTS_PROVIDERS = ['mistral', 'cartesia', 'openrouter', 'pocket', 'kugel', 'elevenlabs'] as const;
 export type TtsProvider = (typeof TTS_PROVIDERS)[number];
 
 /** The vendor-side half of a character: which engine and voice speak. */
@@ -23,7 +23,7 @@ export interface VoiceSpec {
   provider: TtsProvider;
   /** The vendor's model; its default when empty (OpenRouter has none). */
   model?: string;
-  /** The vendor's voice id. Required for Cartesia, OpenRouter and Kugel (a number there). */
+  /** The vendor's voice id. Required for Cartesia, OpenRouter, Kugel (a number there) and ElevenLabs. */
   voice?: string;
   /** Audio file to clone, Mistral only; mutually exclusive with `voice`. */
   refAudio?: string;
@@ -161,7 +161,7 @@ function parseVoice(raw: unknown, where: string, path: string): VoiceSpec {
   // Only Mistral takes a reference clip; silently ignoring it on another vendor would look like
   // the clone worked.
   if (refAudio && provider !== 'mistral') fail(path, `${prefix}"refAudio" works with the mistral provider only`);
-  if (!voice && (provider === 'cartesia' || provider === 'openrouter' || provider === 'kugel')) {
+  if (!voice && provider !== 'mistral' && provider !== 'pocket') {
     fail(path, `${prefix}"voice" is required for provider ${provider}`);
   }
   // Kugel addresses a voice by its numeric library id. A name would reach the vendor as "no id"

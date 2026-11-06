@@ -295,3 +295,12 @@ test('prompt: nothing about the venue is stated unless the facts say it, with an
   assert.match(withTransfer, /offer to transfer the call/);
   assert.match(without, /No transfer to a person is possible/);
 });
+
+test('prompt: audio tags appear only when the persona carries them', () => {
+  const plain = buildInstructions(example, NOW);
+  assert.doesNotMatch(plain, /audio tags/);
+  assert.equal(buildInstructions(example, NOW, { audioTags: [] }), plain);
+  const tagged = buildInstructions(example, NOW, { audioTags: [{ tag: 'warmly', use: 'a kind sentence' }] });
+  assert.match(tagged, /\[warmly\] for a kind sentence/);
+  assert.ok(tagged.indexOf('audio tags') < tagged.indexOf('Rules:'));
+});
