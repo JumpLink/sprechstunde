@@ -599,12 +599,65 @@ async function fetchPocket(context: Context): Promise<Fetched> {
   };
 }
 
+const ELEVENLABS_API = 'https://api.elevenlabs.io/v1';
+/** Voices the account made itself; the rest are the vendor's own or added from its library. */
+const ELEVENLABS_OWN_CATEGORIES = ['cloned', 'generated'];
+
+async function fetchElevenLabs(context: Context): Promise<Fetched> {
+  const headers = { 'xi-api-key': requireKey(context, 'ELEVENLABS_API_KEY') };
+  const [modelBody, voiceBody] = await Promise.all([
+    getJson(context, `${ELEVENLABS_API}/models`, headers),
+    getJson(context, `${ELEVENLABS_API}/voices`, headers),
+  ]);
+  const models: CatalogModel[] = [];
+  // The same list holds the speech-to-speech and dubbing models; only the ones that speak text count.
+  for (const entry of Array.isArray(modelBody) ? modelBody : []) {
+    if (!isRecord(entry) || entry.can_do_text_to_speech !== true) continue;
+    const id = str(entry.model_id);
+    if (!id) continue;
+    const model: CatalogModel = { id, label: str(entry.name) ?? id };
+    const description = str(entry.description);
+    if (description) model.description = description;
+    const maxInput = num(entry.max_characters_request_subscribed_user);
+    if (maxInput) model.maxInput = maxInput;
+    models.push(model);
+  }
+  const voices: CatalogVoice[] = [];
+  const data = isRecord(voiceBody) && Array.isArray(voiceBody.voices) ? voiceBody.voices : [];
+  for (const entry of data) {
+    if (!isRecord(entry)) continue;
+    const id = str(entry.voice_id);
+    if (!id) continue;
+    const labels = isRecord(entry.labels) ? entry.labels : {};
+    const verified = Array.isArray(entry.verified_languages)
+      ? entry.verified_languages.map((language) => (isRecord(language) ? str(language.language) : undefined))
+      : [];
+    const languages = [...new Set([...verified, str(labels.language)].filter((l): l is string => Boolean(l)))];
+    const category = str(entry.category);
+    voices.push(
+      voice({
+        id,
+        name: str(entry.name) ?? id,
+        languages,
+        gender: str(labels.gender),
+        age: str(labels.age),
+        description: str(entry.description) ?? str(labels.description),
+        sampleUrl: str(entry.preview_url),
+        category,
+        own: category !== undefined && ELEVENLABS_OWN_CATEGORIES.includes(category),
+      }),
+    );
+  }
+  return { models, voices };
+}
+
 const FETCHERS: Record<CatalogTarget, (context: Context) => Promise<Fetched>> = {
   mistral: fetchMistral,
   cartesia: fetchCartesia,
   openrouter: fetchOpenRouter,
   pocket: fetchPocket,
   kugel: fetchKugel,
+  elevenlabs: fetchElevenLabs,
   llm: fetchLlm,
 };
 

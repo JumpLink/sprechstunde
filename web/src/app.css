@@ -21,6 +21,7 @@
   --vendor-mistral: oklch(0.45 0.12 50);
   --vendor-openrouter: oklch(0.44 0.15 355);
   --vendor-pocket: oklch(0.42 0.1 135);
+  --vendor-elevenlabs: oklch(0.43 0.09 85);
   --vendor-other: oklch(0.45 0.02 255);
 }
 
@@ -40,6 +41,7 @@
   --vendor-cartesia: oklch(0.83 0.08 205);
   --vendor-mistral: oklch(0.84 0.1 55);
   --vendor-openrouter: oklch(0.84 0.1 355);
+  --vendor-elevenlabs: oklch(0.85 0.09 85);
   --vendor-pocket: oklch(0.84 0.1 135);
   --vendor-other: oklch(0.8 0.02 255);
 }

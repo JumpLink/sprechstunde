@@ -81,13 +81,16 @@ function fakeMistral(): MistralLike {
 }
 
 function catalog(deps: CatalogDeps = {}) {
-  return createCatalog({ env: { MISTRAL_API_KEY: KEY, KUGELAUDIO_API_KEY: KEY, CARTESIA_API_KEY: KEY }, ...deps });
+  return createCatalog({
+    env: { MISTRAL_API_KEY: KEY, KUGELAUDIO_API_KEY: KEY, CARTESIA_API_KEY: KEY, ELEVENLABS_API_KEY: KEY },
+    ...deps,
+  });
 }
 
 test('a provider without a key is unavailable, with a reason and without a request', async () => {
   const { fetch: fetchFn, calls } = fakeFetch({});
   const service = createCatalog({ env: {}, fetch: fetchFn });
-  for (const target of ['mistral', 'cartesia', 'kugel', 'llm'] as const) {
+  for (const target of ['mistral', 'cartesia', 'kugel', 'elevenlabs', 'llm'] as const) {
     const result = await service.get(target);
     assert.equal(result.available, false, target);
     assert.ok(result.reason, target);
@@ -225,6 +228,52 @@ test('cartesia: sends key and version, follows the cursor, reads accent locales'
     { id: 'cv-2', name: 'Test Two', languages: ['de'] },
   ]);
   assert.equal(result.models.length, 1);
+});
+
+test('elevenlabs: sends the key, keeps text-to-speech models, reads labels and verified languages', async () => {
+  const { fetch: fetchFn, calls } = fakeFetch({
+    'https://api.elevenlabs.io/v1/models': () =>
+      jsonResponse([
+        {
+          model_id: 'speak_v9',
+          name: 'Speak v9',
+          description: 'Made up.',
+          can_do_text_to_speech: true,
+          max_characters_request_subscribed_user: 5000,
+        },
+        { model_id: 'listen_v1', name: 'Listen v1', can_do_text_to_speech: false },
+      ]),
+    'https://api.elevenlabs.io/v1/voices': () =>
+      jsonResponse({
+        voices: [
+          {
+            voice_id: 'ev-1',
+            name: 'Test One',
+            category: 'professional',
+            labels: { gender: 'female', age: 'old', language: 'de', description: 'calm' },
+            preview_url: 'https://example.invalid/one.mp3',
+            verified_languages: [{ language: 'de' }, { language: 'en' }],
+          },
+          { voice_id: 'ev-2', name: 'Test Two', category: 'generated', description: 'Designed here.', labels: {} },
+        ],
+      }),
+  });
+  const result = await catalog({ fetch: fetchFn }).get('elevenlabs');
+  assert.ok(calls.every((call) => call.headers['xi-api-key'] === KEY));
+  assert.deepEqual(result.models, [{ id: 'speak_v9', label: 'Speak v9', description: 'Made up.', maxInput: 5000 }]);
+  assert.deepEqual(result.voices, [
+    {
+      id: 'ev-1',
+      name: 'Test One',
+      languages: ['de', 'en'],
+      description: 'calm',
+      sampleUrl: 'https://example.invalid/one.mp3',
+      category: 'professional',
+      gender: 'female',
+      age: 'old',
+    },
+    { id: 'ev-2', name: 'Test Two', languages: [], description: 'Designed here.', category: 'generated', own: true },
+  ]);
 });
 
 test('pocket: asks its own server, falls back to the image defaults on a 404', async () => {

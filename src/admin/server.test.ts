@@ -423,7 +423,7 @@ test('characters: an invalid one is refused and the file stays as it was', async
 
   const bad: Array<[string, Record<string, unknown>, RegExp]> = [
     ['no voice', { ...PAUL, id: 'c', voice: { provider: 'cartesia' } }, /"voice" is required/],
-    ['provider', { ...PAUL, id: 'c', voice: { provider: 'elevenlabs' } }, /"provider"/],
+    ['provider', { ...PAUL, id: 'c', voice: { provider: 'acme' } }, /"provider"/],
     ['gender', { ...PAUL, id: 'c', gender: 'x' }, /"gender"/],
     ['name', { ...PAUL, id: 'c', name: 'a\nb' }, /"name"/],
     ['long name', { ...PAUL, id: 'c', name: 'n'.repeat(61) }, /"name"/],
@@ -717,12 +717,13 @@ test('no response ever carries an API key', async () => {
     keys: Record<string, boolean>;
   };
   // Whether a vendor can be previewed is useful; the key itself never is.
-  // `kugel` has no key in this environment: the UI marks such a vendor instead of hiding it.
+  // `kugel` and `elevenlabs` have no key in this environment: the UI marks such a vendor instead of hiding it.
   assert.deepEqual(state.keys, {
     mistral: true,
     cartesia: true,
     openrouter: true,
     kugel: false,
+    elevenlabs: false,
   });
 });
 

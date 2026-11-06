@@ -1,7 +1,14 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { parseSettings } from '../core/settings.js';
-import { choiceFromVoice, kugelApiKey, ttsChoice, ttsChoices, ttsFallbackChoice } from './tts-provider.js';
+import {
+  choiceFromVoice,
+  kugelApiKey,
+  speaksAudioTags,
+  ttsChoice,
+  ttsChoices,
+  ttsFallbackChoice,
+} from './tts-provider.js';
 
 test('ttsChoice: Mistral by default, voice from the profile', () => {
   assert.deepEqual(ttsChoice({}), {
@@ -42,7 +49,7 @@ test('ttsChoice: OpenRouter has no default model', () => {
 });
 
 test('ttsChoice: an unknown vendor fails instead of falling back', () => {
-  assert.throws(() => ttsChoice({ SPRECHSTUNDE_TTS_PROVIDER: 'elevenlabs' }), /SPRECHSTUNDE_TTS_PROVIDER/);
+  assert.throws(() => ttsChoice({ SPRECHSTUNDE_TTS_PROVIDER: 'acme' }), /SPRECHSTUNDE_TTS_PROVIDER/);
 });
 
 test('ttsChoice: a kugel voice is a number, not a name', () => {
@@ -234,4 +241,17 @@ test('choiceFromVoice: a clip resolves into the voices directory', () => {
     if (before === undefined) delete process.env.SPRECHSTUNDE_VOICES_DIR;
     else process.env.SPRECHSTUNDE_VOICES_DIR = before;
   }
+});
+
+test('ttsChoice: ElevenLabs needs a voice and defaults to the v4 turbo model', () => {
+  assert.throws(() => ttsChoice({ SPRECHSTUNDE_TTS_PROVIDER: 'elevenlabs' }), /SPRECHSTUNDE_TTS_VOICE/);
+  const choice = ttsChoice({ SPRECHSTUNDE_TTS_PROVIDER: 'elevenlabs', SPRECHSTUNDE_TTS_VOICE: 'v' });
+  assert.equal(choice.model, 'eleven_v4_turbo');
+});
+
+test('speaksAudioTags: ElevenLabs v3 and v4 only', () => {
+  assert.equal(speaksAudioTags({ provider: 'elevenlabs', model: 'eleven_v4_turbo' }), true);
+  assert.equal(speaksAudioTags({ provider: 'elevenlabs', model: 'eleven_v3' }), true);
+  assert.equal(speaksAudioTags({ provider: 'elevenlabs', model: 'eleven_flash_v2_5' }), false);
+  assert.equal(speaksAudioTags({ provider: 'kugel', model: 'eleven_v4' }), false);
 });
