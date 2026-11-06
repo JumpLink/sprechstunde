@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { type APIConnectOptions, initializeLogger, tts } from '@livekit/agents';
 import { AudioFrame } from '@livekit/rtc-node';
-import { TagFreeTTS } from './tts-tag-filter.js';
+import { AudioTagTTS } from './tts-tag-filter.js';
 
 initializeLogger({ pretty: false, level: 'fatal' });
 
@@ -46,9 +46,9 @@ class RecordingTTS extends tts.TTS {
   }
 }
 
-test('TagFreeTTS: tags never reach the inner voice, split or whole, and the flush order holds', async () => {
+test('AudioTagTTS: without a dialect, tags never reach the inner voice, split or whole, and the flush order holds', async () => {
   const inner = new RecordingTTS();
-  const stream = new TagFreeTTS(inner).stream();
+  const stream = new AudioTagTTS(inner).stream();
   stream.pushText('[chuck');
   stream.pushText('les] Na klar.');
   stream.pushText(' Zimmer [3');
@@ -67,8 +67,23 @@ test('TagFreeTTS: tags never reach the inner voice, split or whole, and the flus
   assert.equal(frames, 4);
 });
 
-test('TagFreeTTS: synthesize strips the whole text', () => {
+test('AudioTagTTS: synthesize strips the whole text', () => {
   const inner = new RecordingTTS();
-  assert.throws(() => new TagFreeTTS(inner).synthesize('[sighs] Leider voll.'), /recorded/);
+  assert.throws(() => new AudioTagTTS(inner).synthesize('[sighs] Leider voll.'), /recorded/);
   assert.deepEqual(inner.seen, ['Leider voll.']);
+});
+
+test('AudioTagTTS: Voxtral gets its own tags, split or whole', async () => {
+  const inner = new RecordingTTS();
+  const stream = new AudioTagTTS(inner, 'voxtral').stream();
+  stream.pushText('[warm');
+  stream.pushText('ly] Moin! [laughs softly] Na klar.');
+  stream.endInput();
+  for await (const _audio of stream);
+  assert.deepEqual(
+    inner.seen.filter((text) => text !== '<flush>'),
+    ['[emotion=warm] Moin! [laugh] Na klar.'],
+  );
+  assert.throws(() => new AudioTagTTS(inner, 'voxtral').synthesize('[sighs] Leider voll.'), /recorded/);
+  assert.equal(inner.seen.at(-1), '[sigh] Leider voll.');
 });
