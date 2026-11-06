@@ -38,6 +38,7 @@ src/agent/transfer.ts
 src/agent/tts-hedge.ts
 src/agent/tts-meter.ts
 src/agent/tts-provider.ts
+src/agent/tts-tag-filter.ts
 src/agent/tts-voice.ts
 src/agent/watchdog.ts
 src/cli/fallback.ts
@@ -48,6 +49,7 @@ src/cli/speech.ts
 src/cli/stt-try.ts
 src/cli/tts-try.ts
 src/cli/voice.ts
+src/core/audio-tags.ts
 src/core/audio.ts
 src/core/knowledge-snapshot.ts
 src/core/knowledge.ts
