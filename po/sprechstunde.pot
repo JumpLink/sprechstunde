@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-06 22:44+0100\n"
+"POT-Creation-Date: 2026-11-06 22:53+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -262,84 +262,89 @@ msgstr ""
 msgid "the text could not be read from the document"
 msgstr ""
 
-#: src/admin/preview.ts:66 src/cli/speech.ts:31
+#: src/admin/preview.ts:67 src/cli/speech.ts:31
 msgid "no audio received"
 msgstr ""
 
-#: src/admin/profile-store.ts:88
+#: src/admin/profile-store.ts:92
 #, javascript-format
 msgid "\"%s\" must be a string"
 msgstr ""
 
-#: src/admin/profile-store.ts:89
+#: src/admin/profile-store.ts:93
 #, javascript-format
 msgid "\"%s\" is too long"
 msgstr ""
 
-#: src/admin/profile-store.ts:110
+#: src/admin/profile-store.ts:114
 msgid "the transfer target must be a phone number, tel:+… or sip:user@host"
 msgstr ""
 
-#: src/admin/profile-store.ts:113
+#: src/admin/profile-store.ts:117
 msgid "\"draft\" must be an object"
 msgstr ""
 
-#: src/admin/profile-store.ts:115
+#: src/admin/profile-store.ts:119
 #, javascript-format
 msgid "\"facts\" must be a list of at most %s entries"
 msgstr ""
 
-#: src/admin/profile-store.ts:118
+#: src/admin/profile-store.ts:122
 msgid "\"facts\" must be a list of topic and answer"
 msgstr ""
 
-#: src/admin/profile-store.ts:129
+#: src/admin/profile-store.ts:136
+#, javascript-format
+msgid "\"greetingVariants\" must be a list of at most %s entries"
+msgstr ""
+
+#: src/admin/profile-store.ts:145
 msgid "\"transfer\" must be an object or null"
 msgstr ""
 
-#: src/admin/profile-store.ts:162 src/admin/profile-store.ts:352
+#: src/admin/profile-store.ts:179 src/admin/profile-store.ts:372
 #, javascript-format
 msgid "no profile %s"
 msgstr ""
 
-#: src/admin/profile-store.ts:165 src/admin/profile-store.ts:346
+#: src/admin/profile-store.ts:182 src/admin/profile-store.ts:366
 #: src/admin/server.ts:281
 #, javascript-format
 msgid "%s is not valid JSON"
 msgstr ""
 
-#: src/admin/profile-store.ts:166 src/admin/server.ts:282
+#: src/admin/profile-store.ts:183 src/admin/server.ts:282
 msgid "top level must be an object"
 msgstr ""
 
-#: src/admin/profile-store.ts:195
+#: src/admin/profile-store.ts:214
 msgid "a transfer needs a target: enter a phone number"
 msgstr ""
 
-#: src/admin/profile-store.ts:236 src/admin/server.ts:645
+#: src/admin/profile-store.ts:256 src/admin/server.ts:645
 #: src/admin/server.ts:698 src/admin/server.ts:726 src/admin/server.ts:757
 msgid "\"file\" must be the name of a .json file in the profiles directory"
 msgstr ""
 
-#: src/admin/profile-store.ts:241 src/admin/profile-store.ts:245
-#: src/admin/profile-store.ts:337
+#: src/admin/profile-store.ts:261 src/admin/profile-store.ts:265
+#: src/admin/profile-store.ts:357
 msgid "invalid version"
 msgstr ""
 
-#: src/admin/profile-store.ts:312 src/admin/server.ts:508
+#: src/admin/profile-store.ts:332 src/admin/server.ts:508
 msgid "\"revision\" must be the revision the page loaded"
 msgstr ""
 
-#: src/admin/profile-store.ts:317 src/admin/profile-store.ts:354
+#: src/admin/profile-store.ts:337 src/admin/profile-store.ts:374
 msgid ""
 "the profile changed since you loaded it: reload it and make the change again"
 msgstr ""
 
-#: src/admin/profile-store.ts:343
+#: src/admin/profile-store.ts:363
 msgid "no such version"
 msgstr ""
 
-#: src/admin/profile-store.ts:364
+#: src/admin/profile-store.ts:384
 msgid "a profile with this name already exists"
 msgstr ""
 
@@ -833,7 +838,7 @@ msgstr ""
 msgid "Cancel"
 msgstr ""
 
-#: web/src/lib/ui/ModelFacts.svelte:14 web/src/pages/Knowledge.svelte:413
+#: web/src/lib/ui/ModelFacts.svelte:14 web/src/pages/Knowledge.svelte:429
 msgid "Tools"
 msgstr ""
 
@@ -1127,7 +1132,7 @@ msgstr ""
 msgid "Use this profile"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:237 web/src/pages/Knowledge.svelte:532
+#: web/src/pages/Knowledge.svelte:237 web/src/pages/Knowledge.svelte:548
 #: web/src/pages/Sources.svelte:396 web/src/pages/Sources.svelte:583
 msgid "History"
 msgstr ""
@@ -1166,7 +1171,7 @@ msgstr ""
 msgid "Duplicate into profiles directory"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:294 web/src/pages/Knowledge.svelte:333
+#: web/src/pages/Knowledge.svelte:294 web/src/pages/Knowledge.svelte:346
 #, javascript-format
 msgid "Language %s, time zone %s"
 msgstr ""
@@ -1184,7 +1189,7 @@ msgstr ""
 msgid "Default character (%s)"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:316 web/src/pages/Knowledge.svelte:336
+#: web/src/pages/Knowledge.svelte:316 web/src/pages/Knowledge.svelte:349
 msgid "Greeting"
 msgstr ""
 
@@ -1194,169 +1199,180 @@ msgid ""
 "empty."
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:319 web/src/pages/Knowledge.svelte:341
-msgid "Instructions"
-msgstr ""
-
-#: web/src/pages/Knowledge.svelte:322 web/src/pages/Knowledge.svelte:347
-msgid "Fallback text"
+#: web/src/pages/Knowledge.svelte:320
+msgid "More greetings"
 msgstr ""
 
 #: web/src/pages/Knowledge.svelte:322
+msgid ""
+"One per line; each call picks one of these or the greeting above at random. "
+"Each must say that the caller talks to an AI. Audio tags such as [warmly] "
+"are allowed."
+msgstr ""
+
+#: web/src/pages/Knowledge.svelte:332 web/src/pages/Knowledge.svelte:357
+msgid "Instructions"
+msgstr ""
+
+#: web/src/pages/Knowledge.svelte:335 web/src/pages/Knowledge.svelte:363
+msgid "Fallback text"
+msgstr ""
+
+#: web/src/pages/Knowledge.svelte:335
 msgid "Spoken when the assistant cannot answer. Leave empty for none."
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:355
+#: web/src/pages/Knowledge.svelte:371
 msgid "Facts"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:355
+#: web/src/pages/Knowledge.svelte:371
 #, javascript-format
 msgid "%s facts the assistant can answer from"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:359
+#: web/src/pages/Knowledge.svelte:375
 msgid "Add fact"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:363
+#: web/src/pages/Knowledge.svelte:379
 msgid "Search facts"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:365
+#: web/src/pages/Knowledge.svelte:381
 msgid "No facts found"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:372
+#: web/src/pages/Knowledge.svelte:388
 msgid "Topic"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:376 web/src/pages/Knowledge.svelte:377
+#: web/src/pages/Knowledge.svelte:392 web/src/pages/Knowledge.svelte:393
 msgid "Answer"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:381
+#: web/src/pages/Knowledge.svelte:397
 msgid "Move up"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:387
+#: web/src/pages/Knowledge.svelte:403
 msgid "Move down"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:393
+#: web/src/pages/Knowledge.svelte:409
 msgid "Delete fact"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:413
+#: web/src/pages/Knowledge.svelte:429
 msgid "What the assistant can do besides talking"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:415
+#: web/src/pages/Knowledge.svelte:431
 msgid "No tools for this profile"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:430
+#: web/src/pages/Knowledge.svelte:446
 msgid "required"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:451
+#: web/src/pages/Knowledge.svelte:467
 msgid "Transfer calls to a person"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:454 web/src/pages/Knowledge.svelte:471
+#: web/src/pages/Knowledge.svelte:470 web/src/pages/Knowledge.svelte:487
 msgid "Announcement before transferring"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:458 web/src/pages/Knowledge.svelte:475
+#: web/src/pages/Knowledge.svelte:474 web/src/pages/Knowledge.svelte:491
 msgid "Transfer target"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:461
+#: web/src/pages/Knowledge.svelte:477
 #, javascript-format
 msgid ""
 "Now: %s. The number is never shown in full. Enter a new one to replace it, "
 "or leave empty to keep it."
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:462
+#: web/src/pages/Knowledge.svelte:478
 msgid "A phone number, tel:+… or sip:user@host"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:483
+#: web/src/pages/Knowledge.svelte:499
 msgid "System prompt"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:484
+#: web/src/pages/Knowledge.svelte:500
 msgid "What the model would receive with your unsaved changes"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:484
+#: web/src/pages/Knowledge.svelte:500
 msgid "Exactly what the model receives"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:492
+#: web/src/pages/Knowledge.svelte:508
 msgid "Hide"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:492
+#: web/src/pages/Knowledge.svelte:508
 msgid "Show"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:497
+#: web/src/pages/Knowledge.svelte:513
 msgid "Copied"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:497
+#: web/src/pages/Knowledge.svelte:513
 msgid "Copy"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:509 web/src/pages/Knowledge.svelte:511
+#: web/src/pages/Knowledge.svelte:525 web/src/pages/Knowledge.svelte:527
 msgid "Unsaved changes"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:513 web/src/pages/Sources.svelte:416
+#: web/src/pages/Knowledge.svelte:529 web/src/pages/Sources.svelte:416
 msgid "Discard"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:514 web/src/pages/Llm.svelte:73
+#: web/src/pages/Knowledge.svelte:530 web/src/pages/Llm.svelte:73
 #: web/src/pages/Sources.svelte:437 web/src/pages/characters/Wizard.svelte:457
 msgid "Save"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:522
+#: web/src/pages/Knowledge.svelte:538
 msgid "The profile changed"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:523
+#: web/src/pages/Knowledge.svelte:539
 msgid ""
 "Someone changed this profile after you opened it. Reload to see the current "
 "version; your edits here are lost."
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:524
+#: web/src/pages/Knowledge.svelte:540
 msgid "Reload"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:533
+#: web/src/pages/Knowledge.svelte:549
 msgid ""
 "The last 20 versions of this profile. Restoring keeps the current one in the "
 "history."
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:538
+#: web/src/pages/Knowledge.svelte:554
 msgid "No earlier versions yet"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:543
+#: web/src/pages/Knowledge.svelte:559
 #, javascript-format
 msgid "%s bytes"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:544
+#: web/src/pages/Knowledge.svelte:560
 msgid "Restore"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:552 web/src/pages/Sources.svelte:599
+#: web/src/pages/Knowledge.svelte:568 web/src/pages/Sources.svelte:599
 #: web/src/pages/voices/VoiceBrowser.svelte:331
 msgid "Close"
 msgstr ""

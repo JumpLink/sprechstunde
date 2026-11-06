@@ -35,6 +35,7 @@ export const HISTORY_DIR = '.history';
 export const HISTORY_KEEP = 20;
 const MAX_TEXT_CHARS = 20_000;
 const MAX_FACTS = 200;
+const MAX_GREETINGS = 20;
 const STAMP = /^\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}\.\d{3}Z$/;
 
 /** A fact; `origin` is its index in the file as read, so keys the page does not edit survive a reorder. */
@@ -46,6 +47,8 @@ export interface DraftFact extends Fact {
 export interface ProfileDraft {
   assistantName: string;
   greeting: string;
+  /** Absent leaves the file's variants as they are; empty takes them off. */
+  greetingVariants?: string[];
   instructions: string;
   facts: DraftFact[];
   transfer: { announce: string } | null;
@@ -60,6 +63,7 @@ export interface ProfileDraft {
 export interface DraftView {
   assistantName: string;
   greeting: string;
+  greetingVariants: string[];
   instructions: string;
   facts: DraftFact[];
   transfer: { announce: string; targetMasked: string } | null;
@@ -124,6 +128,18 @@ export function parseDraft(raw: unknown): ProfileDraft {
       ...(origin !== undefined && { origin }),
     };
   });
+  let greetingVariants: string[] | undefined;
+  if (raw.greetingVariants !== undefined) {
+    if (!Array.isArray(raw.greetingVariants) || raw.greetingVariants.length > MAX_GREETINGS) {
+      throw new HttpError(
+        400,
+        _('"greetingVariants" must be a list of at most %s entries').replace('%s', String(MAX_GREETINGS)),
+      );
+    }
+    greetingVariants = raw.greetingVariants
+      .map((entry, index) => text(entry, `greetingVariants[${index}]`))
+      .filter((entry) => entry.trim() !== '');
+  }
   let transfer: ProfileDraft['transfer'] = null;
   if (raw.transfer !== null && raw.transfer !== undefined) {
     if (!isRecord(raw.transfer)) throw new HttpError(400, _('"transfer" must be an object or null'));
@@ -144,6 +160,7 @@ export function parseDraft(raw: unknown): ProfileDraft {
   return {
     assistantName: text(raw.assistantName, 'assistantName'),
     greeting: text(raw.greeting, 'greeting'),
+    ...(greetingVariants && { greetingVariants }),
     instructions: text(raw.instructions, 'instructions'),
     facts,
     transfer,
@@ -176,6 +193,8 @@ export function applyDraft(raw: Raw, draft: ProfileDraft, name: string): { json:
   const next: Raw = { ...raw };
   next.assistantName = draft.assistantName;
   next.greeting = draft.greeting;
+  if (draft.greetingVariants?.length === 0) delete next.greetingVariants;
+  else if (draft.greetingVariants) next.greetingVariants = draft.greetingVariants;
   next.instructions = draft.instructions;
   const oldFacts = Array.isArray(raw.facts) ? raw.facts : [];
   next.facts = draft.facts.map((fact) => {
@@ -211,6 +230,7 @@ export function draftView(profile: Profile): DraftView {
   return {
     assistantName: profile.assistantName,
     greeting: profile.greeting,
+    greetingVariants: profile.greetingVariants ?? [],
     instructions: profile.instructions,
     facts: profile.facts.map((fact, origin) => ({ ...fact, origin })),
     transfer: profile.transfer

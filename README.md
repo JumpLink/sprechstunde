@@ -397,6 +397,8 @@ sources API relies on the same `Host` and origin checks as the rest of it and do
 
 ## Not tested yet
 
+- Audio tags in the greeting and its variants (`greetingVariants`) are tested with fakes only; how
+  `[warmly]` sounds at the start of a real call, before the voice has any context, is unheard.
 - Fetching is tested against fakes and a loopback server, not against real sites, real `robots.txt`
   files or a sitemap of a live venue.
 - OCR was called live once on 2026-10-20 (EU endpoint, `mistral-ocr-latest`) with a generated one-page

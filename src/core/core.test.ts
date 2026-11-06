@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { loadProfile, parseProfile, withAssistantName } from './profile.js';
+import { loadProfile, parseProfile, pickGreeting, withAssistantName } from './profile.js';
 import { buildInstructions, personaOf } from './prompt.js';
 import { describeKnowledge } from './knowledge.js';
 import { maskTransferTarget, TRANSFER_TOOL, toolDescriptors, transferOverride, transferRequest } from './tools.js';
@@ -24,6 +24,33 @@ test('example profile is valid', () => {
 
 test('rejects an empty greeting', () => {
   assert.throws(() => parseProfile(variant((r) => (r.greeting = '  '))), /greeting/);
+});
+
+test('greeting variants: optional, never empty, each as likely as the greeting', () => {
+  const profile = parseProfile(
+    variant((r) => (r.greetingVariants = ['[warmly] Moin, hier ist eine KI.', 'Hallo, KI hier.'])),
+  );
+  assert.deepEqual(profile.greetingVariants, ['[warmly] Moin, hier ist eine KI.', 'Hallo, KI hier.']);
+  assert.equal(
+    pickGreeting(profile, () => 0),
+    profile.greeting,
+  );
+  assert.equal(
+    pickGreeting(profile, () => 0.5),
+    '[warmly] Moin, hier ist eine KI.',
+  );
+  assert.equal(
+    pickGreeting(profile, () => 0.99),
+    'Hallo, KI hier.',
+  );
+  const single = parseProfile(variant((r) => delete r.greetingVariants));
+  assert.equal(
+    pickGreeting(single, () => 0.99),
+    single.greeting,
+  );
+  assert.equal(parseProfile(variant((r) => (r.greetingVariants = []))).greetingVariants, undefined);
+  assert.throws(() => parseProfile(variant((r) => (r.greetingVariants = ['ok', ' ']))), /greetingVariants\[1\]/);
+  assert.throws(() => parseProfile(variant((r) => (r.greetingVariants = 'Hallo'))), /greetingVariants/);
 });
 
 test('rejects a bad locale', () => {
@@ -185,6 +212,9 @@ test('withAssistantName renames whole-word mentions only', () => {
   const renamed = withAssistantName(profile, 'Jürgen');
   assert.equal(renamed.assistantName, 'Jürgen');
   assert.equal(renamed.greeting, 'Sie sprechen mit Jürgen. Miami? Jürgen!');
+  assert.deepEqual(withAssistantName({ ...profile, greetingVariants: ['Hier ist Mia.'] }, 'Jürgen').greetingVariants, [
+    'Hier ist Jürgen.',
+  ]);
   assert.equal(withAssistantName(profile, undefined), profile);
 });
 

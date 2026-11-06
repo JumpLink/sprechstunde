@@ -28,6 +28,12 @@ export interface Profile {
   assistantName: string;
   /** Spoken first. Must disclose that the caller talks to an AI (EU AI Act, Art. 50). */
   greeting: string;
+  /**
+   * Said instead of `greeting` on some calls, picked at random with it, so regular callers do not
+   * hear the same sentence every time. Each one must disclose the AI as well. Like the greeting,
+   * they may carry audio tags (`[warmly]`), which a voice that cannot read them never hears.
+   */
+  greetingVariants?: string[];
   /** Free-text persona and rules, added to the system prompt. */
   instructions: string;
   facts: Fact[];
@@ -111,6 +117,17 @@ export function parseProfile(raw: unknown, path = '<profile>'): Profile {
     };
   }
 
+  if (raw.greetingVariants !== undefined) {
+    if (!Array.isArray(raw.greetingVariants)) fail(path, '"greetingVariants" must be an array');
+    const variants = raw.greetingVariants.map((entry: unknown, index) => {
+      if (typeof entry !== 'string' || entry.trim() === '') {
+        fail(path, `greetingVariants[${index}] must be a non-empty string`);
+      }
+      return entry;
+    });
+    if (variants.length > 0) profile.greetingVariants = variants;
+  }
+
   if (raw.fallback !== undefined) profile.fallback = str(raw, 'fallback', path);
 
   if (raw.selfDescription !== undefined) {
@@ -175,6 +192,7 @@ export function withAssistantName(profile: Profile, name: string | undefined): P
     ...profile,
     assistantName: name,
     greeting: rename(profile.greeting),
+    ...(profile.greetingVariants && { greetingVariants: profile.greetingVariants.map(rename) }),
     instructions: rename(profile.instructions),
     ...(profile.transfer && {
       transfer: {
@@ -225,4 +243,10 @@ export function listProfiles(dir: string): ProfileEntry[] {
       };
     }
   });
+}
+
+/** The greeting for one call: `greeting` or one of `greetingVariants`, each as likely. */
+export function pickGreeting(profile: Profile, random: () => number = Math.random): string {
+  const all = [profile.greeting, ...(profile.greetingVariants ?? [])];
+  return all[Math.min(all.length - 1, Math.floor(random() * all.length))]!;
 }

@@ -6,9 +6,9 @@ import * as mistral from '@livekit/agents-plugin-mistralai';
 import type { Mistral } from '@mistralai/mistralai';
 import * as silero from '@livekit/agents-plugin-silero';
 import { ParticipantKind } from '@livekit/rtc-node';
-import { AUDIO_TAGS } from '../core/audio-tags.js';
+import { AUDIO_TAGS, stripAudioTags } from '../core/audio-tags.js';
 import { buildInstructions, type Persona, personaOf } from '../core/prompt.js';
-import { type Profile, withAssistantName } from '../core/profile.js';
+import { pickGreeting, type Profile, withAssistantName } from '../core/profile.js';
 import { LINE_ATTRIBUTE, LINE_ID } from '../core/lines.js';
 import { readSnapshot, snapshotPath } from '../core/knowledge-snapshot.js';
 import type { Character } from '../core/settings.js';
@@ -290,5 +290,7 @@ export async function runAssistant(ctx: JobContext, startProfile: Profile): Prom
     }),
     room: ctx.room,
   });
-  session.say(profile.greeting);
+  // A voice that reads tags gets them (rewritten by its own wrapper); any other would read them out.
+  const greeting = pickGreeting(profile);
+  session.say(audioTagDialect(speech.choice) ? greeting : stripAudioTags(greeting));
 }

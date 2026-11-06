@@ -1212,6 +1212,26 @@ const versions = async (harness: Harness, file: string) =>
     }
   ).versions;
 
+test('profile save: greeting variants land, empty lines go, an empty list takes them off', async () => {
+  const harness = await start({ profiles: { 'b.json': EDITABLE } });
+  const first = await edit(harness, 'b.json');
+  const response = await save(
+    harness,
+    'b.json',
+    first.revision,
+    draftOf({ greetingVariants: ['[warmly] Moin, hier ist eine KI.', '', 'Hallo, KI hier.'] }),
+  );
+  assert.equal(response.status, 200);
+  assert.deepEqual(profileJson(harness, 'b.json').greetingVariants, [
+    '[warmly] Moin, hier ist eine KI.',
+    'Hallo, KI hier.',
+  ]);
+  const second = (await edit(harness, 'b.json')) as Edit & { draft?: { greetingVariants: string[] } };
+  assert.deepEqual(second.draft?.greetingVariants, ['[warmly] Moin, hier ist eine KI.', 'Hallo, KI hier.']);
+  assert.equal((await save(harness, 'b.json', second.revision, draftOf({ greetingVariants: [] }))).status, 200);
+  assert.equal('greetingVariants' in profileJson(harness, 'b.json'), false);
+});
+
 test('knowledge: a profiles-directory file is editable, never with the full target; the start profile is not', async () => {
   const harness = await start({ profiles: { 'b.json': EDITABLE } });
   const response = await fetch(`${harness.url}/api/knowledge?file=b.json`);
