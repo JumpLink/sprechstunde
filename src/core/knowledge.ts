@@ -11,6 +11,7 @@ export interface Knowledge {
     timeZone: string;
   };
   greeting: string;
+  greetingVariants: string[];
   instructions: string;
   facts: Fact[];
   /** `targetMasked` hides all but the last two digits: the number is a person's phone. */
@@ -40,6 +41,7 @@ export function describeKnowledge(
       timeZone: profile.timeZone,
     },
     greeting: profile.greeting,
+    greetingVariants: profile.greetingVariants ?? [],
     instructions: profile.instructions,
     facts: profile.facts,
     transfer: request

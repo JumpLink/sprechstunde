@@ -10,7 +10,8 @@ import { tts } from '@livekit/agents';
 import type { Mistral } from '@mistralai/mistralai';
 import { downsampleS16le, encodeWav } from '../core/audio.js';
 import type { Profile } from '../core/profile.js';
-import { buildBaseTts, type TtsChoice } from '../agent/tts-provider.js';
+import { audioTagDialect, buildBaseTts, type TtsChoice } from '../agent/tts-provider.js';
+import { rewriteAudioTags } from '../core/audio-tags.js';
 import { _ } from '../i18n.js';
 
 /** 24 kHz (what the vendors deliver) to the 8 kHz a phone line carries. */
@@ -76,7 +77,8 @@ export function ttsSynthesizer(
   return async (choice, text) => {
     const instance = buildBaseTts(client(), profile, choice, env);
     try {
-      return await collect(instance, text);
+      // The greeting may carry audio tags; the sample says them the way this voice would on a call.
+      return await collect(instance, rewriteAudioTags(text, audioTagDialect(choice)));
     } finally {
       await instance.close().catch(() => {});
     }

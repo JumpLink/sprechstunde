@@ -316,6 +316,19 @@
           <Field label={_('Greeting')} for="k-greeting" hint={_('Must say that the caller talks to an AI (EU AI Act, Art. 50). It cannot be empty.')}>
             <textarea id="k-greeting" class="{controlClass} min-h-20" bind:value={draft.greeting}></textarea>
           </Field>
+          <Field
+            label={_('More greetings')}
+            for="k-greeting-variants"
+            hint={_('One per line; each call picks one of these or the greeting above at random. Each must say that the caller talks to an AI. Audio tags such as [warmly] are allowed.')}
+          >
+            <!-- Empty lines stay while typing so the cursor keeps its place; the server drops them. -->
+            <textarea
+              id="k-greeting-variants"
+              class="{controlClass} min-h-24"
+              value={draft.greetingVariants.join('\n')}
+              oninput={(e) => draft && (draft.greetingVariants = e.currentTarget.value.split('\n'))}
+            ></textarea>
+          </Field>
           <Field label={_('Instructions')} for="k-instructions">
             <textarea id="k-instructions" class="{controlClass} min-h-40" bind:value={draft.instructions}></textarea>
           </Field>
@@ -335,6 +348,9 @@
           <div>
             <dt class="font-medium">{_('Greeting')}</dt>
             <dd class="mt-1 text-muted-foreground">{knowledge.greeting}</dd>
+            {#each knowledge.greetingVariants as variant, index (index)}
+              <dd class="mt-1 text-muted-foreground">{variant}</dd>
+            {/each}
           </div>
           {#if knowledge.instructions}
             <div>

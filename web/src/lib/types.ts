@@ -163,6 +163,7 @@ export interface Fact {
 export interface Draft {
   assistantName: string;
   greeting: string;
+  greetingVariants: string[];
   instructions: string;
   facts: Fact[];
   transfer: { announce: string; targetMasked: string } | null;
@@ -184,6 +185,7 @@ export interface Knowledge {
   file: string | null;
   source: 'selected' | 'active' | 'start';
   greeting: string;
+  greetingVariants: string[];
   instructions: string;
   facts: Array<{ topic: string; answer: string }>;
   transfer: { announce: string; targetMasked: string } | null;
