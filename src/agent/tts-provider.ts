@@ -5,6 +5,7 @@ import * as mistral from '@livekit/agents-plugin-mistralai';
 import * as openai from '@livekit/agents-plugin-openai';
 import type { Mistral } from '@mistralai/mistralai';
 import { SUPPORTED_LANGUAGES, TTS as KugelTTS } from 'kugelaudio/livekit';
+import type { AudioTagDialect } from '../core/audio-tags.js';
 import type { Profile } from '../core/profile.js';
 import { type Character, KUGEL_VOICE_ID, type VoiceSpec, voiceRefAudioPath } from '../core/settings.js';
 import { spellOutNumbers } from '../core/spoken-numbers.js';
@@ -241,9 +242,13 @@ export function buildBaseTts(
 }
 
 /**
- * Whether a voice reads audio tags (`[chuckles]`) as cues instead of speaking them: ElevenLabs'
- * v3 and v4 models do, the older ones and every other vendor read the brackets out.
+ * How a voice reads audio tags (`[chuckles]`) as cues instead of speaking them: ElevenLabs' v3 and
+ * v4 models take the cues as written, Voxtral 3 has its own tags. Older models and every other
+ * vendor read the brackets out. Voxtral 2 (`voxtral-mini-tts-latest`, `-2603`) has no inline tags:
+ * there the emotion belongs to the voice.
  */
-export function speaksAudioTags(choice: Pick<TtsChoice, 'provider' | 'model'>): boolean {
-  return choice.provider === 'elevenlabs' && /^eleven_v[34]/.test(choice.model);
+export function audioTagDialect(choice: Pick<TtsChoice, 'provider' | 'model'>): AudioTagDialect | undefined {
+  if (choice.provider === 'elevenlabs' && /^eleven_v[34]/.test(choice.model)) return 'elevenlabs';
+  if (choice.provider === 'mistral' && /^voxtral-mini-tts-3(-|$)/.test(choice.model)) return 'voxtral';
+  return undefined;
 }

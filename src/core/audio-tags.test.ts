@@ -1,9 +1,16 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { AUDIO_TAGS, AudioTagStripper, audioTagLines, stripAudioTags } from './audio-tags.js';
+import {
+  AUDIO_TAGS,
+  AudioTagRewriter,
+  audioTagLines,
+  renderAudioTag,
+  rewriteAudioTags,
+  stripAudioTags,
+} from './audio-tags.js';
 
 function streamed(...pieces: string[]): string {
-  const stripper = new AudioTagStripper();
+  const stripper = new AudioTagRewriter();
   return pieces.map((piece) => stripper.push(piece)).join('') + stripper.flush();
 }
 
@@ -13,8 +20,8 @@ test('stripAudioTags: the tag and the space after it go, the sentence stays', ()
   assert.equal(stripAudioTags('Ohne Tag.'), 'Ohne Tag.');
 });
 
-test('AudioTagStripper: a tag split over pieces never leaks a half', () => {
-  const stripper = new AudioTagStripper();
+test('AudioTagRewriter: a tag split over pieces never leaks a half', () => {
+  const stripper = new AudioTagRewriter();
   assert.equal(stripper.push('Gern. [chuck'), 'Gern. ');
   assert.equal(stripper.push('les] Na'), 'Na');
   assert.equal(stripper.push(' klar.'), ' klar.');
@@ -22,11 +29,11 @@ test('AudioTagStripper: a tag split over pieces never leaks a half', () => {
   assert.equal(streamed('[', 'warmly', ']', ' ', 'Willkommen!'), 'Willkommen!');
 });
 
-test('AudioTagStripper: the space after a tag stays when nothing came before it', () => {
+test('AudioTagRewriter: the space after a tag stays when nothing came before it', () => {
   assert.equal(streamed('Ja', '[laughs softly]', ' genau.'), 'Ja genau.');
 });
 
-test('AudioTagStripper: an unclosed bracket is text, released at the end or at a newline', () => {
+test('AudioTagRewriter: an unclosed bracket is text, released at the end or at a newline', () => {
   assert.equal(streamed('Zimmer [3'), 'Zimmer [3');
   assert.equal(streamed('a [b\nc'), 'a [b\nc');
   const long = `[${'x'.repeat(60)}`;
@@ -39,4 +46,16 @@ test('audioTagLines: nothing without tags, every tag once with them', () => {
   const text = audioTagLines(AUDIO_TAGS).join('\n');
   for (const { tag } of AUDIO_TAGS) assert.ok(text.includes(`[${tag}]`));
   assert.match(text, /at most one tag per reply/);
+});
+
+test('rewriteAudioTags: Voxtral gets its own cue, unknown cues go, ElevenLabs text passes', () => {
+  assert.equal(rewriteAudioTags('[warmly] Bis bald!', 'voxtral'), '[emotion=warm] Bis bald!');
+  assert.equal(rewriteAudioTags('Ja [chuckles] genau.', 'voxtral'), 'Ja [chuckle] genau.');
+  assert.equal(rewriteAudioTags('Ja [whispers] genau.', 'voxtral'), 'Ja genau.');
+  assert.equal(rewriteAudioTags('[sighs] Leider voll.', 'elevenlabs'), '[sighs] Leider voll.');
+  assert.equal(rewriteAudioTags('Zimmer [3', 'voxtral'), 'Zimmer [3');
+});
+
+test('renderAudioTag: every listed cue has a Voxtral form', () => {
+  for (const { tag } of AUDIO_TAGS) assert.match(renderAudioTag('voxtral', tag), /^\[.+\]$/);
 });

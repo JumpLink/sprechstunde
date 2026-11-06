@@ -2,9 +2,9 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { parseSettings } from '../core/settings.js';
 import {
+  audioTagDialect,
   choiceFromVoice,
   kugelApiKey,
-  speaksAudioTags,
   ttsChoice,
   ttsChoices,
   ttsFallbackChoice,
@@ -249,9 +249,14 @@ test('ttsChoice: ElevenLabs needs a voice and defaults to the v4 turbo model', (
   assert.equal(choice.model, 'eleven_v4_turbo');
 });
 
-test('speaksAudioTags: ElevenLabs v3 and v4 only', () => {
-  assert.equal(speaksAudioTags({ provider: 'elevenlabs', model: 'eleven_v4_turbo' }), true);
-  assert.equal(speaksAudioTags({ provider: 'elevenlabs', model: 'eleven_v3' }), true);
-  assert.equal(speaksAudioTags({ provider: 'elevenlabs', model: 'eleven_flash_v2_5' }), false);
-  assert.equal(speaksAudioTags({ provider: 'kugel', model: 'eleven_v4' }), false);
+test('audioTagDialect: ElevenLabs v3 and v4, Voxtral 3, nothing else', () => {
+  assert.equal(audioTagDialect({ provider: 'elevenlabs', model: 'eleven_v4_turbo' }), 'elevenlabs');
+  assert.equal(audioTagDialect({ provider: 'elevenlabs', model: 'eleven_v3' }), 'elevenlabs');
+  assert.equal(audioTagDialect({ provider: 'elevenlabs', model: 'eleven_flash_v2_5' }), undefined);
+  assert.equal(audioTagDialect({ provider: 'kugel', model: 'eleven_v4' }), undefined);
+  assert.equal(audioTagDialect({ provider: 'mistral', model: 'voxtral-mini-tts-3-0' }), 'voxtral');
+  assert.equal(audioTagDialect({ provider: 'mistral', model: 'voxtral-mini-tts-3' }), 'voxtral');
+  // `-latest` is Voxtral 2 (2603), which has no inline tags.
+  assert.equal(audioTagDialect({ provider: 'mistral', model: 'voxtral-mini-tts-latest' }), undefined);
+  assert.equal(audioTagDialect({ provider: 'mistral', model: 'voxtral-mini-tts-30' }), undefined);
 });

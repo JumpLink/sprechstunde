@@ -25,8 +25,8 @@ import { ContiguousSTT } from './stt-merge.js';
 import { openPocketSession } from './pocket-tts.js';
 import { closeSpeech } from './speech-close.js';
 import { HedgedTTS } from './tts-hedge.js';
-import { buildBaseTts, pocketUrl, speaksAudioTags, type TtsChoice, ttsChoices } from './tts-provider.js';
-import { TagFreeTTS } from './tts-tag-filter.js';
+import { audioTagDialect, buildBaseTts, pocketUrl, type TtsChoice, ttsChoices } from './tts-provider.js';
+import { AudioTagTTS } from './tts-tag-filter.js';
 
 const DEFAULT_STT_MODEL = 'voxtral-mini-transcribe-realtime-2602';
 const FALLBACK_STT_MODEL = 'voxtral-mini-latest';
@@ -145,23 +145,19 @@ async function voiceForCall(
   character: Character | undefined,
 ): Promise<{ tts: tts.TTS; choice: TtsChoice; release?: () => Promise<void> }> {
   const { primary, fallback } = ttsChoices(character);
-  if (!fallback) return { tts: buildTts(client, profile, primary), choice: primary };
+  if (!fallback) return { tts: taggedTts(client, profile, primary, primary), choice: primary };
 
   let release: (() => Promise<void>) | undefined;
   if (primary.provider === 'pocket') {
     release = await openPocketSession(pocketUrl());
     if (!release) {
       console.log(_('Pocket TTS has no free session, this call uses the fallback voice'));
-      return { tts: buildTts(client, profile, fallback), choice: fallback };
+      return { tts: taggedTts(client, profile, fallback, fallback), choice: fallback };
     }
   }
-  // The model writes audio tags for a primary voice that reads them; a fallback that does not would
-  // speak them out.
-  const second = buildTts(client, profile, fallback);
-  const fallbackTts = speaksAudioTags(primary) && !speaksAudioTags(fallback) ? new TagFreeTTS(second) : second;
   return {
     tts: new tts.FallbackAdapter({
-      ttsInstances: [buildTts(client, profile, primary), fallbackTts],
+      ttsInstances: [taggedTts(client, profile, primary, primary), taggedTts(client, profile, fallback, primary)],
       maxRetryPerTTS: 0,
     }),
     choice: primary,
@@ -169,10 +165,22 @@ async function voiceForCall(
   };
 }
 
+/**
+ * The voice for `choice`, fed text the model wrote for `writer`'s voice: when that voice reads
+ * audio tags, the model writes ElevenLabs' cues, which this voice gets in its own dialect or, if it
+ * has none, removed, so it never speaks a bracket out.
+ */
+function taggedTts(client: Mistral, profile: Profile, choice: TtsChoice, writer: TtsChoice): tts.TTS {
+  const voice = buildTts(client, profile, choice);
+  if (!audioTagDialect(writer)) return voice;
+  const dialect = audioTagDialect(choice);
+  return dialect === 'elevenlabs' ? voice : new AudioTagTTS(voice, dialect);
+}
+
 /** The character's persona, with the audio tags the call's voice reads when it reads any. */
 function personaForCall(character: Character | undefined, choice: TtsChoice): Persona | undefined {
   const persona = personaOf(character);
-  return speaksAudioTags(choice) ? { ...persona, audioTags: AUDIO_TAGS } : persona;
+  return audioTagDialect(choice) ? { ...persona, audioTags: AUDIO_TAGS } : persona;
 }
 
 /** The line the call came in on, from the attribute the inbound trunk sets; never a phone number. */
