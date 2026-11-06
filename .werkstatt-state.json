@@ -2,7 +2,6 @@
   "version": 1,
   "name": "sprechstunde",
   "description": "Local state files of sprechstunde that are not in the repo.",
-
   "entries": [
     {
       "path": ".env",
@@ -33,14 +32,12 @@
     {
       "path": "var/settings/voice.json",
       "class": "state",
-      "why": "The voices and models the agent actually runs with: presets plus the active primary/fallback, written by the settings UI (`npm run admin`). Nothing else records which voice a venue was tuned to; losing it drops the line back to the SPRECHSTUNDE_TTS_* values in .env and the comparison work has to be redone by ear.",
-      "recreate": "Only by picking the voices again in the settings UI. Delete it and the agent runs on .env alone, so a missing file is degraded, not broken."
+      "why": "The voices and models the agent actually runs with: presets plus the active primary/fallback, written by the settings UI (`npm run admin`). Nothing else records which voice a venue was tuned to; losing it drops the line back to the SPRECHSTUNDE_TTS_* values in .env and the comparison work has to be redone by ear. Recovery: Only by picking the voices again in the settings UI. Delete it and the agent runs on .env alone, so a missing file is degraded, not broken."
     },
     {
       "path": "var/profiles",
       "class": "state",
-      "why": "The venue profiles (greeting, facts, opening hours) the settings UI picks from per call; they hold the real venue data that never goes into this repo. Losing the directory loses the only copy of those profiles and the agent falls back to the start profile.",
-      "recreate": "Only from the venue's own copy of each profile JSON; copy profiles/example/profile.de.json as a template."
+      "why": "The venue profiles (greeting, facts, opening hours) the settings UI picks from per call; they hold the real venue data that never goes into this repo. Losing the directory loses the only copy of those profiles and the agent falls back to the start profile. Recovery: Only from the venue's own copy of each profile JSON; copy profiles/example/profile.de.json as a template."
     },
     {
       "path": "var/valkey",
@@ -50,8 +47,7 @@
     {
       "path": "var/db",
       "class": "state",
-      "why": "The knowledge database (sources, sections, revisions with their approval history and hand edits) written by the settings UI. It holds the only copy of text a venue edited by hand and of the review history; a fetched page can be fetched again, an edit cannot. `var/db/files/<tenant>/<sha256>` holds the ORIGINAL uploaded PDFs and pictures of document sources (content-addressed): an upload exists nowhere else, so losing it leaves the extracted text but not the document it came from or the means to read it again; an upload may be a venue's own document, so keep it out of the repo and out of unencrypted copies.",
-      "recreate": "Not reproducible: web sources can be added and fetched again, hand-written text and edits are lost. Back up var/db including its files/ directory (copy the .sqlite file while the admin is stopped, or use sqlite3 .backup); an uploaded document can only be uploaded again from the venue's own copy."
+      "why": "The knowledge database (sources, sections, revisions with their approval history and hand edits) written by the settings UI. It holds the only copy of text a venue edited by hand and of the review history; a fetched page can be fetched again, an edit cannot. `var/db/files/<tenant>/<sha256>` holds the ORIGINAL uploaded PDFs and pictures of document sources (content-addressed): an upload exists nowhere else, so losing it leaves the extracted text but not the document it came from or the means to read it again; an upload may be a venue's own document, so keep it out of the repo and out of unencrypted copies. Recovery: Not reproducible: web sources can be added and fetched again, hand-written text and edits are lost. Back up var/db including its files/ directory (copy the .sqlite file while the admin is stopped, or use sqlite3 .backup); an uploaded document can only be uploaded again from the venue's own copy."
     },
     {
       "path": "deploy/asterisk/sounds/fallback.wav",
