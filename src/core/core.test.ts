@@ -113,6 +113,12 @@ test('instructions state the local date and weekday of the venue', () => {
 
 const NOW = new Date('2026-10-17T12:00:00Z');
 
+test('prompt: numbers and times are to be written as spoken words', () => {
+  const text = buildInstructions(example, NOW);
+  assert.match(text, /times, dates, numbers, prices and abbreviations in words, never as digits/);
+  assert.ok(text.indexOf('in words') > text.indexOf('Rules:'));
+});
+
 test('prompt: without a persona, or with an empty one, it is exactly what it was', () => {
   const plain = buildInstructions(example, NOW);
   assert.equal(buildInstructions(example, NOW, undefined), plain);
