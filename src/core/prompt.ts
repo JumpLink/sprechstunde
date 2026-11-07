@@ -77,6 +77,9 @@ export function buildInstructions(profile: Profile, now: Date, persona?: Persona
     '- You cannot take, change or cancel reservations.',
     '- Never offer anything you cannot do yourself, such as taking a message or arranging a call back.',
     '- Speak in short, plain sentences, as on the phone. No markdown, no lists, no emojis.',
+    // Every voice reads the text as given. ElevenLabs recommends words over digits, and its own
+    // normalisation only adds latency.
+    '- Your text is read aloud by a speech synthesizer, so write it as it is spoken: times, dates, numbers, prices and abbreviations in words, never as digits or symbols (in German "von siebzehn bis einundzwanzig Uhr", "neun Uhr dreißig", "zwölf Euro fünfzig"). Mark pauses with commas and full stops, not with dashes or line breaks.',
     `- ${transfer}`,
     '',
     'Facts:',
