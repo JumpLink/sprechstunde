@@ -37,7 +37,9 @@ import {
 } from '../core/profile.js';
 import { buildInstructions, type Persona, personaOf } from '../core/prompt.js';
 import { transferOverride } from '../core/tools.js';
+import { builderFromEnv, technologyFor } from '../agent/about.js';
 import { profileForCall } from '../agent/settings.js';
+import { aboutBlock } from '../core/about.js';
 import { lineIds, maskedLineNumber } from '../core/lines.js';
 import { choiceFromVoice, kugelApiKey, type TtsChoice, ttsChoice, ttsFallbackChoice } from '../agent/tts-provider.js';
 import { _ } from '../i18n.js';
@@ -273,6 +275,10 @@ export function createAdminServer(options: AdminOptions): Server {
     if (!character) return {}; // no character: the profile's own name stands
     return { name: character.name, persona: personaOf(character) };
   };
+
+  /** The self-description a call with this profile's character gets, so the page shows what the model sees. */
+  const aboutFor = (settings: Settings, profile: Profile): string =>
+    aboutBlock(technologyFor(settings, characterFor(settings, profile.character).character, env), builderFromEnv(env));
 
   const startRaw = (): { raw: Record<string, unknown>; dir: string } => {
     const path = resolve(options.startProfileFile ?? (env.SPRECHSTUNDE_PROFILE || DEFAULT_PROFILE_PATH));
@@ -660,6 +666,7 @@ export function createAdminServer(options: AdminOptions): Server {
           new Date(),
           transferOverride(env),
           speaker(settings, profile).persona,
+          aboutFor(settings, profile),
         ),
         file: shown,
         source,
@@ -675,7 +682,13 @@ export function createAdminServer(options: AdminOptions): Server {
       const settings = current();
       const { name, persona } = speaker(settings, profile);
       return json(response, 200, {
-        systemPrompt: buildInstructions(withAssistantName(profile, name), new Date(), persona),
+        systemPrompt: buildInstructions(
+          withAssistantName(profile, name),
+          new Date(),
+          persona,
+          undefined,
+          aboutFor(settings, profile),
+        ),
       });
     }
 
