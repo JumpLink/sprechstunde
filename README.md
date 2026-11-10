@@ -88,6 +88,7 @@ could not reach PipeWire); that is an observation on one machine, not a general 
 | `SPRECHSTUNDE_AGENT_NAME` | name used for explicit dispatch, default `sprechstunde` |
 | `SPRECHSTUNDE_STT_MODEL` / `_LLM_MODEL` / `_TTS_MODEL` | override the Mistral models |
 | `SPRECHSTUNDE_LLM_FALLBACK_MODEL` | optional second LLM, asked when the first is too slow or fails. Empty (the default) leaves the single model in place |
+| `SPRECHSTUNDE_BUILDER_NAME`, `_PLACE`, `_EMAIL`, `_URL` | who built the platform, all optional. Every assistant knows its own models and voice (read from the settings of the call) and says so when a caller asks. With a name set it also says who built it and, when asked, gives the e-mail and website. Without a name it says nothing about a builder |
 | `SPRECHSTUNDE_LLM_ATTEMPT_TIMEOUT` | seconds one LLM gets before the fallback is asked, default `3`. Only used with a fallback model |
 | `SPRECHSTUNDE_TTS_PROVIDER` | `mistral` (default), `cartesia` (needs `CARTESIA_API_KEY`, model default `sonic-3.6`), `openrouter` (needs `OPENROUTER_API_KEY` and `SPRECHSTUNDE_TTS_MODEL`, e.g. `elevenlabs/eleven-flash-v2.5`), `pocket` (Kyutai Pocket TTS on this machine, see [Local voice](#local-voice-kyutai-pocket-tts)) or `kugel` (KugelAudio, needs `KUGELAUDIO_API_KEY`, model default `kugel-3.5`). OpenRouter is for comparing voices: it routes to vendors outside the EU |
 | `SPRECHSTUNDE_TTS_VOICE` | override the profile's TTS voice. A voice id belongs to one vendor, so for `cartesia`, `openrouter` and `kugel` it is required and the profile's voice is ignored; `pocket` defaults to the server's voice. A `kugel` voice id is a number from that vendor's library |
@@ -399,6 +400,7 @@ sources API relies on the same `Host` and origin checks as the rest of it and do
 
 ## Not tested yet
 
+- The self-description (models, voice, builder) is checked against `mistral-small` in a text chat only. How it sounds on the phone, how often a caller's question triggers it and whether the e-mail address is understood by ear are unheard.
 - The `look_up_details` tool is covered by unit tests only. Whether it fixes the wrong menu prices
   with the real models, how often the model skips the lookup and what the extra round costs in a
   live call are unmeasured.

@@ -31,6 +31,7 @@ export function describeKnowledge(
   now: Date,
   override?: { number?: string; sipHost?: string },
   persona?: Persona,
+  about?: string,
 ): Knowledge {
   const request = transferRequest(profile, override);
   return {
@@ -51,7 +52,7 @@ export function describeKnowledge(
         }
       : null,
     fallback: profile.fallback ?? null,
-    systemPrompt: buildInstructions(profile, now, persona),
+    systemPrompt: buildInstructions(profile, now, persona, undefined, about),
     tools: toolDescriptors(),
   };
 }

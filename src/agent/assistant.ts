@@ -25,12 +25,12 @@ import { StallGuardSTT } from './stt-guard.js';
 import { ContiguousSTT } from './stt-merge.js';
 import { openPocketSession } from './pocket-tts.js';
 import { closeSpeech } from './speech-close.js';
+import { aboutBlock } from '../core/about.js';
+import { builderFromEnv, technologyFor } from './about.js';
+import { FALLBACK_STT_MODEL, sttModel } from './stt-models.js';
 import { HedgedTTS } from './tts-hedge.js';
 import { audioTagDialect, buildBaseTts, pocketUrl, type TtsChoice, ttsChoices } from './tts-provider.js';
 import { AudioTagTTS } from './tts-tag-filter.js';
-
-const DEFAULT_STT_MODEL = 'voxtral-mini-transcribe-realtime-2602';
-const FALLBACK_STT_MODEL = 'voxtral-mini-latest';
 
 // Mistral's realtime STT only finalises when the VAD reports end of speech, so the silence the
 // VAD waits for (Silero default 550 ms) adds straight to every reply. The turn detector still
@@ -101,7 +101,7 @@ function buildStt(client: Mistral, vad: silero.VAD, language: string): stt.STT {
         // Without `vad` the plugin loads its own Silero per call, which blocks the event loop.
         new mistral.STT({
           client,
-          model: process.env.SPRECHSTUNDE_STT_MODEL || DEFAULT_STT_MODEL,
+          model: sttModel(),
           language,
           vad,
         }),
@@ -297,7 +297,13 @@ export async function runAssistant(ctx: JobContext, startProfile: Profile): Prom
 
   await session.start({
     agent: new voice.Agent({
-      instructions: buildInstructions(profile, new Date(), personaForCall(character, speech.choice), reference),
+      instructions: buildInstructions(
+        profile,
+        new Date(),
+        personaForCall(character, speech.choice),
+        reference,
+        aboutBlock(technologyFor(settings, character), builderFromEnv()),
+      ),
       tools,
     }),
     room: ctx.room,
