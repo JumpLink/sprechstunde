@@ -31,6 +31,7 @@ const MAX_ROBOTS_BYTES = 512 * 1024;
 const REPO_URL = 'https://github.com/JumpLink/sprechstunde';
 
 export const PAGE_TYPES = ['text/html', 'application/xhtml+xml', 'text/plain', 'text/markdown'];
+export const FEED_TYPES = ['application/json', 'application/ld+json'];
 export const SITEMAP_TYPES = ['application/xml', 'text/xml', 'text/plain'];
 
 export type RefusedCode =

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { AlertTriangle, Check, FileText, FileType, Globe, History, Image as ImageIcon, Network, Plus, RefreshCw, Trash2, Upload, X } from '@lucide/svelte';
+  import { AlertTriangle, Check, FileText, FileType, Globe, History, Image as ImageIcon, Network, Plus, RefreshCw, Rss, Trash2, Upload, X } from '@lucide/svelte';
   import { Dialog } from 'bits-ui';
   import { toast } from 'svelte-sonner';
   import { ApiError, api, message, upload } from '$lib/api';
@@ -17,9 +17,9 @@
   import Skeleton from '$lib/ui/Skeleton.svelte';
   import { controlClass } from '$lib/utils';
 
-  const icons = { manual: FileText, web: Globe, sitemap: Network, pdf: FileType, image: ImageIcon };
+  const icons = { manual: FileText, web: Globe, sitemap: Network, pdf: FileType, image: ImageIcon, feed: Rss };
   const kindLabel = (kind: SourceKind): string =>
-    ({ manual: _('Text'), web: _('Web page'), sitemap: _('Sitemap'), pdf: _('PDF'), image: _('Pictures') })[kind];
+    ({ manual: _('Text'), web: _('Web page'), sitemap: _('Sitemap'), pdf: _('PDF'), image: _('Pictures'), feed: _('Feed') })[kind];
   const isDocument = (kind: SourceKind): boolean => kind === 'pdf' || kind === 'image';
   // The server enforces the same limits; this only saves a doomed upload.
   const MAX_PDF = 20 * 1024 * 1024;
@@ -258,7 +258,7 @@
       {#if !sources}
         <Skeleton class="h-24" />
       {:else if sources.length === 0}
-        <Empty title={_('No sources yet')}>{_('Add a web page, a sitemap, a PDF, pictures or your own text.')}</Empty>
+        <Empty title={_('No sources yet')}>{_('Add a web page, a sitemap, a feed, a PDF, pictures or your own text.')}</Empty>
       {:else}
         <ul class="divide-y">
           {#each sources as source (source.id)}
@@ -486,8 +486,8 @@
           void create();
         }}
       >
-        <div class="grid grid-cols-3 gap-2 sm:grid-cols-5" role="radiogroup" aria-label={_('Kind')}>
-          {#each ['web', 'sitemap', 'pdf', 'image', 'manual'] as const as option}
+        <div class="grid grid-cols-3 gap-2 sm:grid-cols-6" role="radiogroup" aria-label={_('Kind')}>
+          {#each ['web', 'sitemap', 'feed', 'pdf', 'image', 'manual'] as const as option}
             {@const Icon = icons[option]}
             <button
               type="button"
@@ -497,6 +497,7 @@
               onclick={() => {
                 kind = option;
                 picked = [];
+                hours = option === 'feed' ? '6' : '24';
               }}
             >
               <Icon class="size-5" />{kindLabel(option)}
@@ -543,8 +544,8 @@
               {/if}
             </div>
           {/if}
-          <Field label={kind === 'web' ? _('Web address') : kind === 'sitemap' ? _('Address of the sitemap') : _('Or the address of the file')} for="s-url">
-            <input id="s-url" type="url" class={controlClass} bind:value={url} required={!isDocument(kind)} placeholder={kind === 'web' ? 'https://example.com/menu' : kind === 'sitemap' ? 'https://example.com/sitemap.xml' : 'https://example.com/card.pdf'} />
+          <Field label={kind === 'web' ? _('Web address') : kind === 'sitemap' ? _('Address of the sitemap') : kind === 'feed' ? _('Address of the feed') : _('Or the address of the file')} for="s-url">
+            <input id="s-url" type="url" class={controlClass} bind:value={url} required={!isDocument(kind)} placeholder={kind === 'web' ? 'https://example.com/menu' : kind === 'sitemap' ? 'https://example.com/sitemap.xml' : kind === 'feed' ? 'https://example.com/feed.json' : 'https://example.com/card.pdf'} />
           </Field>
           {#if kind === 'sitemap'}
             <Field label={_('Only these pages')} for="s-globs" hint={_('One pattern per line, such as /menu/**. Empty takes every page.')}>

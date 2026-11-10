@@ -1,4 +1,5 @@
 src/admin/catalog.ts
+src/admin/feed.ts
 src/admin/fetch-safe.ts
 src/admin/file-kinds.ts
 src/admin/file-store.ts

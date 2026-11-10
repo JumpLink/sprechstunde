@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-06 22:53+0100\n"
+"POT-Creation-Date: 2026-11-10 12:37+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -31,63 +31,142 @@ msgstr ""
 msgid "the request failed: %s"
 msgstr ""
 
-#: src/admin/fetch-safe.ts:202 src/admin/knowledge-service.ts:145
+#: src/admin/feed.ts:85
+#, javascript-format
+msgid "\"%s\" must be an object"
+msgstr ""
+
+#: src/admin/feed.ts:92
+#, javascript-format
+msgid "\"%s\" must be a list"
+msgstr ""
+
+#: src/admin/feed.ts:93
+#, javascript-format
+msgid "\"%s\" has too many entries"
+msgstr ""
+
+#: src/admin/feed.ts:100 src/admin/feed.ts:109
+#, javascript-format
+msgid "\"%s\" must be text"
+msgstr ""
+
+#: src/admin/feed.ts:102 src/admin/feed.ts:111 src/admin/profile-store.ts:93
+#, javascript-format
+msgid "\"%s\" is too long"
+msgstr ""
+
+#: src/admin/feed.ts:116
+#, javascript-format
+msgid "\"%s\" is missing"
+msgstr ""
+
+#: src/admin/feed.ts:124
+#, javascript-format
+msgid "\"%s\" must be a date such as 2026-04-05"
+msgstr ""
+
+#: src/admin/feed.ts:130
+#, javascript-format
+msgid "\"%s\" must be a time such as 17:30"
+msgstr ""
+
+#: src/admin/feed.ts:136 src/admin/feed.ts:140
+#, javascript-format
+msgid "\"%s\" is not a weekday"
+msgstr ""
+
+#: src/admin/feed.ts:149
+#, javascript-format
+msgid "\"%s\" ends before it starts"
+msgstr ""
+
+#: src/admin/feed.ts:182
+#, javascript-format
+msgid "\"%s\" must be an amount"
+msgstr ""
+
+#: src/admin/feed.ts:186
+#, javascript-format
+msgid "\"%s\" must be a currency code such as EUR"
+msgstr ""
+
+#: src/admin/feed.ts:238
+msgid "the feed is not valid JSON"
+msgstr ""
+
+#: src/admin/feed.ts:241
+#, javascript-format
+msgid "\"%s\" must be 1: this version of the feed is not supported"
+msgstr ""
+
+#: src/admin/feed.ts:247
+#, javascript-format
+msgid "\"%s\" is not a known time zone"
+msgstr ""
+
+#: src/admin/feed.ts:253
+#, javascript-format
+msgid "\"%s\" is not a language tag"
+msgstr ""
+
+#: src/admin/fetch-safe.ts:203 src/admin/knowledge-service.ts:147
 msgid "only http and https addresses can be fetched"
 msgstr ""
 
-#: src/admin/fetch-safe.ts:205
+#: src/admin/fetch-safe.ts:206
 msgid "an address with a user name or password is not accepted"
 msgstr ""
 
-#: src/admin/fetch-safe.ts:209
+#: src/admin/fetch-safe.ts:210
 msgid "only the default web ports are accepted"
 msgstr ""
 
-#: src/admin/fetch-safe.ts:221 src/admin/fetch-safe.ts:224
+#: src/admin/fetch-safe.ts:222 src/admin/fetch-safe.ts:225
 msgid "the host name could not be resolved"
 msgstr ""
 
-#: src/admin/fetch-safe.ts:227
+#: src/admin/fetch-safe.ts:228
 msgid "this address leads to a private or internal network"
 msgstr ""
 
-#: src/admin/fetch-safe.ts:247 src/admin/fetch-safe.ts:253
+#: src/admin/fetch-safe.ts:248 src/admin/fetch-safe.ts:254
 msgid "the page is too large"
 msgstr ""
 
-#: src/admin/fetch-safe.ts:307 src/admin/fetch-safe.ts:334
+#: src/admin/fetch-safe.ts:308 src/admin/fetch-safe.ts:335
 msgid "the page took too long to answer"
 msgstr ""
 
-#: src/admin/fetch-safe.ts:308 src/admin/fetch-safe.ts:335
+#: src/admin/fetch-safe.ts:309 src/admin/fetch-safe.ts:336
 msgid "the page could not be fetched"
 msgstr ""
 
-#: src/admin/fetch-safe.ts:312
+#: src/admin/fetch-safe.ts:313
 msgid "the page answered with a redirect without a target"
 msgstr ""
 
-#: src/admin/fetch-safe.ts:313
+#: src/admin/fetch-safe.ts:314
 msgid "the page redirects too often"
 msgstr ""
 
-#: src/admin/fetch-safe.ts:317
+#: src/admin/fetch-safe.ts:318
 msgid "the page redirects to an invalid address"
 msgstr ""
 
-#: src/admin/fetch-safe.ts:322
+#: src/admin/fetch-safe.ts:323
 msgid "the page answered with an error"
 msgstr ""
 
-#: src/admin/fetch-safe.ts:326 src/admin/knowledge-service.ts:289
+#: src/admin/fetch-safe.ts:327 src/admin/knowledge-service.ts:294
 msgid "the page is not a kind of document that can be read"
 msgstr ""
 
-#: src/admin/fetch-safe.ts:382 src/admin/knowledge-service.ts:142
+#: src/admin/fetch-safe.ts:383 src/admin/knowledge-service.ts:144
 msgid "this is not a valid web address"
 msgstr ""
 
-#: src/admin/fetch-safe.ts:391
+#: src/admin/fetch-safe.ts:392
 msgid "the site asks robots not to fetch this page"
 msgstr ""
 
@@ -128,117 +207,121 @@ msgstr ""
 msgid "\"baseRevisionId\" must be the revision the page loaded, or null"
 msgstr ""
 
-#: src/admin/knowledge-service.ts:113
+#: src/admin/knowledge-service.ts:115
 #, javascript-format
 msgid "at most %s patterns are allowed"
 msgstr ""
 
-#: src/admin/knowledge-service.ts:117
+#: src/admin/knowledge-service.ts:119
 #, javascript-format
 msgid "a pattern may have at most %s characters"
 msgstr ""
 
-#: src/admin/knowledge-service.ts:131 src/admin/knowledge-service.ts:691
+#: src/admin/knowledge-service.ts:133 src/admin/knowledge-service.ts:743
 msgid "\"refreshHours\" must be a whole number of hours, or null"
 msgstr ""
 
-#: src/admin/knowledge-service.ts:137
+#: src/admin/knowledge-service.ts:139
 msgid "\"url\" must be a web address"
 msgstr ""
 
-#: src/admin/knowledge-service.ts:187 src/admin/knowledge-service.ts:659
+#: src/admin/knowledge-service.ts:192 src/admin/knowledge-service.ts:711
 msgid "not found"
 msgstr ""
 
-#: src/admin/knowledge-service.ts:321 src/admin/server.ts:970
+#: src/admin/knowledge-service.ts:326 src/admin/server.ts:970
 msgid "internal error"
 msgstr ""
 
-#: src/admin/knowledge-service.ts:329
+#: src/admin/knowledge-service.ts:334
 msgid "no file has been uploaded yet"
 msgstr ""
 
-#: src/admin/knowledge-service.ts:340
+#: src/admin/knowledge-service.ts:345
 msgid "a stored file is missing: upload it again"
 msgstr ""
 
-#: src/admin/knowledge-service.ts:347
+#: src/admin/knowledge-service.ts:352
 msgid "no text was found in the document"
 msgstr ""
 
-#: src/admin/knowledge-service.ts:392
+#: src/admin/knowledge-service.ts:436
 #, javascript-format
 msgid "a venue may have at most %s sources"
 msgstr ""
 
-#: src/admin/knowledge-service.ts:396
+#: src/admin/knowledge-service.ts:442
 #, javascript-format
 msgid "\"kind\" must be one of: %s"
 msgstr ""
 
-#: src/admin/knowledge-service.ts:400
+#: src/admin/knowledge-service.ts:447
 msgid "Notes"
 msgstr ""
 
-#: src/admin/knowledge-service.ts:401 src/admin/knowledge-service.ts:402
+#: src/admin/knowledge-service.ts:448 src/admin/knowledge-service.ts:449
 #: web/src/pages/Sources.svelte:22
 msgid "Web page"
 msgstr ""
 
-#: src/admin/knowledge-service.ts:403
+#: src/admin/knowledge-service.ts:450
 msgid "Document"
 msgstr ""
 
-#: src/admin/knowledge-service.ts:404
+#: src/admin/knowledge-service.ts:451
 msgid "Photos"
 msgstr ""
 
-#: src/admin/knowledge-service.ts:422 src/admin/knowledge-service.ts:565
+#: src/admin/knowledge-service.ts:452
+msgid "Knowledge feed"
+msgstr ""
+
+#: src/admin/knowledge-service.ts:470 src/admin/knowledge-service.ts:617
 msgid "the text is too long"
 msgstr ""
 
-#: src/admin/knowledge-service.ts:474
+#: src/admin/knowledge-service.ts:525
 msgid "a text source has nothing to fetch"
 msgstr ""
 
-#: src/admin/knowledge-service.ts:540 src/admin/knowledge-service.ts:551
+#: src/admin/knowledge-service.ts:592 src/admin/knowledge-service.ts:603
 msgid "this change was already decided: reload the page"
 msgstr ""
 
-#: src/admin/knowledge-service.ts:564
+#: src/admin/knowledge-service.ts:616
 msgid "\"markdown\" must be text"
 msgstr ""
 
-#: src/admin/knowledge-service.ts:567
+#: src/admin/knowledge-service.ts:619
 msgid ""
 "this section changed since you loaded it: reload and make the change again"
 msgstr ""
 
-#: src/admin/knowledge-service.ts:606 src/admin/knowledge-service.ts:647
+#: src/admin/knowledge-service.ts:658 src/admin/knowledge-service.ts:699
 msgid "this source takes no files"
 msgstr ""
 
-#: src/admin/knowledge-service.ts:608
+#: src/admin/knowledge-service.ts:660
 msgid "this source is fetched from a web address and takes no uploaded files"
 msgstr ""
 
-#: src/admin/knowledge-service.ts:611
+#: src/admin/knowledge-service.ts:663
 msgid "this is not a PDF or a picture (PNG, JPEG or WebP)"
 msgstr ""
 
-#: src/admin/knowledge-service.ts:615
+#: src/admin/knowledge-service.ts:667
 msgid "this source takes a PDF"
 msgstr ""
 
-#: src/admin/knowledge-service.ts:615
+#: src/admin/knowledge-service.ts:667
 msgid "this source takes pictures"
 msgstr ""
 
-#: src/admin/knowledge-service.ts:618
+#: src/admin/knowledge-service.ts:670
 msgid "the file is too large"
 msgstr ""
 
-#: src/admin/knowledge-service.ts:621
+#: src/admin/knowledge-service.ts:673
 #, javascript-format
 msgid "at most %s pictures are allowed"
 msgstr ""
@@ -269,11 +352,6 @@ msgstr ""
 #: src/admin/profile-store.ts:92
 #, javascript-format
 msgid "\"%s\" must be a string"
-msgstr ""
-
-#: src/admin/profile-store.ts:93
-#, javascript-format
-msgid "\"%s\" is too long"
 msgstr ""
 
 #: src/admin/profile-store.ts:114
@@ -834,7 +912,7 @@ msgid "Calls"
 msgstr ""
 
 #: web/src/lib/ui/Confirm.svelte:28 web/src/pages/Sources.svelte:441
-#: web/src/pages/Sources.svelte:570 web/src/pages/characters/Wizard.svelte:310
+#: web/src/pages/Sources.svelte:571 web/src/pages/characters/Wizard.svelte:310
 msgid "Cancel"
 msgstr ""
 
@@ -1133,7 +1211,7 @@ msgid "Use this profile"
 msgstr ""
 
 #: web/src/pages/Knowledge.svelte:237 web/src/pages/Knowledge.svelte:548
-#: web/src/pages/Sources.svelte:396 web/src/pages/Sources.svelte:583
+#: web/src/pages/Sources.svelte:396 web/src/pages/Sources.svelte:584
 msgid "History"
 msgstr ""
 
@@ -1372,7 +1450,7 @@ msgstr ""
 msgid "Restore"
 msgstr ""
 
-#: web/src/pages/Knowledge.svelte:568 web/src/pages/Sources.svelte:599
+#: web/src/pages/Knowledge.svelte:568 web/src/pages/Sources.svelte:600
 #: web/src/pages/voices/VoiceBrowser.svelte:331
 msgid "Close"
 msgstr ""
@@ -1518,7 +1596,7 @@ msgid "no key"
 msgstr ""
 
 #: web/src/pages/Sources.svelte:22 web/src/pages/Sources.svelte:428
-#: web/src/pages/Sources.svelte:510
+#: web/src/pages/Sources.svelte:511
 msgid "Text"
 msgstr ""
 
@@ -1532,6 +1610,10 @@ msgstr ""
 
 #: web/src/pages/Sources.svelte:22
 msgid "Pictures"
+msgstr ""
+
+#: web/src/pages/Sources.svelte:22
+msgid "Feed"
 msgstr ""
 
 #: web/src/pages/Sources.svelte:116
@@ -1617,7 +1699,7 @@ msgid "No sources yet"
 msgstr ""
 
 #: web/src/pages/Sources.svelte:261
-msgid "Add a web page, a sitemap, a PDF, pictures or your own text."
+msgid "Add a web page, a sitemap, a feed, a PDF, pictures or your own text."
 msgstr ""
 
 #: web/src/pages/Sources.svelte:278
@@ -1633,7 +1715,7 @@ msgstr ""
 msgid "Fetch now"
 msgstr ""
 
-#: web/src/pages/Sources.svelte:290 web/src/pages/Sources.svelte:609
+#: web/src/pages/Sources.svelte:290 web/src/pages/Sources.svelte:610
 msgid "Remove source"
 msgstr ""
 
@@ -1654,27 +1736,27 @@ msgstr ""
 msgid "Remove all pictures"
 msgstr ""
 
-#: web/src/pages/Sources.svelte:354 web/src/pages/Sources.svelte:555
+#: web/src/pages/Sources.svelte:354 web/src/pages/Sources.svelte:556
 msgid "Fetch again every"
 msgstr ""
 
-#: web/src/pages/Sources.svelte:361 web/src/pages/Sources.svelte:557
+#: web/src/pages/Sources.svelte:361 web/src/pages/Sources.svelte:558
 msgid "Never"
 msgstr ""
 
-#: web/src/pages/Sources.svelte:362 web/src/pages/Sources.svelte:558
+#: web/src/pages/Sources.svelte:362 web/src/pages/Sources.svelte:559
 msgid "6 hours"
 msgstr ""
 
-#: web/src/pages/Sources.svelte:363 web/src/pages/Sources.svelte:559
+#: web/src/pages/Sources.svelte:363 web/src/pages/Sources.svelte:560
 msgid "Day"
 msgstr ""
 
-#: web/src/pages/Sources.svelte:364 web/src/pages/Sources.svelte:560
+#: web/src/pages/Sources.svelte:364 web/src/pages/Sources.svelte:561
 msgid "Week"
 msgstr ""
 
-#: web/src/pages/Sources.svelte:374 web/src/pages/Sources.svelte:565
+#: web/src/pages/Sources.svelte:374 web/src/pages/Sources.svelte:566
 msgid "Accept changes without asking"
 msgstr ""
 
@@ -1698,7 +1780,7 @@ msgstr ""
 msgid "No longer listed"
 msgstr ""
 
-#: web/src/pages/Sources.svelte:395 web/src/pages/Sources.svelte:592
+#: web/src/pages/Sources.svelte:395 web/src/pages/Sources.svelte:593
 msgid "Edited by hand"
 msgstr ""
 
@@ -1763,91 +1845,95 @@ msgstr ""
 msgid "Kind"
 msgstr ""
 
-#: web/src/pages/Sources.svelte:506
+#: web/src/pages/Sources.svelte:507
 msgid "Title"
 msgstr ""
 
-#: web/src/pages/Sources.svelte:510
+#: web/src/pages/Sources.svelte:511
 msgid "Markdown works."
 msgstr ""
 
-#: web/src/pages/Sources.svelte:515
+#: web/src/pages/Sources.svelte:516
 msgid ""
 "The document is read by Mistral OCR at Mistral (EU) and its text waits for "
 "your review."
 msgstr ""
 
-#: web/src/pages/Sources.svelte:518
+#: web/src/pages/Sources.svelte:519
 msgid "Files"
 msgstr ""
 
-#: web/src/pages/Sources.svelte:528
+#: web/src/pages/Sources.svelte:529
 msgid "Choose a PDF"
 msgstr ""
 
-#: web/src/pages/Sources.svelte:528
+#: web/src/pages/Sources.svelte:529
 msgid "Choose pictures"
 msgstr ""
 
-#: web/src/pages/Sources.svelte:537
+#: web/src/pages/Sources.svelte:538
 msgid "or drop them here"
 msgstr ""
 
-#: web/src/pages/Sources.svelte:538
+#: web/src/pages/Sources.svelte:539
 #, javascript-format
 msgid "Up to %s"
 msgstr ""
 
-#: web/src/pages/Sources.svelte:538
+#: web/src/pages/Sources.svelte:539
 #, javascript-format
 msgid "PNG, JPEG or WebP, up to %s each"
 msgstr ""
 
-#: web/src/pages/Sources.svelte:546
+#: web/src/pages/Sources.svelte:547
 msgid "Web address"
 msgstr ""
 
-#: web/src/pages/Sources.svelte:546
+#: web/src/pages/Sources.svelte:547
 msgid "Address of the sitemap"
 msgstr ""
 
-#: web/src/pages/Sources.svelte:546
+#: web/src/pages/Sources.svelte:547
+msgid "Address of the feed"
+msgstr ""
+
+#: web/src/pages/Sources.svelte:547
 msgid "Or the address of the file"
 msgstr ""
 
-#: web/src/pages/Sources.svelte:550
+#: web/src/pages/Sources.svelte:551
 msgid "Only these pages"
 msgstr ""
 
-#: web/src/pages/Sources.svelte:550
+#: web/src/pages/Sources.svelte:551
 msgid "One pattern per line, such as /menu/**. Empty takes every page."
 msgstr ""
 
-#: web/src/pages/Sources.svelte:572
+#: web/src/pages/Sources.svelte:573
 msgid "Add"
 msgstr ""
 
-#: web/src/pages/Sources.svelte:590
+#: web/src/pages/Sources.svelte:591
 msgid "Accepted"
 msgstr ""
 
-#: web/src/pages/Sources.svelte:590
+#: web/src/pages/Sources.svelte:591
 msgid "Waiting"
 msgstr ""
 
-#: web/src/pages/Sources.svelte:590
+#: web/src/pages/Sources.svelte:591
 msgid "Discarded"
 msgstr ""
 
-#: web/src/pages/Sources.svelte:592
+#: web/src/pages/Sources.svelte:593
 msgid "Fetched"
 msgstr ""
 
-#: web/src/pages/Sources.svelte:607
+#: web/src/pages/Sources.svelte:608
 msgid "Remove this source?"
 msgstr ""
 
-#: web/src/pages/Sources.svelte:608
+#: web/src/pages/Sources.svelte:609
 msgid ""
 "Its fetched texts and their history are deleted, and the assistant stops "
 "using them."
