@@ -108,7 +108,8 @@ test('instructions list the facts inline and do not send the model to a tool', (
 test('instructions state the local date and weekday of the venue', () => {
   // 23:30 UTC on a Saturday is already Sunday in Berlin.
   const text = buildInstructions(example, new Date('2026-10-17T23:30:00Z'));
-  assert.match(text, /Sonntag, 18\. Oktober 2026 um 01:30/);
+  assert.match(text, /Sonntag, 18\. Oktober um 01:30/);
+  assert.doesNotMatch(text, /2026/);
 });
 
 const NOW = new Date('2026-10-17T12:00:00Z');

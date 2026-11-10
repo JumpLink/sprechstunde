@@ -53,10 +53,14 @@ function styleLines(persona: Persona | undefined, locale: string, selfDescriptio
 /** Build the system prompt. Pure: same profile, time, persona and reference text, same text. */
 export function buildInstructions(profile: Profile, now: Date, persona?: Persona, reference?: string): string {
   // Without this the model answers "are you open tonight?" from a guessed date.
+  // No year: a caller never needs it, and a model spelling out "2026" for speech gets it wrong.
   const localNow = new Intl.DateTimeFormat(profile.locale, {
     timeZone: profile.timeZone,
-    dateStyle: 'full',
-    timeStyle: 'short',
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    hour: '2-digit',
+    minute: '2-digit',
   }).format(now);
   const facts = profile.facts.map((fact) => `- ${fact.topic}: ${fact.answer}`).join('\n');
   const transfer = profile.transfer
