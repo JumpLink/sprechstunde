@@ -438,10 +438,20 @@ export function renderFeed(feed: Feed, now: Date): FeedPart[] {
       const heading = spanText(group[0]!.validFrom, group[0]!.validThrough) || l.always;
       out.push(`### ${heading}\n${group.map(hoursLine).join('\n')}`);
     }
+    // Entries for the same occasion and period share one heading, so "breakfast" and "kitchen
+    // closed" on Christmas Eve read as one exception.
+    const occasions = new Map<string, Hours[]>();
     for (const entry of exceptions) {
-      const span = spanText(entry.validFrom, entry.validThrough);
-      const heading = entry.name ? `${entry.name} (${span})` : span;
-      out.push(`### ${l.exception}: ${heading}\n${hoursLine({ ...entry, name: undefined })}`);
+      const key = JSON.stringify([entry.name, entry.validFrom, entry.validThrough]);
+      occasions.set(key, [...(occasions.get(key) ?? []), entry]);
+    }
+    for (const group of occasions.values()) {
+      const first = group[0]!;
+      const span = spanText(first.validFrom, first.validThrough);
+      const heading = first.name ? `${first.name} (${span})` : span;
+      out.push(
+        `### ${l.exception}: ${heading}\n${group.map((entry) => hoursLine({ ...entry, name: undefined })).join('\n')}`,
+      );
     }
     parts.push({ anchor: 'hours', title: l.hours, markdown: out.join('\n\n') });
   }

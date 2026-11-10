@@ -33,7 +33,7 @@ both included).
 - Without `dayOfWeek`, a regular entry means every day.
 - `opens` and `closes` both `00:00` means closed.
 - An **exception** needs `validFrom` and `validThrough`; with no `dayOfWeek` it applies to every
-  day in that period.
+  day in that period. Exceptions with the same `name` and period are written under one heading.
 - An entry whose `validThrough` has passed is dropped. One that starts later stays, with its dates.
 
 ### Menus
