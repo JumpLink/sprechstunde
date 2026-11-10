@@ -1,6 +1,7 @@
 import { type AudioTag, audioTagLines } from './audio-tags.js';
 import type { Profile } from './profile.js';
 import type { Gender } from './settings.js';
+import { DETAILS_MARKER, LOOKUP_TOOL_NAME } from './knowledge-lookup.js';
 import { referenceBlock } from './knowledge-snapshot.js';
 import { TRANSFER_TOOL } from './tools.js';
 
@@ -67,6 +68,13 @@ export function buildInstructions(profile: Profile, now: Date, persona?: Persona
     ? `If you cannot answer or the caller asks for a person, offer to transfer the call and use the ${TRANSFER_TOOL.name} tool once the caller agrees.`
     : 'No transfer to a person is possible. If you cannot answer, say so and suggest calling again later.';
 
+  // A cut-down section hides its dishes and prices, so "no listed fact fits" is not yet a reason
+  // to say "I do not know" (measured 2026-11-10: the model skipped the tool in 4 of 7 questions
+  // while a rule here said to answer without one).
+  const answerRule = reference?.includes(DETAILS_MARKER)
+    ? `- Answer directly from the facts below, without calling a tool. If no fact fits and the question could be about a section marked "${DETAILS_MARKER}" (dishes, prices, drinks, ingredients), call ${LOOKUP_TOOL_NAME} for that section before anything else. Only if the looked-up text does not cover it either, say you do not know.`
+    : '- Answer directly from the facts below, without calling a tool. Only if no listed fact fits, say you do not know.';
+
   return [
     `You are ${profile.assistantName}, a voice assistant answering a phone call.`,
     `Speak the language of locale ${profile.locale}.`,
@@ -75,7 +83,7 @@ export function buildInstructions(profile: Profile, now: Date, persona?: Persona
     ...styleLines(persona, profile.locale, profile.selfDescription),
     '',
     'Rules:',
-    '- Answer directly from the facts below, without calling a tool. Only if no listed fact fits, say you do not know.',
+    answerRule,
     '- State nothing about the venue that the facts or reference data do not say: no reservations, prices, dishes or opening times, and no house policies such as pets, payment, parking, accessibility, seating or events. Never answer yes or no to such a question by guessing; if it is not covered, say you do not know.',
     '- On allergens, ingredients and diets, only repeat what the facts or reference data state about that dish. Never say a dish is guaranteed free of anything, or safe for an allergy, and never infer it. If the data does not state it, say you do not know and offer a person as described in the last rule.',
     '- You cannot take, change or cancel reservations.',

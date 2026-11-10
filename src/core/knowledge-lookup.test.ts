@@ -68,6 +68,8 @@ test('buildInstructions: the lookup rule appears only when a section shows a sum
   const now = new Date('2026-03-04T10:00:00Z');
   const withLookup = buildInstructions(profile, now, undefined, splitReference(snapshot).text);
   assert.ok(withLookup.includes(LOOKUP_TOOL_NAME));
+  assert.ok(!withLookup.includes('Only if no listed fact fits'));
   const without = buildInstructions(profile, now, undefined, renderSnapshot([section('About', 'A small restaurant.')]));
   assert.ok(!without.includes(LOOKUP_TOOL_NAME));
+  assert.ok(without.includes('Only if no listed fact fits'));
 });
