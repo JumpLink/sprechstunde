@@ -111,6 +111,35 @@ export const MIGRATIONS: string[] = [
   );
   CREATE INDEX source_file_sha ON source_file (tenant_id, sha256);
   `,
+  // Feed sources (ADR 2): the CHECK widens again, so `source` is rebuilt the same way.
+  `
+  CREATE TABLE source_next (
+    tenant_id TEXT NOT NULL,
+    id TEXT NOT NULL,
+    venue TEXT NOT NULL,
+    kind TEXT NOT NULL CHECK (kind IN ('manual', 'web', 'sitemap', 'pdf', 'image', 'feed')),
+    title TEXT NOT NULL,
+    url TEXT,
+    include_globs TEXT NOT NULL DEFAULT '[]',
+    exclude_selectors TEXT NOT NULL DEFAULT '[]',
+    refresh_hours INTEGER,
+    auto_approve INTEGER NOT NULL DEFAULT 0,
+    last_checked_at TEXT,
+    last_fetched_at TEXT,
+    last_error TEXT,
+    created_at TEXT NOT NULL,
+    ocr_sha TEXT,
+    ocr_pages INTEGER,
+    PRIMARY KEY (tenant_id, id)
+  );
+  INSERT INTO source_next (tenant_id, id, venue, kind, title, url, include_globs, exclude_selectors, refresh_hours,
+    auto_approve, last_checked_at, last_fetched_at, last_error, created_at, ocr_sha, ocr_pages)
+    SELECT tenant_id, id, venue, kind, title, url, include_globs, exclude_selectors, refresh_hours,
+      auto_approve, last_checked_at, last_fetched_at, last_error, created_at, ocr_sha, ocr_pages FROM source;
+  DROP TABLE source;
+  ALTER TABLE source_next RENAME TO source;
+  CREATE INDEX source_venue ON source (tenant_id, venue);
+  `,
 ];
 
 export function migrate(db: DatabaseSync): void {

@@ -33,7 +33,10 @@ function rig(pages: Record<string, string | Error | Buffer>) {
         return { url: redirect[address] ?? address, contentType, text: '', bytes: body };
       }
       const isXml = body.startsWith('<?xml') || body.startsWith('<urlset') || body.startsWith('<sitemapindex');
-      return { url: redirect[address] ?? address, contentType: isXml ? 'application/xml' : 'text/html', text: body };
+      const isJson = body.startsWith('{');
+      if (isJson && !request.types?.includes('application/json')) throw new FetchRefused('type', 'not a page');
+      const contentType = isJson ? 'application/json' : isXml ? 'application/xml' : 'text/html';
+      return { url: redirect[address] ?? address, contentType, text: body };
     },
   } as SafeFetcher;
   const published: Array<{ tenant: string; venue: string; text: string }> = [];
@@ -648,4 +651,73 @@ test('a source with a file but no address is never due for an automatic refresh'
   r.service.addFile(T, source.id, { name: 'a.pdf', bytes: pdfBytes('one') });
   r.tick(100);
   assert.deepEqual(r.service.due(T), []);
+});
+
+const FEED = 'https://venue.example/feed.json';
+const feedOf = (menus: unknown[]) =>
+  JSON.stringify({
+    version: 1,
+    timeZone: 'Europe/Berlin',
+    name: 'Harbour Kitchen',
+    hasMenu: menus,
+    faq: [{ name: 'Dogs?', acceptedAnswer: { text: 'Yes.' } }],
+  });
+const card = (name: string, validThrough: string) => ({ name, description: `The ${name}.`, validThrough });
+const feedSource = (r: ReturnType<typeof rig>, extra: Record<string, unknown> = {}) =>
+  r.service.addSource(T, { venue: 'v.json', kind: 'feed', title: 'Feed', url: FEED, ...extra });
+
+test('a feed source becomes one section per part, read every six hours by default', async () => {
+  const r = rig({ [FEED]: feedOf([card('Spring card', '2026-03-31')]) });
+  const source = await feedSource(r);
+  assert.equal(source.refreshHours, 6);
+  const summary = await r.service.refresh(T, source.id);
+  assert.equal(summary.pages, 3);
+  assert.equal(summary.pending, 3);
+  const urls = r.service.detail(T, source.id).sections.map((section) => section.url);
+  assert.deepEqual(urls.sort(), [`${FEED}#about`, `${FEED}#faq`, `${FEED}#menu-1`]);
+});
+
+test('a feed with autoApprove goes live and is published', async () => {
+  const r = rig({ [FEED]: feedOf([card('Spring card', '2026-03-31')]) });
+  const source = await feedSource(r, { autoApprove: true });
+  await r.service.refresh(T, source.id);
+  const text = r.published.at(-1)!.text;
+  assert.match(text, /The Spring card\./);
+  assert.match(text, /Dogs\?/);
+});
+
+test('a menu that expires leaves the published text, and returns when it is valid again', async () => {
+  const r = rig({ [FEED]: feedOf([card('Spring card', '2026-03-31')]) });
+  const source = await feedSource(r, { autoApprove: true });
+  await r.service.refresh(T, source.id);
+  assert.match(r.published.at(-1)!.text, /Spring card/);
+  r.tick(24 * 31);
+  const next = await r.service.refresh(T, source.id);
+  assert.equal(next.gone, 1);
+  assert.doesNotMatch(r.published.at(-1)!.text, /Spring card/);
+  assert.match(r.published.at(-1)!.text, /Dogs\?/);
+  r.bodies[FEED] = feedOf([card('Spring card', '2026-12-31')]);
+  await r.service.refresh(T, source.id);
+  assert.match(r.published.at(-1)!.text, /Spring card/);
+});
+
+test('a broken feed is reported on the source and leaves the live text alone', async () => {
+  const r = rig({ [FEED]: feedOf([card('Spring card', '2026-03-31')]) });
+  const source = await feedSource(r, { autoApprove: true });
+  await r.service.refresh(T, source.id);
+  const before = r.published.length;
+  r.bodies[FEED] = '{"version": 1}';
+  const summary = await r.service.refresh(T, source.id);
+  assert.match(summary.error ?? '', /timeZone/);
+  assert.equal(r.service.detail(T, source.id).source.lastError, summary.error);
+  assert.equal(r.published.length, before);
+  assert.match(r.published.at(-1)!.text, /Spring card/);
+});
+
+test('a feed address that answers with a web page is reported, not stored', async () => {
+  const r = rig({ [FEED]: html('<p>Hello</p>') });
+  const source = await feedSource(r);
+  const summary = await r.service.refresh(T, source.id);
+  assert.ok(summary.error);
+  assert.equal(summary.pages, 0);
 });

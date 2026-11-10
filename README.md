@@ -465,7 +465,8 @@ npm run i18n:extract && npm run i18n:compile   # English msgids, German in po/de
 ```
 
 Architecture decisions live in [docs/adr/](docs/adr/), starting with
-[the multi-tenant platform](docs/adr/0001-multi-tenant-platform.md).
+[the multi-tenant platform](docs/adr/0001-multi-tenant-platform.md) and
+[the knowledge feed](docs/adr/0002-knowledge-feed.md); its format is in [docs/feed/](docs/feed/README.md).
 
 ## License
 

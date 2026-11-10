@@ -199,7 +199,7 @@ export interface Knowledge {
   }>;
 }
 
-export type SourceKind = 'manual' | 'web' | 'sitemap' | 'pdf' | 'image';
+export type SourceKind = 'manual' | 'web' | 'sitemap' | 'pdf' | 'image' | 'feed';
 
 export interface SourceFileInfo {
   position: number;

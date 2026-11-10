@@ -7,7 +7,7 @@
 import { randomBytes } from 'node:crypto';
 import type { DatabaseSync, SQLInputValue } from 'node:sqlite';
 
-export type SourceKind = 'manual' | 'web' | 'sitemap' | 'pdf' | 'image';
+export type SourceKind = 'manual' | 'web' | 'sitemap' | 'pdf' | 'image' | 'feed';
 export type RevisionStatus = 'pending' | 'approved' | 'rejected';
 export type RevisionOrigin = 'fetched' | 'edited';
 

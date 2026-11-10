@@ -12,9 +12,10 @@
 import { createHash } from 'node:crypto';
 import { _ } from '../i18n.js';
 import { type SnapshotSection } from '../core/knowledge-snapshot.js';
-import { FetchRefused, SITEMAP_TYPES, type SafeFetcher } from './fetch-safe.js';
+import { FEED_TYPES, FetchRefused, SITEMAP_TYPES, type SafeFetcher } from './fetch-safe.js';
 import { cleanFileName, detectFile, IMAGE_TYPES, limitFor, PDF_TYPES, type DocumentKind } from './file-kinds.js';
 import { sha256Of, type FileStore } from './file-store.js';
+import { FeedError, parseFeed, renderFeed } from './feed.js';
 import { checkSelectors, htmlToMarkdown } from './html-markdown.js';
 import {
   type KnowledgeRepo,
@@ -41,6 +42,7 @@ export const MAX_SITEMAPS = 3;
 export const MAX_MANUAL_CHARS = 100_000;
 export const MAX_TITLE_CHARS = 120;
 export const DEFAULT_REFRESH_HOURS = 24;
+export const FEED_REFRESH_HOURS = 6;
 
 /** The service reports user mistakes with a status the HTTP layer maps one to one. */
 export class KnowledgeError extends Error {
@@ -157,6 +159,9 @@ export function createKnowledgeService(options: ServiceOptions) {
       repo
         .forTenant(tenantId)
         .live(venue)
+        // A part the feed no longer lists (an expired menu) must not stay in the text. A sitemap page that
+        // vanished does stay: that is how sitemaps have always behaved here.
+        .filter((entry) => !(entry.source.kind === 'feed' && entry.section.gone))
         .map((entry) => ({
           sourceTitle: entry.source.title,
           title: entry.section.title,
@@ -370,6 +375,45 @@ export function createKnowledgeService(options: ServiceOptions) {
     }
   };
 
+  /**
+   * A feed source: one JSON document, written as one section per part (about, hours, each valid menu, FAQ).
+   * What the feed no longer lists is marked gone, which also takes it out of the published text.
+   */
+  const readFeed = async (tenantId: string, t: TenantRepo, source: Source, summary: RefreshSummary) => {
+    try {
+      const result = await fetcher.fetch(source.url!, { types: FEED_TYPES });
+      const parts = renderFeed(parseFeed(result.text), now());
+      let revived = 0;
+      const listed = new Set<string>();
+      repo.transaction(() => {
+        for (const part of parts) {
+          const address = new URL(source.url!);
+          address.hash = part.anchor;
+          listed.add(address.href);
+          if (t.sectionByUrl(source.id, address.href)?.gone) revived++;
+          const page = { url: address.href, title: part.title, markdown: part.markdown };
+          const outcome = takePage(t, source, page, address.href);
+          summary.pages++;
+          summary[outcome]++;
+        }
+        for (const section of t.sections(source.id)) {
+          if (section.url && !listed.has(section.url) && !section.gone) {
+            t.setGone(section.id, true);
+            summary.gone++;
+          }
+        }
+      });
+      t.markChecked(source.id, stamp(), null, true);
+      if (summary.approved > 0 || summary.gone > 0 || revived > 0) republish(tenantId, source.venue);
+    } catch (error) {
+      if (!(error instanceof FetchRefused || error instanceof FeedError)) throw error;
+      t.markChecked(source.id, stamp(), error.message, false);
+      summary.error = error.message;
+      summary.failed = 1;
+    }
+    return summary;
+  };
+
   const fetchSlots = createLimiter(MAX_PARALLEL_FETCHES);
 
   return {
@@ -392,8 +436,11 @@ export function createKnowledgeService(options: ServiceOptions) {
           _('a venue may have at most %s sources').replace('%s', String(MAX_SOURCES_PER_VENUE)),
         );
       }
-      if (!['manual', 'web', 'sitemap', 'pdf', 'image'].includes(input.kind)) {
-        throw new KnowledgeError(400, _('"kind" must be one of: %s').replace('%s', 'manual, web, sitemap, pdf, image'));
+      if (!['manual', 'web', 'sitemap', 'pdf', 'image', 'feed'].includes(input.kind)) {
+        throw new KnowledgeError(
+          400,
+          _('"kind" must be one of: %s').replace('%s', 'manual, web, sitemap, pdf, image, feed'),
+        );
       }
       const at = stamp();
       const fallbackTitle = {
@@ -402,6 +449,7 @@ export function createKnowledgeService(options: ServiceOptions) {
         sitemap: _('Web page'),
         pdf: _('Document'),
         image: _('Photos'),
+        feed: _('Knowledge feed'),
       }[input.kind];
       const title = cleanTitle(input.title, fallbackTitle);
       if (isDocument(input.kind)) {
@@ -448,7 +496,10 @@ export function createKnowledgeService(options: ServiceOptions) {
       } catch (error) {
         throw new KnowledgeError(400, (error as Error).message);
       }
-      const refreshHours = cleanHours(input.refreshHours);
+      // A feed is small and changes by the day (a menu expires), so it is read more often than a page.
+      const refreshHours = cleanHours(
+        input.refreshHours === undefined && input.kind === 'feed' ? FEED_REFRESH_HOURS : input.refreshHours,
+      );
       return t.createSource({
         venue: input.venue,
         kind: input.kind,
@@ -482,6 +533,7 @@ export function createKnowledgeService(options: ServiceOptions) {
         error: null,
       };
       if (isDocument(source.kind)) return readDocument(tenantId, t, source, summary);
+      if (source.kind === 'feed') return readFeed(tenantId, t, source, summary);
       let addresses: string[];
       try {
         addresses = source.kind === 'web' ? [source.url!] : await sitemapPages(source);
