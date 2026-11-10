@@ -152,6 +152,36 @@ test('a closed exception is written as closed', () => {
   assert.match(hours, /### Exception: Staff outing \(September 1\)\n- closed/);
 });
 
+test('exception entries for the same occasion and period share one heading', () => {
+  const feed = {
+    ...base,
+    specialOpeningHoursSpecification: [
+      {
+        name: 'Christmas Eve',
+        description: 'breakfast',
+        opens: '09:00',
+        closes: '11:30',
+        validFrom: '2026-12-24',
+        validThrough: '2026-12-24',
+      },
+      {
+        name: 'Christmas Eve',
+        description: 'kitchen',
+        opens: '00:00',
+        closes: '00:00',
+        validFrom: '2026-12-24',
+        validThrough: '2026-12-24',
+      },
+    ],
+  };
+  const hours = parts(feed, '2026-11-10T10:00:00Z').find((part) => part.anchor === 'hours')!.markdown;
+  assert.match(
+    hours,
+    /### Exception: Christmas Eve \(December 24\)\n- 09:00–11:30 \(breakfast\)\n- closed \(kitchen\)/,
+  );
+  assert.equal(hours.match(/### Exception/g)?.length, 1);
+});
+
 test('German feeds get German headings, weekdays and prices', () => {
   const found = parts({ ...base, inLanguage: 'de' }, '2026-11-10T10:00:00Z');
   const hours = found.find((part) => part.anchor === 'hours')!;
