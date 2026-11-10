@@ -10,6 +10,7 @@ import { AUDIO_TAGS, stripAudioTags } from '../core/audio-tags.js';
 import { buildInstructions, type Persona, personaOf } from '../core/prompt.js';
 import { pickGreeting, type Profile, withAssistantName } from '../core/profile.js';
 import { LINE_ATTRIBUTE, LINE_ID } from '../core/lines.js';
+import { LOOKUP_TOOL_NAME, lookupDetails, lookupTool, splitReference } from '../core/knowledge-lookup.js';
 import { readSnapshot, snapshotPath } from '../core/knowledge-snapshot.js';
 import type { Character } from '../core/settings.js';
 import { TRANSFER_TOOL, transferOverride, transferRequest } from '../core/tools.js';
@@ -208,11 +209,22 @@ export async function runAssistant(ctx: JobContext, startProfile: Profile): Prom
   // The live text of the venue's knowledge sources, published by the admin next to the profile.
   const chosen = venue === startProfile ? undefined : profileFileForCall(settings, lineId);
   const published = chosen ? snapshotPath(chosen) : null;
-  const reference = published ? readSnapshot(published) : undefined;
+  const snapshot = published ? readSnapshot(published) : undefined;
+  // Facts and short sections are in the instructions: a tool call costs a second LLM round
+  // (0.4–0.9 s measured 2026-10-16). Only long sections, such as a menu, are fetched on request.
+  const split = snapshot ? splitReference(snapshot) : undefined;
+  const reference = split?.text;
 
-  // No fact lookup tool: the facts are in the instructions, and a tool call costs a second LLM
-  // round (0.4–0.9 s measured 2026-10-16).
   const tools = {
+    ...(split && split.details.size > 0
+      ? {
+          [LOOKUP_TOOL_NAME]: llm.tool({
+            description: lookupTool([...split.details.keys()]).description,
+            parameters: lookupTool([...split.details.keys()]).parameters,
+            execute: async (args: { section?: unknown }) => lookupDetails(split.details, args.section),
+          }),
+        }
+      : {}),
     [TRANSFER_TOOL.name]: llm.tool({
       description: TRANSFER_TOOL.description,
       execute: async (_args, opts) => {

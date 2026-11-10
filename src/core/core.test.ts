@@ -6,6 +6,7 @@ import { test } from 'node:test';
 import { loadProfile, parseProfile, pickGreeting, withAssistantName } from './profile.js';
 import { buildInstructions, personaOf } from './prompt.js';
 import { describeKnowledge } from './knowledge.js';
+import { LOOKUP_TOOL_NAME } from './knowledge-lookup.js';
 import { maskTransferTarget, TRANSFER_TOOL, toolDescriptors, transferOverride, transferRequest } from './tools.js';
 
 const example = loadProfile('profiles/example/profile.de.json');
@@ -229,7 +230,7 @@ test('the tool descriptors are what the prompt and the agent refer to', () => {
   const tools = toolDescriptors();
   assert.deepEqual(
     tools.map((tool) => tool.name),
-    [TRANSFER_TOOL.name],
+    [TRANSFER_TOOL.name, LOOKUP_TOOL_NAME],
   );
   for (const tool of tools) {
     assert.ok(tool.description.length > 0);

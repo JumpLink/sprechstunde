@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-10 12:36+0100\n"
+"POT-Creation-Date: 2026-11-10 14:02+0100\n"
 "PO-Revision-Date: 2026-10-19 23:10+0200\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -556,28 +556,28 @@ msgstr "Die Einstellungs-App ist nicht gebaut: `npm run web:build` ausführen"
 msgid "unknown route"
 msgstr "unbekannte Route"
 
-#: src/agent/assistant.ts:79
+#: src/agent/assistant.ts:80
 msgid "CPU profile written to"
 msgstr "CPU-Profil geschrieben nach"
 
-#: src/agent/assistant.ts:154
+#: src/agent/assistant.ts:155
 msgid "Pocket TTS has no free session, this call uses the fallback voice"
 msgstr ""
 "Pocket TTS hat keine freie Sitzung, dieser Anruf nutzt die Ersatzstimme"
 
-#: src/agent/assistant.ts:203
+#: src/agent/assistant.ts:204
 msgid "starting assistant with profile"
 msgstr "Assistent startet mit Profil"
 
-#: src/agent/assistant.ts:203
+#: src/agent/assistant.ts:204
 msgid "on line"
 msgstr "auf Leitung"
 
-#: src/agent/assistant.ts:228
+#: src/agent/assistant.ts:240
 msgid "transfer failed"
 msgstr "Weiterleitung fehlgeschlagen"
 
-#: src/agent/assistant.ts:281
+#: src/agent/assistant.ts:293
 msgid "CPU profile failed"
 msgstr "CPU-Profil fehlgeschlagen"
 
@@ -874,10 +874,14 @@ msgstr ""
 msgid "deleted voice %s"
 msgstr "Stimme %s gelöscht"
 
-#: src/core/tools.ts:51
+#: src/core/tools.ts:54
 msgid "Phone calls only, and only when the profile has a transfer target."
 msgstr ""
 "Nur bei Telefonanrufen und nur, wenn das Profil ein Weiterleitungsziel hat."
+
+#: src/core/tools.ts:57
+msgid "Only when the published knowledge has a long section, such as a menu."
+msgstr "Nur, wenn das veröffentlichte Wissen einen langen Abschnitt enthält, etwa eine Speisekarte."
 
 #: src/mistral.ts:17
 msgid "SPRECHSTUNDE_MISTRAL_SERVER must be global, eu, us or a URL"
@@ -1757,9 +1761,10 @@ msgstr "Noch keine Quellen"
 
 #: web/src/pages/Sources.svelte:261
 msgid "Add a web page, a sitemap, a feed, a PDF, pictures or your own text."
-msgstr "Füge eine Webseite, eine Sitemap, einen Feed, ein PDF, Bilder oder einen eigenen Text hinzu."
-"Füge eine Webseite, eine Sitemap, ein PDF, Bilder oder einen eigenen Text "
-"hinzu."
+msgstr ""
+"Füge eine Webseite, eine Sitemap, einen Feed, ein PDF, Bilder oder einen "
+"eigenen Text hinzu.Füge eine Webseite, eine Sitemap, ein PDF, Bilder oder "
+"einen eigenen Text hinzu."
 
 #: web/src/pages/Sources.svelte:278
 #, javascript-format

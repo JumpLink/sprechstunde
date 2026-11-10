@@ -1,4 +1,5 @@
 import { _ } from '../i18n.js';
+import { lookupTool } from './knowledge-lookup.js';
 import type { Profile } from './profile.js';
 
 /** Channel-independent request; each channel decides how to carry it out. */
@@ -39,7 +40,8 @@ export interface ToolDescriptor extends LlmTool {
 /**
  * The tools a call offers, defined once: the agent registers exactly these and the admin UI lists
  * exactly these, so the page can never show a tool the agent lacks. Facts are not a tool on
- * purpose: they sit in the instructions, and a tool call costs a second LLM round.
+ * purpose: they sit in the instructions, and a tool call costs a second LLM round. Only long
+ * knowledge sections are fetched by a tool (`knowledge-lookup.ts`).
  */
 export const TRANSFER_TOOL: LlmTool = {
   name: 'transfer_to_human',
@@ -48,7 +50,13 @@ export const TRANSFER_TOOL: LlmTool = {
 };
 
 export function toolDescriptors(): ToolDescriptor[] {
-  return [{ ...TRANSFER_TOOL, availableWhen: _('Phone calls only, and only when the profile has a transfer target.') }];
+  return [
+    { ...TRANSFER_TOOL, availableWhen: _('Phone calls only, and only when the profile has a transfer target.') },
+    {
+      ...lookupTool([]),
+      availableWhen: _('Only when the published knowledge has a long section, such as a menu.'),
+    },
+  ];
 }
 
 /** The deployment's own transfer target, kept out of the profile (see `transferRequest`). */

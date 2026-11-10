@@ -929,7 +929,7 @@ test('GET /api/knowledge answers for the start profile: prompt, facts and the re
   assert.match(data.systemPrompt, /You are Test, a voice assistant/);
   assert.deepEqual(
     data.tools.map((tool) => tool.name),
-    ['transfer_to_human'],
+    ['transfer_to_human', 'look_up_details'],
   );
   assert.equal(data.tools[0]!.parameters.type, 'object');
   assert.ok(data.tools[0]!.availableWhen);

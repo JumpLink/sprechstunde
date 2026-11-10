@@ -233,8 +233,10 @@ What the agent does beyond the defaults, and why:
   second identical request races the first and the loser is aborted. On 2026-10-16 Mistral TTS
   held single chunks back 6–9 s. A hedged chunk costs twice and appears twice in the metrics.
   It has not been seen firing in a real call yet.
-- **No `lookup_fact` tool:** the facts are part of the instructions. A tool call cost a second
-  LLM round of 0.4–0.9 s.
+- **Facts stay in the instructions:** a tool call costs a second LLM round of 0.4–0.9 s. Only
+  knowledge sections over 1500 characters (a whole menu) are cut to a summary and fetched by the
+  `look_up_details` tool (`src/core/knowledge-lookup.ts`). Measured 2026-11-10: with all four menus
+  in a 28 KB prompt, `mistral-small` and `-medium` often gave the price of a neighbouring dish.
 - **One measurement, 2026-10-16** (one browser call per setting, about 15 user turns): median
   end-of-utterance delay 1248 → 756 ms, median transcription delay 1153 → 679 ms. Batch STT took
   ~0.7–1.1 s per 3 s clip against ~0.4–0.55 s for realtime finalisation. Single measurements,
@@ -397,6 +399,9 @@ sources API relies on the same `Host` and origin checks as the rest of it and do
 
 ## Not tested yet
 
+- The `look_up_details` tool is covered by unit tests only. Whether it fixes the wrong menu prices
+  with the real models, how often the model skips the lookup and what the extra round costs in a
+  live call are unmeasured.
 - Audio tags in the greeting and its variants (`greetingVariants`) are tested with fakes only; how
   `[warmly]` sounds at the start of a real call, before the voice has any context, is unheard.
 - Fetching is tested against fakes and a loopback server, not against real sites, real `robots.txt`

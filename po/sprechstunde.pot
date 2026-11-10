@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-10 12:37+0100\n"
+"POT-Creation-Date: 2026-11-10 14:02+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -546,27 +546,27 @@ msgstr ""
 msgid "unknown route"
 msgstr ""
 
-#: src/agent/assistant.ts:79
+#: src/agent/assistant.ts:80
 msgid "CPU profile written to"
 msgstr ""
 
-#: src/agent/assistant.ts:154
+#: src/agent/assistant.ts:155
 msgid "Pocket TTS has no free session, this call uses the fallback voice"
 msgstr ""
 
-#: src/agent/assistant.ts:203
+#: src/agent/assistant.ts:204
 msgid "starting assistant with profile"
 msgstr ""
 
-#: src/agent/assistant.ts:203
+#: src/agent/assistant.ts:204
 msgid "on line"
 msgstr ""
 
-#: src/agent/assistant.ts:228
+#: src/agent/assistant.ts:240
 msgid "transfer failed"
 msgstr ""
 
-#: src/agent/assistant.ts:281
+#: src/agent/assistant.ts:293
 msgid "CPU profile failed"
 msgstr ""
 
@@ -839,8 +839,12 @@ msgstr ""
 msgid "deleted voice %s"
 msgstr ""
 
-#: src/core/tools.ts:51
+#: src/core/tools.ts:54
 msgid "Phone calls only, and only when the profile has a transfer target."
+msgstr ""
+
+#: src/core/tools.ts:57
+msgid "Only when the published knowledge has a long section, such as a menu."
 msgstr ""
 
 #: src/mistral.ts:17
