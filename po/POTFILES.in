@@ -26,6 +26,7 @@ src/admin/wildcard.ts
 src/agent/about.ts
 src/agent/assistant.ts
 src/agent/echo.ts
+src/agent/idle-prompt.ts
 src/agent/llm.ts
 src/agent/main.ts
 src/agent/metrics.ts
@@ -44,6 +45,7 @@ src/agent/tts-provider.ts
 src/agent/tts-tag-filter.ts
 src/agent/tts-voice.ts
 src/agent/watchdog.ts
+src/cli/costs.ts
 src/cli/fallback.ts
 src/cli/metrics.ts
 src/cli/provision.ts
@@ -55,6 +57,7 @@ src/cli/voice.ts
 src/core/about.ts
 src/core/audio-tags.ts
 src/core/audio.ts
+src/core/costs.ts
 src/core/knowledge-lookup.ts
 src/core/knowledge-snapshot.ts
 src/core/knowledge.ts

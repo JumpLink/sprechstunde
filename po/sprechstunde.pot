@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-10 16:56+0100\n"
+"POT-Creation-Date: 2026-11-11 13:13+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -546,27 +546,27 @@ msgstr ""
 msgid "unknown route"
 msgstr ""
 
-#: src/agent/assistant.ts:80
+#: src/agent/assistant.ts:81
 msgid "CPU profile written to"
 msgstr ""
 
-#: src/agent/assistant.ts:155
+#: src/agent/assistant.ts:156
 msgid "Pocket TTS has no free session, this call uses the fallback voice"
 msgstr ""
 
-#: src/agent/assistant.ts:204
+#: src/agent/assistant.ts:205
 msgid "starting assistant with profile"
 msgstr ""
 
-#: src/agent/assistant.ts:204
+#: src/agent/assistant.ts:205
 msgid "on line"
 msgstr ""
 
-#: src/agent/assistant.ts:240
+#: src/agent/assistant.ts:241
 msgid "transfer failed"
 msgstr ""
 
-#: src/agent/assistant.ts:293
+#: src/agent/assistant.ts:306
 msgid "CPU profile failed"
 msgstr ""
 
@@ -578,7 +578,7 @@ msgstr ""
 msgid "echo mode: forwarding stopped"
 msgstr ""
 
-#: src/agent/metrics.ts:112
+#: src/agent/metrics.ts:139
 #, javascript-format
 msgid "cannot write metrics to %s"
 msgstr ""
@@ -642,6 +642,111 @@ msgstr ""
 msgid "worker is unhealthy; exiting so the container restarts"
 msgstr ""
 
+#: src/cli/costs.ts:24
+msgid ""
+"usage: costs [--since <ISO|date>] [--until <ISO|date>] [--day <YYYY-MM-DD>] "
+"[--prices <file>] [--json]"
+msgstr ""
+
+#: src/cli/costs.ts:25
+msgid "       costs --estimate <calls per month> <minutes per call>"
+msgstr ""
+
+#: src/cli/costs.ts:26
+msgid ""
+"Prices the call_usage lines in <SPRECHSTUNDE_METRICS_DIR or var/metrics> "
+"with a price table."
+msgstr ""
+
+#: src/cli/costs.ts:27
+msgid ""
+"  --prices    the table; default SPRECHSTUNDE_PRICES or var/prices.json (a "
+"server setting, not in git)"
+msgstr ""
+
+#: src/cli/costs.ts:28
+msgid ""
+"  --estimate  what a month would cost if every call used what the measured "
+"calls used per minute"
+msgstr ""
+
+#: src/cli/costs.ts:34 src/cli/metrics.ts:45 src/cli/metrics.ts:124
+#, javascript-format
+msgid "invalid date: %s"
+msgstr ""
+
+#: src/cli/costs.ts:107
+msgid "no measured call to base an estimate on"
+msgstr ""
+
+#: src/cli/costs.ts:125
+#, javascript-format
+msgid "measured: %s calls, %s minutes"
+msgstr ""
+
+#: src/cli/costs.ts:128
+msgid "month"
+msgstr ""
+
+#: src/cli/costs.ts:129
+msgid "variable"
+msgstr ""
+
+#: src/cli/costs.ts:130
+msgid "fixed"
+msgstr ""
+
+#: src/cli/costs.ts:131 src/cli/costs.ts:209
+msgid "total"
+msgstr ""
+
+#: src/cli/costs.ts:131 src/cli/costs.ts:212
+msgid "call"
+msgstr ""
+
+#: src/cli/costs.ts:164
+#, javascript-format
+msgid "cannot read the price table %s"
+msgstr ""
+
+#: src/cli/costs.ts:186
+#, javascript-format
+msgid ""
+"no call_usage lines in %s (recorded since the call end was instrumented)"
+msgstr ""
+
+#: src/cli/costs.ts:191 src/cli/metrics.ts:155
+msgid "call start (UTC)"
+msgstr ""
+
+#: src/cli/costs.ts:191 src/cli/costs.ts:209
+msgid "minutes"
+msgstr ""
+
+#: src/cli/costs.ts:191 src/cli/costs.ts:202
+msgid "cost"
+msgstr ""
+
+#: src/cli/costs.ts:202
+msgid "vendor model unit"
+msgstr ""
+
+#: src/cli/costs.ts:202
+msgid "quantity"
+msgstr ""
+
+#: src/cli/costs.ts:209
+msgid "calls"
+msgstr ""
+
+#: src/cli/costs.ts:212
+msgid "minute"
+msgstr ""
+
+#: src/cli/costs.ts:214
+msgid "unpriced"
+msgstr ""
+
 #: src/cli/fallback.ts:27
 msgid "the profile has no \"fallback\" text; add one or pass --text"
 msgstr ""
@@ -688,11 +793,6 @@ msgid ""
 "by HedgedTTS can appear twice; lines are not de-duplicated."
 msgstr ""
 
-#: src/cli/metrics.ts:45 src/cli/metrics.ts:124
-#, javascript-format
-msgid "invalid date: %s"
-msgstr ""
-
 #: src/cli/metrics.ts:97
 msgid "metric (ms)"
 msgstr ""
@@ -700,10 +800,6 @@ msgstr ""
 #: src/cli/metrics.ts:134
 #, javascript-format
 msgid "cannot read metrics from %s"
-msgstr ""
-
-#: src/cli/metrics.ts:155
-msgid "call start (UTC)"
 msgstr ""
 
 #: src/cli/metrics.ts:155

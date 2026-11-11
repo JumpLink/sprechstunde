@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-10 16:56+0100\n"
+"POT-Creation-Date: 2026-11-11 13:13+0100\n"
 "PO-Revision-Date: 2026-10-19 23:10+0200\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -556,28 +556,28 @@ msgstr "Die Einstellungs-App ist nicht gebaut: `npm run web:build` ausführen"
 msgid "unknown route"
 msgstr "unbekannte Route"
 
-#: src/agent/assistant.ts:80
+#: src/agent/assistant.ts:81
 msgid "CPU profile written to"
 msgstr "CPU-Profil geschrieben nach"
 
-#: src/agent/assistant.ts:155
+#: src/agent/assistant.ts:156
 msgid "Pocket TTS has no free session, this call uses the fallback voice"
 msgstr ""
 "Pocket TTS hat keine freie Sitzung, dieser Anruf nutzt die Ersatzstimme"
 
-#: src/agent/assistant.ts:204
+#: src/agent/assistant.ts:205
 msgid "starting assistant with profile"
 msgstr "Assistent startet mit Profil"
 
-#: src/agent/assistant.ts:204
+#: src/agent/assistant.ts:205
 msgid "on line"
 msgstr "auf Leitung"
 
-#: src/agent/assistant.ts:240
+#: src/agent/assistant.ts:241
 msgid "transfer failed"
 msgstr "Weiterleitung fehlgeschlagen"
 
-#: src/agent/assistant.ts:293
+#: src/agent/assistant.ts:306
 msgid "CPU profile failed"
 msgstr "CPU-Profil fehlgeschlagen"
 
@@ -589,7 +589,7 @@ msgstr "Echo-Modus: warte auf Audio vom Anrufer"
 msgid "echo mode: forwarding stopped"
 msgstr "Echo-Modus: Weiterleitung abgebrochen"
 
-#: src/agent/metrics.ts:112
+#: src/agent/metrics.ts:139
 #, javascript-format
 msgid "cannot write metrics to %s"
 msgstr "Metriken können nicht nach %s geschrieben werden"
@@ -656,6 +656,121 @@ msgid "worker is unhealthy; exiting so the container restarts"
 msgstr ""
 "Worker ist nicht funktionsfähig; beende, damit der Container neu startet"
 
+#: src/cli/costs.ts:24
+msgid ""
+"usage: costs [--since <ISO|date>] [--until <ISO|date>] [--day <YYYY-MM-DD>] "
+"[--prices <file>] [--json]"
+msgstr ""
+"Aufruf: costs [--since <ISO|Datum>] [--until <ISO|Datum>] [--day <JJJJ-MM-"
+"TT>] [--prices <Datei>] [--json]"
+
+#: src/cli/costs.ts:25
+msgid "       costs --estimate <calls per month> <minutes per call>"
+msgstr "       costs --estimate <Anrufe pro Monat> <Minuten pro Anruf>"
+
+#: src/cli/costs.ts:26
+msgid ""
+"Prices the call_usage lines in <SPRECHSTUNDE_METRICS_DIR or var/metrics> "
+"with a price table."
+msgstr ""
+"Bewertet die call_usage-Zeilen in <SPRECHSTUNDE_METRICS_DIR oder var/"
+"metrics> mit einer Preistabelle."
+
+#: src/cli/costs.ts:27
+msgid ""
+"  --prices    the table; default SPRECHSTUNDE_PRICES or var/prices.json (a "
+"server setting, not in git)"
+msgstr ""
+"  --prices    die Tabelle; Vorgabe SPRECHSTUNDE_PRICES oder var/prices.json "
+"(eine Servereinstellung, nicht in git)"
+
+#: src/cli/costs.ts:28
+msgid ""
+"  --estimate  what a month would cost if every call used what the measured "
+"calls used per minute"
+msgstr ""
+"  --estimate  was ein Monat kostet, wenn jeder Anruf pro Minute so viel "
+"verbraucht wie die gemessenen"
+
+#: src/cli/costs.ts:34 src/cli/metrics.ts:45 src/cli/metrics.ts:124
+#, javascript-format
+msgid "invalid date: %s"
+msgstr "ungültiges Datum: %s"
+
+#: src/cli/costs.ts:107
+msgid "no measured call to base an estimate on"
+msgstr "kein gemessener Anruf als Grundlage für eine Schätzung"
+
+#: src/cli/costs.ts:125
+#, javascript-format
+msgid "measured: %s calls, %s minutes"
+msgstr "gemessen: %s Anrufe, %s Minuten"
+
+#: src/cli/costs.ts:128
+msgid "month"
+msgstr "Monat"
+
+#: src/cli/costs.ts:129
+msgid "variable"
+msgstr "variabel"
+
+#: src/cli/costs.ts:130
+msgid "fixed"
+msgstr "fix"
+
+#: src/cli/costs.ts:131 src/cli/costs.ts:209
+msgid "total"
+msgstr "gesamt"
+
+#: src/cli/costs.ts:131 src/cli/costs.ts:212
+msgid "call"
+msgstr "Anruf"
+
+#: src/cli/costs.ts:164
+#, javascript-format
+msgid "cannot read the price table %s"
+msgstr "Preistabelle %s kann nicht gelesen werden"
+
+#: src/cli/costs.ts:186
+#, javascript-format
+msgid ""
+"no call_usage lines in %s (recorded since the call end was instrumented)"
+msgstr ""
+"keine call_usage-Zeilen in %s (sie werden erst seit der Instrumentierung des "
+"Anrufendes geschrieben)"
+
+#: src/cli/costs.ts:191 src/cli/metrics.ts:155
+msgid "call start (UTC)"
+msgstr "Anrufbeginn (UTC)"
+
+#: src/cli/costs.ts:191 src/cli/costs.ts:209
+msgid "minutes"
+msgstr "Minuten"
+
+#: src/cli/costs.ts:191 src/cli/costs.ts:202
+msgid "cost"
+msgstr "Kosten"
+
+#: src/cli/costs.ts:202
+msgid "vendor model unit"
+msgstr "Anbieter Modell Einheit"
+
+#: src/cli/costs.ts:202
+msgid "quantity"
+msgstr "Menge"
+
+#: src/cli/costs.ts:209
+msgid "calls"
+msgstr "Anrufe"
+
+#: src/cli/costs.ts:212
+msgid "minute"
+msgstr "Minute"
+
+#: src/cli/costs.ts:214
+msgid "unpriced"
+msgstr "ohne Preis"
+
 #: src/cli/fallback.ts:27
 msgid "the profile has no \"fallback\" text; add one or pass --text"
 msgstr ""
@@ -715,11 +830,6 @@ msgstr ""
 "abgesichertes TTS-Stück kann doppelt vorkommen; Zeilen werden nicht "
 "dedupliziert."
 
-#: src/cli/metrics.ts:45 src/cli/metrics.ts:124
-#, javascript-format
-msgid "invalid date: %s"
-msgstr "ungültiges Datum: %s"
-
 #: src/cli/metrics.ts:97
 msgid "metric (ms)"
 msgstr "Metrik (ms)"
@@ -728,10 +838,6 @@ msgstr "Metrik (ms)"
 #, javascript-format
 msgid "cannot read metrics from %s"
 msgstr "Metriken können nicht aus %s gelesen werden"
-
-#: src/cli/metrics.ts:155
-msgid "call start (UTC)"
-msgstr "Anrufbeginn (UTC)"
 
 #: src/cli/metrics.ts:155
 msgid "seconds"
@@ -2707,9 +2813,6 @@ msgstr "Hohe Qualität"
 #~ msgstr ""
 #~ "Noch keine Voreinstellungen. Lege eine an und mache sie zur aktiven "
 #~ "Stimme."
-
-#~ msgid "calls"
-#~ msgstr "Anrufe"
 
 #~ msgid "en"
 #~ msgstr "de"

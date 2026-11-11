@@ -85,6 +85,33 @@ export function callConfigLine(config: CallConfig, now = Date.now()): Record<str
   };
 }
 
+/** What the session counted for one vendor model: numbers and names, no text. */
+export type UsageEntry = Record<string, unknown>;
+
+/**
+ * One line at the end of a call: how long it ran and what each vendor model consumed, including a
+ * fallback that spoke. `npm run costs` prices it with the operator's table. Numbers only.
+ */
+export function callUsageLine(
+  call: { jobId?: string; profile?: string; character?: string; startedAt: number },
+  usage: readonly UsageEntry[],
+  now = Date.now(),
+): Record<string, unknown> {
+  return {
+    type: 'call_usage',
+    ts: now,
+    jobId: call.jobId,
+    profile: call.profile,
+    character: call.character,
+    durationMs: now - call.startedAt,
+    usage,
+  };
+}
+
+export function recordCallUsage(call: Parameters<typeof callUsageLine>[0], usage: readonly UsageEntry[]): void {
+  write(callUsageLine(call, usage));
+}
+
 let warned = false;
 
 export function recordCallConfig(config: CallConfig): void {

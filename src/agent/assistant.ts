@@ -18,7 +18,7 @@ import { _ } from '../i18n.js';
 import { mistralClient } from '../mistral.js';
 import { AWAY_TIMEOUT_S, attachIdlePrompt } from './idle-prompt.js';
 import { buildLlm, llmFallbackModel, llmModel } from './llm.js';
-import { recordCallConfig, recordMetrics } from './metrics.js';
+import { recordCallConfig, recordCallUsage, recordMetrics } from './metrics.js';
 import { characterForCall, currentSettings, profileFileForCall, profileForCall } from './settings.js';
 import { attachTranscript, transcriptDir } from './transcript.js';
 import { transferSipParticipant } from './transfer.js';
@@ -268,6 +268,7 @@ export async function runAssistant(ctx: JobContext, startProfile: Profile): Prom
     },
   });
 
+  const startedAt = Date.now();
   // Which voice and model this call used, so the latency lines below can be read per voice.
   recordCallConfig({
     jobId: ctx.job?.id,
@@ -284,6 +285,15 @@ export async function runAssistant(ctx: JobContext, startProfile: Profile): Prom
   // The session closes when the caller hangs up, but the job would sit in the room until the
   // room times out; whoever joins that room meanwhile gets a silent agent and no new dispatch.
   session.on(voice.AgentSessionEventTypes.Close, () => {
+    // The fix below must run even if the usage getter throws.
+    try {
+      recordCallUsage(
+        { jobId: ctx.job?.id, profile: venue.id, character: speech.choice.character, startedAt },
+        session.usage.modelUsage,
+      );
+    } catch {
+      // A missing cost line is not worth a call that hangs on close.
+    }
     // Upstream (livekit/agents-js 1.9.3, issue #17): RoomIO.close() waits for the first
     // subscription to the agent's track and ignores the cancel. A caller gone before subscribing
     // never subscribes, so close hung 60 s. This event fires before RoomIO.close().
