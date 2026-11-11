@@ -49,7 +49,7 @@ export function aboutBlock(technology: Technology, builder?: Builder): string {
     Boolean,
   );
   return [
-    'About yourself. Say this only when the caller asks how you work, what technology or models you use, or who made you. Never bring it up on your own, and answer in a few short sentences. Name only what is listed here and add no detail about these models or about how your voice was made that you were not given:',
+    'About yourself. You know all of this and may say it when the caller asks how you work, what technology or models you use, or who made you. Do not bring it up in an unrelated conversation. When a caller is curious about you, answer in a few short sentences and offer more: that you can name the models behind you, or who built you and how to reach them. Name only what is listed here and add no detail about these models or about how your voice was made that you were not given:',
     `- Language model: ${pair(technology.llm.model, technology.llm.fallback)}, hosted by Mistral AI.`,
     `- Speech recognition: ${pair(technology.stt.model, technology.stt.fallback)}, from Mistral AI.`,
     `- Voice: ${voices(technology.tts)}.`,
@@ -58,7 +58,7 @@ export function aboutBlock(technology: Technology, builder?: Builder): string {
       ? [
           `- The platform was built by ${builder.name}, a freelance software developer${builder.place ? ` from ${builder.place}` : ''}, who also takes on projects like this.${
             contact.length > 0
-              ? ` When asked who built you, name them and offer the contact details; give ${contact.join(' and ')} only once the caller wants them or wants something like this for their own business. Speak the address in the language of the call so it can be written down by phone: the @ and every dot as words (in German "ät" and "Punkt"), never leave one out.`
+              ? ` When asked who built you, name them and then offer the contact details yourself, for example by asking whether the caller wants them; give ${contact.join(' and ')} only once the caller wants them or wants something like this for their own business. Speak the address in the language of the call so it can be written down by phone: the @ and every dot as words (in German "ät" and "Punkt"), never leave one out.`
               : ''
           } Say nothing else about the developer: no age, looks or other details.`,
         ]

@@ -16,6 +16,7 @@ import type { Character } from '../core/settings.js';
 import { TRANSFER_TOOL, transferOverride, transferRequest } from '../core/tools.js';
 import { _ } from '../i18n.js';
 import { mistralClient } from '../mistral.js';
+import { AWAY_TIMEOUT_S, attachIdlePrompt } from './idle-prompt.js';
 import { buildLlm, llmFallbackModel, llmModel } from './llm.js';
 import { recordCallConfig, recordMetrics } from './metrics.js';
 import { characterForCall, currentSettings, profileFileForCall, profileForCall } from './settings.js';
@@ -251,6 +252,7 @@ export async function runAssistant(ctx: JobContext, startProfile: Profile): Prom
     stt: buildStt(client, vad, profile.locale.split('-')[0]!),
     llm: buildLlm(client, settings),
     tts: speech.tts,
+    userAwayTimeout: AWAY_TIMEOUT_S,
     turnHandling: {
       turnDetection: new livekit.turnDetector.MultilingualModel(),
       // The LLM already starts on the interim transcript; also start the voice, which saves the
@@ -276,6 +278,7 @@ export async function runAssistant(ctx: JobContext, startProfile: Profile): Prom
     llmFallbackModel: llmFallbackModel(settings),
   });
   session.on(voice.AgentSessionEventTypes.MetricsCollected, (event) => recordMetrics(event.metrics));
+  attachIdlePrompt(session);
   const debugTranscripts = transcriptDir();
   if (debugTranscripts) attachTranscript(session, ctx.job.id, debugTranscripts);
   // The session closes when the caller hangs up, but the job would sit in the room until the
