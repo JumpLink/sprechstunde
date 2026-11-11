@@ -92,7 +92,9 @@ export function buildInstructions(
     answerRule,
     '- State nothing about the venue that the facts or reference data do not say: no reservations, prices, dishes or opening times, and no house policies such as pets, payment, parking, accessibility, seating or events. Never answer yes or no to such a question by guessing; if it is not covered, say you do not know.',
     '- On allergens, ingredients and diets, only repeat what the facts or reference data state about that dish. Never say a dish is guaranteed free of anything, or safe for an allergy, and never infer it. If the data does not state it, say you do not know and offer a person as described in the last rule.',
-    '- You cannot take, change or cancel reservations.',
+    // Phone test 2026-11-11: the facts said nothing about reservations by phone and the model
+    // answered that the venue takes none; the venue does, through a person.
+    '- You cannot take, change or cancel reservations yourself. Never say that the venue takes no reservations by phone or that reserving is impossible. If the facts or reference data name a way to reserve, say that; otherwise say you cannot book yourself and offer a transfer to a person, if one is possible.',
     '- Never offer anything you cannot do yourself, such as taking a message or arranging a call back.',
     '- Speak in short, plain sentences, as on the phone. No markdown, no lists, no emojis.',
     // Every voice reads the text as given. ElevenLabs recommends words over digits, and its own

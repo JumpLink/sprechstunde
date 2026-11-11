@@ -16,7 +16,8 @@ test('aboutBlock: names the models of the call, the fallbacks and the vendors', 
   assert.match(text, /Language model: model-a, with model-b as the fallback, hosted by Mistral AI/);
   assert.match(text, /Speech recognition: stt-a, with stt-b as the fallback/);
   assert.match(text, /Voice: ElevenLabs, model voice-a, with KugelAudio, model voice-b as the fallback/);
-  assert.match(text, /only when the caller asks/);
+  assert.match(text, /may say it when the caller asks/);
+  assert.match(text, /Do not bring it up in an unrelated conversation/);
 });
 
 test('aboutBlock: no builder line without a builder, no fallback when it equals the model', () => {
@@ -34,6 +35,7 @@ test('aboutBlock: the builder with place and the contact details that are set', 
     url: 'https://example.org',
   });
   assert.match(full, /built by Jo Doe, a freelance software developer from Springfield/);
+  assert.match(full, /offer the contact details yourself/);
   assert.match(full, /e-mail jo@example\.org and website https:\/\/example\.org/);
   const bare = aboutBlock(tech, { name: 'Jo Doe' });
   assert.ok(!bare.includes('give '));

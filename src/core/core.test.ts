@@ -121,6 +121,12 @@ test('prompt: numbers and times are to be written as spoken words', () => {
   assert.ok(text.indexOf('in words') > text.indexOf('Rules:'));
 });
 
+test('prompt: reservations are never declared impossible by phone', () => {
+  const text = buildInstructions(example, NOW);
+  assert.match(text, /Never say that the venue takes no reservations by phone/);
+  assert.match(text, /offer a transfer to a person/);
+});
+
 test('prompt: without a persona, or with an empty one, it is exactly what it was', () => {
   const plain = buildInstructions(example, NOW);
   assert.equal(buildInstructions(example, NOW, undefined), plain);
