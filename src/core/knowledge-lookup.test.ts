@@ -69,6 +69,8 @@ test('buildInstructions: the lookup rule appears only when a section shows a sum
   const withLookup = buildInstructions(profile, now, undefined, splitReference(snapshot).text);
   assert.ok(withLookup.includes(LOOKUP_TOOL_NAME));
   assert.ok(!withLookup.includes('Only if no listed fact fits'));
+  assert.match(withLookup, /yourself, at once, before you answer/);
+  assert.match(withLookup, /Never ask the caller whether you should look something up/);
   const without = buildInstructions(profile, now, undefined, renderSnapshot([section('About', 'A small restaurant.')]));
   assert.ok(!without.includes(LOOKUP_TOOL_NAME));
   assert.ok(without.includes('Only if no listed fact fits'));
