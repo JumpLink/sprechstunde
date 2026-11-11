@@ -285,10 +285,15 @@ export async function runAssistant(ctx: JobContext, startProfile: Profile): Prom
   // The session closes when the caller hangs up, but the job would sit in the room until the
   // room times out; whoever joins that room meanwhile gets a silent agent and no new dispatch.
   session.on(voice.AgentSessionEventTypes.Close, () => {
-    recordCallUsage(
-      { jobId: ctx.job?.id, profile: venue.id, character: speech.choice.character, startedAt },
-      session.usage.modelUsage,
-    );
+    // The fix below must run even if the usage getter throws.
+    try {
+      recordCallUsage(
+        { jobId: ctx.job?.id, profile: venue.id, character: speech.choice.character, startedAt },
+        session.usage.modelUsage,
+      );
+    } catch {
+      // A missing cost line is not worth a call that hangs on close.
+    }
     // Upstream (livekit/agents-js 1.9.3, issue #17): RoomIO.close() waits for the first
     // subscription to the agent's track and ignores the cancel. A caller gone before subscribing
     // never subscribes, so close hung 60 s. This event fires before RoomIO.close().

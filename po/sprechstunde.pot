@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-11 13:11+0100\n"
+"POT-Creation-Date: 2026-11-11 13:13+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -566,7 +566,7 @@ msgstr ""
 msgid "transfer failed"
 msgstr ""
 
-#: src/agent/assistant.ts:301
+#: src/agent/assistant.ts:306
 msgid "CPU profile failed"
 msgstr ""
 
