@@ -76,9 +76,10 @@ export function buildInstructions(
 
   // A cut-down section hides its dishes and prices, so "no listed fact fits" is not yet a reason
   // to say "I do not know" (measured 2026-11-10: the model skipped the tool in 4 of 7 questions
-  // while a rule here said to answer without one).
+  // while a rule here said to answer without one; 2026-11-11: "what does a beer cost?" got "I do not
+  // know" in 2 of 3 runs, because a general question matches no section by name).
   const answerRule = reference?.includes(DETAILS_MARKER)
-    ? `- Answer directly from the facts below, without calling a tool. If no fact fits and the question could be about a section marked "${DETAILS_MARKER}" (dishes, prices, drinks, ingredients), call ${LOOKUP_TOOL_NAME} for that section before anything else. Only if the looked-up text does not cover it either, say you do not know.`
+    ? `- Answer directly from the facts below, without calling a tool. If no fact fits and the question could be about a section marked "${DETAILS_MARKER}" (dishes, prices, drinks, ingredients), call ${LOOKUP_TOOL_NAME} for that section yourself, at once, before you answer; a general question such as what a beer or a dish costs is one of them. Never ask the caller whether you should look something up, and never say what you can or cannot see. Only if the looked-up text does not cover it either, say you do not know.`
     : '- Answer directly from the facts below, without calling a tool. Only if no listed fact fits, say you do not know.';
 
   return [
