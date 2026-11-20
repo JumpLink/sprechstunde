@@ -39,6 +39,11 @@ export interface Profile {
   facts: Fact[];
   transfer?: { target: string; announce: string };
   /**
+   * Where a message the assistant takes for the team goes: a JSON POST (`messages.ts`). The bearer
+   * token is the deployment's `MESSAGES_TOKEN`, never in the profile, which the admin page shows.
+   */
+  messages?: { endpoint: string };
+  /**
    * Played by the telephony gateway, not by the agent, when no agent answers: a recording made
    * beforehand (`npm run fallback`), so it works exactly when the agent and the models do not.
    */
@@ -115,6 +120,15 @@ export function parseProfile(raw: unknown, path = '<profile>'): Profile {
       target,
       announce: str(raw.transfer, 'announce', `${path} transfer`),
     };
+  }
+
+  if (raw.messages !== undefined) {
+    if (!isRecord(raw.messages)) fail(path, '"messages" must be an object');
+    const endpoint = str(raw.messages, 'endpoint', `${path} messages`);
+    if (!/^https:\/\/|^http:\/\/(127\.0\.0\.1|localhost)[:/]/.test(endpoint)) {
+      fail(path, '"messages.endpoint" must be an https URL');
+    }
+    profile.messages = { endpoint };
   }
 
   if (raw.greetingVariants !== undefined) {

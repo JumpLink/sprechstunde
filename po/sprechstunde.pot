@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sprechstunde\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-11 13:13+0100\n"
+"POT-Creation-Date: 2026-11-20 23:05+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -546,27 +546,31 @@ msgstr ""
 msgid "unknown route"
 msgstr ""
 
-#: src/agent/assistant.ts:81
+#: src/agent/assistant.ts:88
 msgid "CPU profile written to"
 msgstr ""
 
-#: src/agent/assistant.ts:156
+#: src/agent/assistant.ts:163
 msgid "Pocket TTS has no free session, this call uses the fallback voice"
 msgstr ""
 
-#: src/agent/assistant.ts:205
+#: src/agent/assistant.ts:212
 msgid "starting assistant with profile"
 msgstr ""
 
-#: src/agent/assistant.ts:205
+#: src/agent/assistant.ts:212
 msgid "on line"
 msgstr ""
 
-#: src/agent/assistant.ts:241
+#: src/agent/assistant.ts:248
 msgid "transfer failed"
 msgstr ""
 
-#: src/agent/assistant.ts:306
+#: src/agent/assistant.ts:274
+msgid "message for the venue"
+msgstr ""
+
+#: src/agent/assistant.ts:343
 msgid "CPU profile failed"
 msgstr ""
 
@@ -617,7 +621,7 @@ msgstr ""
 
 #: src/agent/tts-provider.ts:74 src/agent/tts-provider.ts:77
 #: src/agent/tts-provider.ts:159 src/agent/tts-provider.ts:196
-#: src/agent/tts-provider.ts:229 src/cli/fallback.ts:23 src/cli/provision.ts:12
+#: src/agent/tts-provider.ts:229 src/cli/fallback.ts:23 src/cli/provision.ts:13
 #: src/cli/sip-contacts.ts:18 src/cli/stt-try.ts:100 src/cli/tts-try.ts:88
 #: src/cli/voice.ts:12 src/mistral.ts:21
 #, javascript-format
@@ -815,27 +819,27 @@ msgstr ""
 msgid "skipped malformed lines: %s"
 msgstr ""
 
-#: src/cli/provision.ts:36
+#: src/cli/provision.ts:37
 msgid "Inbound trunk exists:"
 msgstr ""
 
-#: src/cli/provision.ts:40
+#: src/cli/provision.ts:41
 msgid "Inbound trunk updated:"
 msgstr ""
 
-#: src/cli/provision.ts:47
+#: src/cli/provision.ts:48
 msgid "Inbound trunk created:"
 msgstr ""
 
-#: src/cli/provision.ts:53
+#: src/cli/provision.ts:54
 msgid "Dispatch rule exists:"
 msgstr ""
 
-#: src/cli/provision.ts:60
+#: src/cli/provision.ts:61
 msgid "Dispatch rule replaced:"
 msgstr ""
 
-#: src/cli/provision.ts:72
+#: src/cli/provision.ts:73
 msgid "Dispatch rule created:"
 msgstr ""
 
@@ -935,11 +939,15 @@ msgstr ""
 msgid "deleted voice %s"
 msgstr ""
 
-#: src/core/tools.ts:54
+#: src/core/tools.ts:55
 msgid "Phone calls only, and only when the profile has a transfer target."
 msgstr ""
 
-#: src/core/tools.ts:57
+#: src/core/tools.ts:56
+msgid "Only when the profile has a message endpoint."
+msgstr ""
+
+#: src/core/tools.ts:59
 msgid "Only when the published knowledge has a long section, such as a menu."
 msgstr ""
 

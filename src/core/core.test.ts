@@ -7,6 +7,7 @@ import { loadProfile, parseProfile, pickGreeting, withAssistantName } from './pr
 import { buildInstructions, personaOf } from './prompt.js';
 import { describeKnowledge } from './knowledge.js';
 import { LOOKUP_TOOL_NAME } from './knowledge-lookup.js';
+import { MESSAGE_TOOL } from './messages.js';
 import { maskTransferTarget, TRANSFER_TOOL, toolDescriptors, transferOverride, transferRequest } from './tools.js';
 
 const example = loadProfile('profiles/example/profile.de.json');
@@ -77,6 +78,27 @@ test('an empty SPRECHSTUNDE_PROFILE means the default profile', () => {
 test('fallback is optional and must not be empty', () => {
   assert.equal(parseProfile(variant((r) => delete r.fallback)).fallback, undefined);
   assert.throws(() => parseProfile(variant((r) => (r.fallback = ' '))), /fallback/);
+});
+
+test('messages: an https endpoint is taken, anything else is refused', () => {
+  const ok = parseProfile(variant((r) => (r.messages = { endpoint: 'https://venue.example/api/message' })));
+  assert.equal(ok.messages?.endpoint, 'https://venue.example/api/message');
+  const local = parseProfile(variant((r) => (r.messages = { endpoint: 'http://127.0.0.1:8080/m' })));
+  assert.equal(local.messages?.endpoint, 'http://127.0.0.1:8080/m');
+  assert.throws(
+    () => parseProfile(variant((r) => (r.messages = { endpoint: 'http://venue.example/m' }))),
+    /messages\.endpoint/,
+  );
+  assert.throws(() => parseProfile(variant((r) => (r.messages = 'x'))), /messages/);
+});
+
+test('prompt: a venue with messages may offer one, a venue without may not', () => {
+  const without = buildInstructions(example, NOW);
+  assert.match(without, /such as taking a message/);
+  assert.doesNotMatch(without, /take_message/);
+  const withMessages = buildInstructions({ ...example, messages: { endpoint: 'https://venue.example/m' } }, NOW);
+  assert.match(withMessages, /take_message/);
+  assert.match(withMessages, /A call back is only possible through a message/);
 });
 
 test('rejects a transfer target that is neither tel: nor sip:', () => {
@@ -236,7 +258,7 @@ test('the tool descriptors are what the prompt and the agent refer to', () => {
   const tools = toolDescriptors();
   assert.deepEqual(
     tools.map((tool) => tool.name),
-    [TRANSFER_TOOL.name, LOOKUP_TOOL_NAME],
+    [TRANSFER_TOOL.name, MESSAGE_TOOL.name, LOOKUP_TOOL_NAME],
   );
   for (const tool of tools) {
     assert.ok(tool.description.length > 0);

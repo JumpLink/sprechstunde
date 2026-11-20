@@ -1,5 +1,6 @@
 import { _ } from '../i18n.js';
 import { lookupTool } from './knowledge-lookup.js';
+import { MESSAGE_TOOL } from './messages.js';
 import type { Profile } from './profile.js';
 
 /** Channel-independent request; each channel decides how to carry it out. */
@@ -52,6 +53,7 @@ export const TRANSFER_TOOL: LlmTool = {
 export function toolDescriptors(): ToolDescriptor[] {
   return [
     { ...TRANSFER_TOOL, availableWhen: _('Phone calls only, and only when the profile has a transfer target.') },
+    { ...MESSAGE_TOOL, availableWhen: _('Only when the profile has a message endpoint.') },
     {
       ...lookupTool([]),
       availableWhen: _('Only when the published knowledge has a long section, such as a menu.'),

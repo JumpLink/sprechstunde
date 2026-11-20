@@ -1,11 +1,12 @@
 import { RoomAgentDispatch, RoomConfiguration, SipClient } from 'livekit-server-sdk';
 import { httpUrl } from '../agent/transfer.js';
+import { LINE_ATTRIBUTE, LINE_HEADER, RETURN_ATTRIBUTE, RETURN_HEADER } from '../core/lines.js';
 import { _ } from '../i18n.js';
 
 const TRUNK_NAME = 'sprechstunde-inbound';
 const RULE_NAME = 'sprechstunde-dispatch';
-/** The header Asterisk adds per line (extensions.conf) and the participant attribute the agent reads. */
-export const LINE_HEADERS = { 'X-Sprechstunde-Line': 'sprechstunde.line' };
+/** The headers Asterisk adds (extensions.conf) and the participant attributes the agent reads. */
+export const LINE_HEADERS = { [LINE_HEADER]: LINE_ATTRIBUTE, [RETURN_HEADER]: RETURN_ATTRIBUTE };
 
 function required(name: string): string {
   const value = process.env[name];
