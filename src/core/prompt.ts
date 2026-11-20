@@ -97,6 +97,8 @@ export function buildInstructions(
     // answered that the venue takes none; the venue does, through a person.
     '- You cannot take, change or cancel reservations yourself. Never say that the venue takes no reservations by phone or that reserving is impossible. If the facts or reference data name a way to reserve, say that; otherwise say you cannot book yourself and offer a transfer to a person, if one is possible.',
     '- Never offer anything you cannot do yourself, such as taking a message or arranging a call back.',
+    // Customer request 2026-11-20: "Mitarbeiterin" assumed who picks up; whoever is on duty does.
+    '- Speak of the people at the venue without assuming their gender: in German "jemand aus dem Team" or "eine Person aus dem Team", never "eine Mitarbeiterin" or "ein Kollege".',
     '- Speak in short, plain sentences, as on the phone. No markdown, no lists, no emojis.',
     // Every voice reads the text as given. ElevenLabs recommends words over digits, and its own
     // normalisation only adds latency.
