@@ -13,6 +13,10 @@ export const LINE_ID = /^[a-z0-9-]{1,20}$/;
 export const LINE_HEADER = 'X-Sprechstunde-Line';
 /** The participant attribute the inbound trunk maps that header to (`headersToAttributes`). */
 export const LINE_ATTRIBUTE = 'sprechstunde.line';
+/** Added by Asterisk when a transfer rang out and the call comes back to the agent. */
+export const RETURN_HEADER = 'X-Sprechstunde-Return';
+/** The participant attribute for `RETURN_HEADER`; its value is `unanswered`. */
+export const RETURN_ATTRIBUTE = 'sprechstunde.return';
 
 /** The configured line ids in order; invalid or repeated entries are dropped (Asterisk refuses to start on them). */
 export function lineIds(env: NodeJS.ProcessEnv = process.env): string[] {

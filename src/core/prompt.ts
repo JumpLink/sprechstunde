@@ -4,6 +4,7 @@ import type { Gender } from './settings.js';
 import { DETAILS_MARKER, LOOKUP_TOOL_NAME } from './knowledge-lookup.js';
 import { referenceBlock } from './knowledge-snapshot.js';
 import { TRANSFER_TOOL } from './tools.js';
+import { messageRule } from './messages.js';
 
 /** What a character adds to the prompt: how it speaks, and which grammatical gender it uses for itself. */
 export interface Persona {
@@ -98,7 +99,9 @@ export function buildInstructions(
     // Phone test 2026-11-11: the facts said nothing about reservations by phone and the model
     // answered that the venue takes none; the venue does, through a person.
     '- You cannot take, change or cancel reservations yourself. Never say that the venue takes no reservations by phone or that reserving is impossible. If the facts or reference data name a way to reserve, say that; otherwise say you cannot book yourself and offer a transfer to a person, if one is possible.',
-    '- Never offer anything you cannot do yourself, such as taking a message or arranging a call back.',
+    profile.messages
+      ? '- Never offer anything you cannot do yourself. A call back is only possible through a message, as described below.'
+      : '- Never offer anything you cannot do yourself, such as taking a message or arranging a call back.',
     // Customer request 2026-11-20: "Mitarbeiterin" assumed who picks up; whoever is on duty does.
     '- Speak of the people at the venue without assuming their gender: in German "jemand aus dem Team" or "eine Person aus dem Team", never "eine Mitarbeiterin" or "ein Kollege".',
     '- Speak in short, plain sentences, as on the phone. No markdown, no lists, no emojis.',
@@ -106,6 +109,7 @@ export function buildInstructions(
     // normalisation only adds latency.
     '- Your text is read aloud by a speech synthesizer, so write it as it is spoken: times, dates, numbers, prices and abbreviations in words, never as digits or symbols (in German "von siebzehn bis einundzwanzig Uhr", "neun Uhr dreißig", "zwölf Euro fünfzig"). Mark pauses with commas and full stops, not with dashes or line breaks.',
     `- ${transfer}`,
+    ...(profile.messages ? [`- ${messageRule(profile.transfer !== undefined)}`] : []),
     '',
     'Facts:',
     facts,

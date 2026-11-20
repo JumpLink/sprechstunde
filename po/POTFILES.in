@@ -62,6 +62,7 @@ src/core/knowledge-lookup.ts
 src/core/knowledge-snapshot.ts
 src/core/knowledge.ts
 src/core/lines.ts
+src/core/messages.ts
 src/core/profile.ts
 src/core/prompt.ts
 src/core/settings.ts

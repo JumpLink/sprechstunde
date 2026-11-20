@@ -9,7 +9,14 @@ import { ParticipantKind } from '@livekit/rtc-node';
 import { AUDIO_TAGS, stripAudioTags } from '../core/audio-tags.js';
 import { buildInstructions, type Persona, personaOf } from '../core/prompt.js';
 import { pickGreeting, type Profile, withAssistantName } from '../core/profile.js';
-import { LINE_ATTRIBUTE, LINE_ID } from '../core/lines.js';
+import { LINE_ATTRIBUTE, LINE_ID, RETURN_ATTRIBUTE } from '../core/lines.js';
+import {
+  checkMessage,
+  deliverMessage,
+  MESSAGE_TOOL,
+  RETURNED_FROM_TRANSFER,
+  returnedGreetingInstruction,
+} from '../core/messages.js';
 import { LOOKUP_TOOL_NAME, lookupDetails, lookupTool, splitReference } from '../core/knowledge-lookup.js';
 import { readSnapshot, snapshotPath } from '../core/knowledge-snapshot.js';
 import type { Character } from '../core/settings.js';
@@ -239,12 +246,42 @@ export async function runAssistant(ctx: JobContext, startProfile: Profile): Prom
           await transferSipParticipant(ctx.room.name ?? '', participant.identity, request.target);
         } catch (error) {
           console.error(_('transfer failed'), (error as Error).message);
-          return 'The transfer failed. Apologise and say the caller can try again later.';
+          return profile.messages
+            ? 'The transfer failed. Apologise and offer to take a message instead.'
+            : 'The transfer failed. Apologise and say the caller can try again later.';
         }
         return 'Transfer started.';
       },
     }),
+    ...(profile.messages
+      ? {
+          [MESSAGE_TOOL.name]: llm.tool({
+            description: MESSAGE_TOOL.description,
+            parameters: MESSAGE_TOOL.parameters,
+            execute: async (args: { name?: unknown; message?: unknown; callbackNumber?: unknown }) => {
+              const checked = checkMessage(args, {
+                venue: venue.id,
+                callerNumber: participant?.attributes['sip.phoneNumber'],
+                now: new Date(),
+              });
+              if (!checked.ok) return checked.reply;
+              const delivered = await deliverMessage(
+                profile.messages!.endpoint,
+                process.env.MESSAGES_TOKEN || undefined,
+                checked.message,
+              );
+              // Never the message itself in the log: it is the caller's.
+              console.log(_('message for the venue'), venue.id, delivered ? 'delivered' : 'FAILED');
+              return delivered
+                ? 'The message was passed on. Tell the caller the team will call back, without promising a time.'
+                : 'Passing on the message failed. Apologise and suggest calling again later.';
+            },
+          }),
+        }
+      : {}),
   };
+  // Back from a transfer nobody answered (extensions.conf): no second greeting, no second transfer.
+  const returned = participant?.attributes[RETURN_ATTRIBUTE] === 'unanswered';
 
   const vad = ctx.proc.userData.vad as silero.VAD;
   const session = new voice.AgentSession({
@@ -310,18 +347,23 @@ export async function runAssistant(ctx: JobContext, startProfile: Profile): Prom
 
   await session.start({
     agent: new voice.Agent({
-      instructions: buildInstructions(
-        profile,
-        new Date(),
-        personaForCall(character, speech.choice),
-        reference,
-        aboutBlock(technologyFor(settings, character), builderFromEnv()),
-      ),
+      instructions:
+        buildInstructions(
+          profile,
+          new Date(),
+          personaForCall(character, speech.choice),
+          reference,
+          aboutBlock(technologyFor(settings, character), builderFromEnv()),
+        ) + (returned ? `\n\n${RETURNED_FROM_TRANSFER}` : ''),
       tools,
     }),
     room: ctx.room,
   });
   // A voice that reads tags gets them (rewritten by its own wrapper); any other would read them out.
+  if (returned) {
+    session.generateReply({ instructions: returnedGreetingInstruction(profile.messages !== undefined) });
+    return;
+  }
   const greeting = pickGreeting(profile);
   session.say(audioTagDialect(speech.choice) ? greeting : stripAudioTags(greeting));
 }

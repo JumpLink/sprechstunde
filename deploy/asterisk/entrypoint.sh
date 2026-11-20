@@ -8,6 +8,12 @@ export SPRECHSTUNDE_ANSWER_TIMEOUT="${SPRECHSTUNDE_ANSWER_TIMEOUT:-10}"
 case "$SPRECHSTUNDE_ANSWER_TIMEOUT" in
   ''|*[!0-9]*) echo "SPRECHSTUNDE_ANSWER_TIMEOUT must be whole seconds" >&2; exit 1 ;;
 esac
+# How long a transfer rings before the call goes back to the agent, which then offers to take a
+# message. Short of most mobile mailboxes (often 20-25 s), which would otherwise take the call.
+export TRANSFER_RING_TIMEOUT="${TRANSFER_RING_TIMEOUT:-18}"
+case "$TRANSFER_RING_TIMEOUT" in
+  ''|*[!0-9]*) echo "TRANSFER_RING_TIMEOUT must be whole seconds" >&2; exit 1 ;;
+esac
 
 # Lines: one provider registration each. Without SIP_LINES there is one, "main", from SIP_PROVIDER_*
 # (the shape from before lines existed); with it, SIP_LINE_<ID>_<FIELD> overrides SIP_PROVIDER_<FIELD>
@@ -98,6 +104,7 @@ trap stop TERM INT
 env -i PATH="$PATH" HOME="${HOME:-/root}" ${TZ:+TZ="$TZ"} \
   TRANSFER_TARGET_NUMBER="$TRANSFER_TARGET_NUMBER" \
   SPRECHSTUNDE_ANSWER_TIMEOUT="$SPRECHSTUNDE_ANSWER_TIMEOUT" \
+  TRANSFER_RING_TIMEOUT="$TRANSFER_RING_TIMEOUT" \
   SPRECHSTUNDE_FIRST_LINE="$SPRECHSTUNDE_FIRST_LINE" \
   "$@" &
 pid=$!
