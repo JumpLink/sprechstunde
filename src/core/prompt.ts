@@ -71,7 +71,9 @@ export function buildInstructions(
   }).format(now);
   const facts = profile.facts.map((fact) => `- ${fact.topic}: ${fact.answer}`).join('\n');
   const transfer = profile.transfer
-    ? `If you cannot answer or the caller asks for a person, offer to transfer the call and use the ${TRANSFER_TOOL.name} tool once the caller agrees.`
+    ? // Customer feedback 2026-11-20: the assistant offered a person far too early, often as the
+      // first reply to anything not in the facts. A transfer takes staff away from guests.
+      `Help the caller yourself first: answer from the facts and look things up as described above. Do not offer a transfer at the first gap and do not end answers with a transfer offer. Offer to transfer the call only when the caller asks for a person or does not want to talk to an AI, when the facts say a request needs a person, or when you have really tried and still cannot help. Use the ${TRANSFER_TOOL.name} tool once the caller agrees.`
     : 'No transfer to a person is possible. If you cannot answer, say so and suggest calling again later.';
 
   // A cut-down section hides its dishes and prices, so "no listed fact fits" is not yet a reason

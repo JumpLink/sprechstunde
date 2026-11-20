@@ -336,7 +336,9 @@ test('prompt: nothing about the venue is stated unless the facts say it, with an
     assert.match(text, /Never answer yes or no to such a question by guessing/);
     assert.match(text, /as described in the last rule/);
   }
-  assert.match(withTransfer, /offer to transfer the call/);
+  assert.match(withTransfer, /Offer to transfer the call only when/);
+  assert.match(withTransfer, /Help the caller yourself first/);
+  assert.match(withTransfer, /does not want to talk to an AI/);
   assert.match(without, /No transfer to a person is possible/);
 });
 
