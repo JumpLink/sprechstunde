@@ -108,6 +108,8 @@ could not reach PipeWire); that is an observation on one machine, not a general 
 | `SPRECHSTUNDE_TRANSCRIPT_DIR` | debug only, off when empty: writes what caller and agent said, plus turn events, to `<dir>/<date>/<job id>.jsonl`. In compose any non-empty value turns it on and writes to `var/transcripts` |
 | `SPRECHSTUNDE_ANSWER_TIMEOUT` | seconds Asterisk lets LiveKit ring before it plays the fallback, default `10` |
 | `SIP_PROVIDER_*`, `TRANSFER_TARGET_NUMBER`, `TRANSFER_SIP_HOST` | Asterisk's provider registration and the one number a call may be transferred to; it replaces the profile's `transfer.target` — see `.env.example` |
+| `TRANSFER_RING_TIMEOUT` | seconds a transfer rings (default 18) before the call comes back to the agent, which then offers to take a message; keep it below the target's mailbox delay |
+| `MESSAGES_TOKEN` | bearer token sent with every message to the profile's `messages.endpoint` |
 
 ### Profiles
 
@@ -116,6 +118,13 @@ belongs outside this repository. The greeting must tell the caller they are talk
 (EU AI Act, Art. 50); `loadProfile` refuses an empty one.
 
 The example's transfer target `tel:+4900000000` is invalid on purpose.
+
+`messages.endpoint` (optional, https) lets the assistant take a message for the team: name, what it
+is about and a callback number (the caller's own, after asking). The agent POSTs it as JSON
+(`source`, `venue`, `name`, `phone`, `message`, `receivedAt`) with `Authorization: Bearer
+$MESSAGES_TOKEN` and tells the caller it was passed on only on a 2xx. A transfer nobody answers comes
+back to the agent (Asterisk sets `X-Sprechstunde-Return`; run `npm run provision` once so the trunk
+maps it), which then offers a message instead of a second transfer.
 
 `selfDescription` (optional) is what the assistant says when asked what it is, verbatim and for any
 locale, e.g. `"ein KI-gestützter digitaler Helfer"`; without it a German persona with a stated gender
